@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>S.T.A.L.K.E.R. PDA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Google Translate -->
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+          pageLanguage: 'en',
+          includedLanguages: 'en,ru,uk,el',
+          layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
+          autoDisplay: false
+        }, 'google_translate_element');
+      }
+      
+      // Toggle translate widget
+      function toggleTranslate() {
+        const widget = document.getElementById('google_translate_element');
+        const btn = document.getElementById('translate_btn');
+        if (widget.style.display === 'none' || !widget.style.display) {
+          widget.style.display = 'block';
+          btn.classList.add('active');
+        } else {
+          widget.style.display = 'none';
+          btn.classList.remove('active');
+        }
+      }
+      
+      // Close on click outside
+      document.addEventListener('click', function(e) {
+        const widget = document.getElementById('google_translate_element');
+        const btn = document.getElementById('translate_btn');
+        if (widget && btn && !widget.contains(e.target) && !btn.contains(e.target)) {
+          widget.style.display = 'none';
+          btn.classList.remove('active');
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
+    <style>
+      /* Hide Google Translate banner */
+      .goog-te-banner-frame.skiptranslate { display: none !important; }
+      body { top: 0px !important; }
+      
+      /* Translate button */
+      #translate_btn {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        z-index: 10000;
+        background: rgba(10, 15, 10, 0.95);
+        border: 1px solid rgba(82, 117, 82, 0.5);
+        padding: 6px 10px;
+        border-radius: 3px 0 0 0;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.2s;
+      }
+      
+      #translate_btn:hover {
+        border-color: rgba(82, 117, 82, 0.8);
+        background: rgba(10, 15, 10, 1);
+      }
+      
+      #translate_btn.active {
+        border-color: #39ff14;
+      }
+      
+      /* Compact Google Translate widget */
+      #google_translate_element {
+        position: fixed;
+        bottom: 36px;
+        right: 0;
+        z-index: 9999;
+        display: none;
+      }
+      
+      .goog-te-gadget {
+        font-family: 'Share Tech Mono', monospace !important;
+        font-size: 10px !important;
+        color: #8cb08c !important;
+      }
+      
+      .goog-te-gadget-simple {
+        background: rgba(10, 15, 10, 0.95) !important;
+        border: 1px solid rgba(82, 117, 82, 0.5) !important;
+        padding: 4px 8px !important;
+        border-radius: 3px !important;
+      }
+      
+      .goog-te-gadget-simple span {
+        color: #8cb08c !important;
+      }
+      
+      .goog-te-gadget-simple:hover {
+        border-color: rgba(82, 117, 82, 0.8) !important;
+      }
+      
+      .goog-te-menu-value span {
+        color: #8cb08c !important;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="translate_btn" onclick="toggleTranslate()" title="Translate">🌐</button>
+    <div id="google_translate_element"></div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

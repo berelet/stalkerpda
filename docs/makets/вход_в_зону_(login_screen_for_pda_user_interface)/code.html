@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>S.T.A.L.K.E.R. NET - PDA Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&amp;family=VT323&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "pda-bg": "#0a0f0a",
+                        "pda-frame": "#2a2f2a",
+                        "pda-screen-bg": "#050805",
+                        "stalker-green": "#4af626",
+                        "stalker-amber": "#ffb000",
+                        "stalker-dim": "#1e3a1e",
+                        "stalker-dark": "#0c140c",
+                    },
+                    fontFamily: {
+                        "mono": ["'Share Tech Mono'", "monospace"],
+                        "pixel": ["'VT323'", "monospace"],
+                    },
+                    boxShadow: {
+                        'screen-glow': '0 0 10px rgba(74, 246, 38, 0.1), inset 0 0 20px rgba(0, 0, 0, 0.8)',
+                        'btn-glow': '0 0 5px rgba(74, 246, 38, 0.4)',
+                    },
+                    backgroundImage: {
+                        'dirty-texture': "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMmEyZjJhIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMzMzMzMzMiLz4KPC9zdmc+')",
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        :root {
+            --pda-glow: #4af626;
+            --crt-line: rgba(18, 16, 16, 0.1);
+        }
+        body {
+            background-color: #000;
+            color: var(--pda-glow);
+        }.crt-overlay {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+        .crt-flicker {
+            animation: flicker 0.15s infinite;
+        }
+        @keyframes flicker {
+            0% { opacity: 0.97; }
+            5% { opacity: 0.95; }
+            10% { opacity: 0.9; }
+            15% { opacity: 0.95; }
+            20% { opacity: 0.99; }
+            50% { opacity: 0.95; }
+            80% { opacity: 0.98; }
+            100% { opacity: 0.96; }
+        }
+        .text-glitch {
+            animation: glitch 3s infinite;
+        }
+        @keyframes glitch {
+            0% { transform: skew(0deg); }
+            2% { transform: skew(5deg); }
+            4% { transform: skew(-5deg); }
+            6% { transform: skew(0deg); }
+            100% { transform: skew(0deg); }
+        }.pda-btn {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .faction-card-clip {
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+        }.custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #0c140c;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #4af626;
+            border-radius: 0;
+        }.pda-input {
+            background: #0c140c;
+            border: 1px solid #1e3a1e;
+            color: #4af626;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+        }
+        .pda-input:focus {
+            border-color: #4af626;
+            box-shadow: 0 0 8px rgba(74, 246, 38, 0.3);
+            outline: none;
+        }input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px #0c140c inset !important;
+            -webkit-text-fill-color: #4af626 !important;
+            caret-color: #4af626;
+        }
+        .led-blink {
+            animation: blink 2s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 0.2; box-shadow: 0 0 0 transparent; }
+            50% { opacity: 1; box-shadow: 0 0 10px #ffb000; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#050505] flex justify-center h-[100dvh] overflow-hidden font-mono selection:bg-stalker-green selection:text-black">
+<div class="relative w-full max-w-md h-full bg-[#2a2e2a] flex flex-col shadow-2xl overflow-hidden border-x-4 border-[#1a1c1a]">
+<div class="absolute inset-0 bg-dirty-texture opacity-30 pointer-events-none z-0"></div>
+<div class="relative z-10 bg-gradient-to-b from-[#3a3e3a] to-[#2a2e2a] p-2 flex justify-between items-center border-b-2 border-[#151515] shadow-lg">
+<div class="flex gap-2 ml-2">
+<div class="w-2 h-2 rounded-full bg-red-900 border border-black/50"></div>
+<div class="w-2 h-2 rounded-full bg-amber-500 border border-black/50 led-blink"></div>
+</div>
+<div class="w-24 h-2 flex gap-[2px]">
+<div class="flex-1 bg-[#111] rounded-full"></div>
+<div class="flex-1 bg-[#111] rounded-full"></div>
+<div class="flex-1 bg-[#111] rounded-full"></div>
+<div class="flex-1 bg-[#111] rounded-full"></div>
+</div>
+<div class="w-8"></div> 
+</div>
+<div class="flex-1 relative m-2 mb-3 bg-[#111] rounded-lg p-[2px] shadow-[inset_0_0_15px_rgba(0,0,0,1)] border-2 border-[#444] border-b-[#222] border-r-[#222]">
+<div class="w-full h-full bg-pda-screen-bg relative overflow-hidden rounded shadow-screen-glow flex flex-col">
+<div class="absolute inset-0 z-50 crt-overlay mix-blend-overlay opacity-70 pointer-events-none"></div>
+<div class="absolute inset-0 z-40 bg-gradient-to-b from-transparent via-transparent to-[rgba(74,246,38,0.03)] pointer-events-none crt-flicker"></div>
+<div class="flex-1 flex flex-col relative z-30 custom-scroll overflow-y-auto">
+<div class="flex justify-between items-center bg-stalker-dark border-b border-stalker-dim px-3 py-1 text-xs">
+<div class="flex items-center gap-2 text-stalker-dim">
+<span class="material-symbols-outlined text-[14px]">satellite_alt</span>
+<span class="tracking-widest">NOOSPHERE_NET</span>
+</div>
+<div class="flex items-center gap-3 text-stalker-green">
+<span class="font-pixel text-lg">23:42</span>
+<div class="flex gap-[1px]">
+<div class="w-1 h-2 bg-stalker-green"></div>
+<div class="w-1 h-2 bg-stalker-green"></div>
+<div class="w-1 h-2 bg-stalker-green"></div>
+<div class="w-1 h-2 bg-stalker-dim"></div>
+</div>
+</div>
+</div>
+<div class="p-4 space-y-6 pb-24">
+<div class="font-pixel text-stalker-green/60 text-sm leading-tight border-l-2 border-stalker-dim pl-2 mb-6">
+<p>&gt; SYS_BOOT... OK</p>
+<p>&gt; BIOS_VER_1.0.4... LOADED</p>
+<p>&gt; NET_SYNC... <span class="animate-pulse text-stalker-green">CONNECTING</span></p>
+</div>
+<div class="text-center mb-8 relative group">
+<h1 class="text-4xl font-pixel text-stalker-green tracking-widest text-glitch drop-shadow-[0_0_5px_rgba(74,246,38,0.8)]">
+                                S.T.A.L.K.E.R.
+                            </h1>
+<div class="h-px bg-gradient-to-r from-transparent via-stalker-green to-transparent w-full my-2 opacity-50"></div>
+<p class="text-xs tracking-[0.3em] text-stalker-green uppercase">Authorized Personnel Only</p>
+</div>
+<form class="space-y-5" onsubmit="event.preventDefault();">
+<div class="space-y-1">
+<label class="text-[10px] text-stalker-green/70 uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">key</span> Access Code
+                                </label>
+<div class="relative group">
+<div class="absolute -left-1 -top-1 w-2 h-2 border-l border-t border-stalker-green opacity-50"></div>
+<div class="absolute -right-1 -bottom-1 w-2 h-2 border-r border-b border-stalker-green opacity-50"></div>
+<input class="w-full h-12 pda-input px-3 text-xl tracking-[0.5em] text-center placeholder-stalker-dim/30 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMGMxNDBjIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMxZTNhMWUiLz4KPC9zdmc+')]" maxlength="4" placeholder="XXXX" type="text"/>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] text-stalker-green/70 uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">id_card</span> Callsign
+                                </label>
+<div class="relative">
+<input class="w-full h-12 pda-input px-3 text-lg tracking-widest bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMGMxNDBjIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMxZTNhMWUiLz4KPC9zdmc+')]" placeholder="STALKER" type="text"/>
+</div>
+</div>
+<div class="pt-2">
+<label class="text-[10px] text-stalker-green/70 uppercase tracking-wider flex items-center gap-1 mb-3">
+<span class="material-symbols-outlined text-[12px]">diversity_3</span> Faction Select
+                                </label>
+<div class="grid grid-cols-2 gap-3">
+<label class="cursor-pointer group relative">
+<input checked="" class="peer sr-only" name="faction" type="radio" value="loner"/>
+<div class="faction-card-clip bg-[#0f150f] border border-stalker-dim p-2 h-24 flex flex-col items-center justify-center gap-2 peer-checked:bg-[#1a2e1a] peer-checked:border-stalker-green peer-checked:shadow-[inset_0_0_10px_rgba(74,246,38,0.2)] transition-all hover:bg-[#142014]">
+<div class="w-8 h-8 relative grayscale group-hover:grayscale-0 peer-checked:grayscale-0 transition-all duration-300">
+<img alt="Loner" class="w-full h-full object-contain mix-blend-screen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6fyJMCiZLl92Fwu0dDTCIqfrPNI5LOCZkeeSuhKbwiQpAwkB2BQYqZNinfSxSIEJmj6HXqKR1CAHDy_5J4J5GFkrnq2Ed2hil696gyMHTUYJkxG7wmrQbfY5m6oITvjxDgn39KEYSg6YFJcvY60qGPgubA_7vpv4n1xXlQS82jG5S0qQuR3fN3mFdF_LiRP9Ld8iuSLPkkp9CFi-e9oRAwkNA2ny_z9D1BL6_iEdiwu8wwrNnFPSPtrFdmb42VMVJze-PI-WU6DAh"/>
+</div>
+<span class="font-pixel text-xl uppercase text-stalker-dim group-hover:text-stalker-green peer-checked:text-stalker-green">Loner</span>
+</div>
+<div class="absolute top-1 right-1 w-2 h-2 bg-stalker-green opacity-0 peer-checked:opacity-100 shadow-[0_0_5px_#4af626]"></div>
+</label>
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="faction" type="radio" value="duty"/>
+<div class="faction-card-clip bg-[#0f150f] border border-stalker-dim p-2 h-24 flex flex-col items-center justify-center gap-2 peer-checked:bg-[#1a2e1a] peer-checked:border-stalker-green peer-checked:shadow-[inset_0_0_10px_rgba(74,246,38,0.2)] transition-all hover:bg-[#142014]">
+<div class="w-8 h-8 relative grayscale group-hover:grayscale-0 peer-checked:grayscale-0 transition-all duration-300">
+<img alt="Duty" class="w-full h-full object-contain mix-blend-screen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJCqBhTn2ia0R4L3vbPkwcynD3gO6NxDHIyluWfLsXCYPT2GfA6rtFJg2F1Xlb46vGiz5FNo5TZTbX6oUa-9J6K5oT1n4umjSLs-K-lP8rZbNEJvPov_9Tm-qoDVY7TpYrd_2BK2Iw14QLTpoCXRKfYDvJUbu2ge1gD-d7wpIaAXDfYK-2Nr4iFAzhE6eLD98cOBmr6E9UHejq2cn5pdAB0uLjF7u_fjD7zBQ8kWs0FoCTMwoWTZuEPwtuLyw-p_3AkAV58xeOrmcK"/>
+</div>
+<span class="font-pixel text-xl uppercase text-stalker-dim group-hover:text-stalker-green peer-checked:text-stalker-green">Duty</span>
+</div>
+</label>
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="faction" type="radio" value="freedom"/>
+<div class="faction-card-clip bg-[#0f150f] border border-stalker-dim p-2 h-24 flex flex-col items-center justify-center gap-2 peer-checked:bg-[#1a2e1a] peer-checked:border-stalker-green peer-checked:shadow-[inset_0_0_10px_rgba(74,246,38,0.2)] transition-all hover:bg-[#142014]">
+<div class="w-8 h-8 relative grayscale group-hover:grayscale-0 peer-checked:grayscale-0 transition-all duration-300">
+<img alt="Freedom" class="w-full h-full object-contain mix-blend-screen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBllLH2P_u5x4phJp3L8mUy63OFHDjNoWxL0Z8Kpa4pSUR-jlwVPaJNuuztdIasCIzknoFKuivYp1hHowtEpfbAY58yEw4_TFtQVPfbgnkCPOwrt6R9ddwxFcNZcmQ8NNxS9Nzk7iUWz-754RCZ634g4dv2LdHyQRsnCQr9uhV74NZkBV6_xgk_H9qg15Fmr7sqhWsAozxZVnDQ5tR1XlwacGjLc5m9OicQGANRVHYqSYLlTUjpPc6H4nPOn6fn8i5c5QsRnFW4bRUb"/>
+</div>
+<span class="font-pixel text-xl uppercase text-stalker-dim group-hover:text-stalker-green peer-checked:text-stalker-green">Freedom</span>
+</div>
+</label>
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="faction" type="radio" value="bandit"/>
+<div class="faction-card-clip bg-[#0f150f] border border-stalker-dim p-2 h-24 flex flex-col items-center justify-center gap-2 peer-checked:bg-[#1a2e1a] peer-checked:border-stalker-green peer-checked:shadow-[inset_0_0_10px_rgba(74,246,38,0.2)] transition-all hover:bg-[#142014]">
+<div class="w-8 h-8 relative grayscale group-hover:grayscale-0 peer-checked:grayscale-0 transition-all duration-300">
+<img alt="Bandits" class="w-full h-full object-contain mix-blend-screen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqbkDaJ1QcUuietvtiWbr01G6zemQ8U66nNiXqwhLCj7zfCQWydN99DQr_KMstgnyEM5VxwtFfgETyrAElGks4wiQC802c3B7A3YHT__TxMQuBjHzMVlXaOzchbOYzGjU2xt5fD83DBtDu-F46MGmNU1p9zYR9ADibF3doW57BDwIJ0z3yR64t_ZH3qVQdHFKO-tOsqkVq_ynm7UrCecwFs6x4tpKMW-T1e9--ThxbId8SeYFRFg7w8rRxeSt15kMyWlD3YZWOK-rZ"/>
+</div>
+<span class="font-pixel text-xl uppercase text-stalker-dim group-hover:text-stalker-green peer-checked:text-stalker-green">Bandits</span>
+</div>
+</label>
+</div>
+</div>
+</form>
+</div>
+</div>
+<div class="absolute bottom-0 w-full bg-[#0c140c]/95 border-t border-stalker-dim z-50 backdrop-blur-sm p-4">
+<button class="pda-btn w-full bg-stalker-dim hover:bg-stalker-green group border border-stalker-green/30 relative overflow-hidden transition-all duration-200 active:scale-[0.98]">
+<div class="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.2)_10px,rgba(0,0,0,0.2)_20px)] opacity-30"></div>
+<div class="flex items-center justify-center gap-3 py-3 px-4 relative z-10">
+<span class="material-symbols-outlined text-stalker-green group-hover:text-black transition-colors animate-pulse">power_settings_new</span>
+<span class="font-pixel text-2xl uppercase text-stalker-green group-hover:text-black tracking-widest transition-colors">INIT_LOGIN</span>
+</div>
+</button>
+<div class="flex justify-between mt-2 text-[8px] text-stalker-dim font-mono uppercase">
+<span>Ver 1.0.4.55</span>
+<span>NET: SECURE</span>
+</div>
+</div>
+</div>
+</div>
+<div class="h-16 bg-gradient-to-t from-[#252825] to-[#2a2e2a] border-t border-[#151515] shadow-inner flex justify-center items-center gap-6 pb-2">
+<button class="w-12 h-8 rounded bg-[#1a1c1a] border-b-2 border-r-2 border-[#444] border-t border-l border-[#000] shadow-[inset_0_2px_5px_rgba(0,0,0,0.5)] active:border-t active:border-l active:border-[#444] flex items-center justify-center group">
+<div class="w-6 h-1 bg-[#0f0f0f] rounded-full group-active:translate-y-[1px]"></div>
+</button>
+<button class="w-16 h-10 rounded-lg bg-[#1a1c1a] border-b-4 border-r-2 border-[#444] border-t border-l border-[#000] shadow-[inset_0_2px_5px_rgba(0,0,0,0.5)] active:border-b active:translate-y-[2px] flex items-center justify-center">
+<span class="material-symbols-outlined text-[#333] text-sm">grid_view</span>
+</button>
+<button class="w-12 h-8 rounded bg-[#1a1c1a] border-b-2 border-r-2 border-[#444] border-t border-l border-[#000] shadow-[inset_0_2px_5px_rgba(0,0,0,0.5)] active:border-t active:border-l active:border-[#444] flex items-center justify-center group">
+<div class="w-6 h-1 bg-[#0f0f0f] rounded-full group-active:translate-y-[1px]"></div>
+</button>
+</div>
+</div>
+
+</body></html>

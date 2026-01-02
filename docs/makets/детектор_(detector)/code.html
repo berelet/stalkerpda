@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Detector - PDA 3.0</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&amp;family=VT323&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "stalker-bg": "#0a0f0a",
+                        "stalker-green": "#4ade80", 
+                        "stalker-green-dim": "#22543d",
+                        "stalker-amber": "#ffb000",
+                        "stalker-red": "#ef4444",
+                        "stalker-ui": "#1a1f1a",
+                        "stalker-border": "#4a554a",
+                        "case-olive": "#2f3328",
+                        "case-highlight": "#424738",
+                        "case-shadow": "#1a1c15",
+                    },
+                    fontFamily: {
+                        "display": ["VT323", "monospace"],
+                        "mono": ["Share Tech Mono", "monospace"]
+                    },
+                    backgroundImage: {
+                        'crt-grid': 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))',
+                        'worn-texture': 'url("data:image/svg+xml,%3Csvg width=\'200\' height=\'200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.08\'/%3E%3C/svg%3E")',
+                        'radar-sweep': 'conic-gradient(from 0deg at 50% 50%, transparent 0deg, transparent 240deg, rgba(74, 222, 128, 0.1) 280deg, rgba(74, 222, 128, 0.7) 360deg)',
+                    },
+                    boxShadow: {
+                        'crt-glow': '0 0 10px rgba(74, 222, 128, 0.15), inset 0 0 20px rgba(0,0,0,0.7)',
+                        'case-depth': 'inset 2px 2px 5px rgba(255,255,255,0.05), inset -2px -2px 5px rgba(0,0,0,0.5)',
+                    },
+                    animation: {
+                        'glitch': 'glitch 1s linear infinite',
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        glitch: {
+                            '2%, 64%': { transform: 'translate(2px,0) skew(0deg)' },
+                            '4%, 60%': { transform: 'translate(-2px,0) skew(0deg)' },
+                            '62%': { transform: 'translate(0,0) skew(5deg)' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">:root {
+            --pda-screen-color: #0a0f0a;
+            --pda-text-primary: #a3bfa3;
+            --pda-text-active: #4ade80;
+        }.pixelated {
+            image-rendering: pixelated;
+        }
+        .scanline-anim {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+        .screen-flicker {
+            animation: flicker 0.15s infinite;
+            opacity: 0.03;
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: white;
+            z-index: 51;
+        }
+        @keyframes flicker {
+            0% { opacity: 0.02; }
+            50% { opacity: 0.05; }
+            100% { opacity: 0.02; }
+        }.radar-grid {
+            background-image: 
+                radial-gradient(circle, transparent 65%, rgba(74, 222, 128, 0.2) 66%, transparent 67%),
+                radial-gradient(circle, transparent 40%, rgba(74, 222, 128, 0.2) 41%, transparent 42%),
+                linear-gradient(0deg, transparent 49%, rgba(74, 222, 128, 0.15) 50%, transparent 51%),
+                linear-gradient(90deg, transparent 49%, rgba(74, 222, 128, 0.15) 50%, transparent 51%);
+            background-size: 100% 100%;
+        }.screen-vignette {
+            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 120%);
+        }.pda-bezel {
+            box-shadow: 
+                inset 1px 1px 2px rgba(255,255,255,0.1),
+                inset -1px -1px 2px rgba(0,0,0,0.6),
+                3px 3px 10px rgba(0,0,0,0.5);
+            border: 1px solid #1a1f1a;
+        }::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0f0a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #22543d; 
+            border: 1px solid #0a0f0a;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-case-olive h-screen flex flex-col overflow-hidden relative font-display select-none">
+<div class="absolute inset-0 bg-worn-texture opacity-30 pointer-events-none z-0 mix-blend-overlay"></div>
+<div class="h-12 bg-gradient-to-b from-case-highlight to-case-olive flex items-center justify-between px-4 z-10 border-b-4 border-black shadow-lg relative">
+<div class="flex gap-2">
+<div class="w-3 h-3 rounded-full bg-red-900 border border-black shadow-inner relative overflow-hidden">
+<div class="absolute inset-0 bg-red-500 animate-pulse opacity-50"></div>
+<div class="absolute top-0.5 left-0.5 w-1 h-1 bg-white opacity-40 rounded-full"></div>
+</div>
+<div class="w-3 h-3 rounded-full bg-green-900 border border-black shadow-inner relative">
+<div class="absolute inset-0 bg-green-500 opacity-80"></div>
+<div class="absolute top-0.5 left-0.5 w-1 h-1 bg-white opacity-40 rounded-full"></div>
+</div>
+</div>
+<div class="flex gap-1 h-4">
+<div class="w-1 h-full bg-black/40 rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"></div>
+<div class="w-1 h-full bg-black/40 rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"></div>
+<div class="w-1 h-full bg-black/40 rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"></div>
+<div class="w-1 h-full bg-black/40 rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"></div>
+</div>
+<div class="text-[10px] text-white/20 font-sans font-bold tracking-widest uppercase transform skew-x-[-10deg]">S.T.A.L.K.E.R. NET</div>
+</div>
+<div class="flex-1 m-2 mx-1 bg-black rounded-sm border-[6px] border-[#181a16] shadow-[inset_0_0_15px_black] relative overflow-hidden">
+<div class="absolute inset-0 bg-stalker-bg text-stalker-green font-display flex flex-col z-0">
+<div class="scanline-anim"></div>
+<div class="screen-flicker"></div>
+<div class="absolute inset-0 screen-vignette pointer-events-none z-40"></div>
+<div class="flex-none h-8 bg-stalker-ui border-b border-stalker-green-dim flex items-center justify-between px-2 text-lg z-30">
+<div class="flex items-center gap-2">
+<span class="text-stalker-amber text-sm font-mono tracking-tighter">PDA_v3.0.1</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 text-stalker-green">
+<span class="material-symbols-outlined text-sm">wifi</span>
+<span class="text-sm font-mono">NET:ON</span>
+</div>
+<span class="text-stalker-amber font-mono text-lg tracking-widest">18:42</span>
+</div>
+</div>
+<div class="flex-none px-3 py-2 bg-[#0d120d] border-b border-stalker-green/20">
+<div class="flex justify-between items-end border-b border-stalker-green/20 pb-1 mb-1">
+<h1 class="text-2xl font-normal tracking-widest text-stalker-green drop-shadow-[0_0_3px_rgba(74,222,128,0.5)]">DETECTOR</h1>
+<span class="text-xs text-stalker-green-dim font-mono animate-pulse">Scanning...</span>
+</div>
+<div class="flex gap-4 text-sm font-mono text-stalker-green/60">
+<span>ZONE: <span class="text-stalker-amber">CYPRUS</span></span>
+<span>RAD: <span class="text-stalker-red animate-pulse">ELEVATED</span></span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-3 relative z-10 custom-scrollbar">
+<div class="flex flex-col items-center justify-center mb-4 relative">
+<div class="w-full max-w-[320px] aspect-square relative flex items-center justify-center bg-black/40 rounded-full border border-stalker-green/20 shadow-[0_0_20px_rgba(74,222,128,0.05)]">
+<div class="absolute inset-0 rounded-full radar-grid opacity-60"></div>
+<div class="absolute inset-2 rounded-full bg-radar-sweep opacity-50 animate-[spin_4s_linear_infinite]"></div>
+<div class="absolute inset-[15%] rounded-full border border-stalker-green/10 border-dashed"></div>
+<div class="absolute inset-[35%] rounded-full border border-stalker-green/10"></div>
+<div class="absolute w-full h-[1px] bg-stalker-green/30"></div>
+<div class="absolute h-full w-[1px] bg-stalker-green/30"></div>
+<div class="absolute z-20 transform -rotate-12 drop-shadow-[0_0_5px_rgba(74,222,128,0.8)]">
+<svg fill="none" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2L2 22L12 18L22 22L12 2Z" fill="#4ade80" stroke="#0a0f0a" stroke-width="1"></path>
+</svg>
+</div>
+<div class="absolute top-[25%] right-[28%] w-3 h-3 bg-white rounded-full shadow-[0_0_10px_white] animate-[pulse_0.5s_ease-in-out_infinite]"></div>
+<div class="absolute bottom-8 right-8 bg-black/80 border border-stalker-green/50 px-1 py-0.5 text-xs font-mono text-stalker-green shadow-lg">
+                            4.2m
+                        </div>
+<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full text-center mt-20 pointer-events-none">
+<div class="inline-block bg-stalker-red/90 text-black px-2 py-1 text-lg font-bold tracking-widest border-t-2 border-b-2 border-black shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse">
+                                ! ARTIFACT !
+                            </div>
+</div>
+</div>
+</div>
+<div class="border border-stalker-green/30 bg-[#0d120d] p-0 mb-4 shadow-[0_0_10px_rgba(0,0,0,0.5)]">
+<div class="bg-stalker-green/10 px-2 py-1 border-b border-stalker-green/30 flex justify-between items-center">
+<span class="text-sm text-stalker-green uppercase tracking-wide">Signature Analysis</span>
+<span class="text-xs font-mono bg-stalker-green text-black px-1">ID:88-A</span>
+</div>
+<div class="p-3 grid grid-cols-[auto_1fr] gap-3">
+<div class="w-12 h-12 border border-stalker-green/40 flex items-center justify-center bg-black/40">
+<span class="material-symbols-outlined text-2xl text-stalker-green animate-pulse">all_inclusive</span>
+</div>
+<div class="flex flex-col justify-center">
+<div class="text-xl leading-none text-white tracking-wide font-bold mb-1 glitch-text">GRAVI-CONCENTRATE</div>
+<div class="text-xs font-mono text-stalker-green/70">Probability: 98.4% | Value: Est. 4500 RU</div>
+</div>
+</div>
+</div>
+<div class="mb-4">
+<div class="flex justify-between items-end mb-1">
+<span class="text-sm text-stalker-green font-bold tracking-wider">EMISSION INTENSITY</span>
+<span class="text-base font-mono text-stalker-green">85%</span>
+</div>
+<div class="flex gap-0.5 h-4 bg-[#111] p-0.5 border border-stalker-green/20">
+<div class="flex-1 bg-stalker-green opacity-90 shadow-[0_0_5px_rgba(74,222,128,0.8)]"></div>
+<div class="flex-1 bg-stalker-green opacity-90 shadow-[0_0_5px_rgba(74,222,128,0.8)]"></div>
+<div class="flex-1 bg-stalker-green opacity-90 shadow-[0_0_5px_rgba(74,222,128,0.8)]"></div>
+<div class="flex-1 bg-stalker-green opacity-80"></div>
+<div class="flex-1 bg-stalker-green opacity-70"></div>
+<div class="flex-1 bg-stalker-green opacity-60"></div>
+<div class="flex-1 bg-stalker-amber opacity-90 animate-pulse"></div>
+<div class="flex-1 bg-stalker-red opacity-90 animate-[pulse_0.2s_infinite]"></div>
+<div class="flex-1 bg-stalker-green/10"></div>
+<div class="flex-1 bg-stalker-green/10"></div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-2 text-center">
+<div class="bg-black/40 border border-stalker-green/20 p-2">
+<div class="text-[10px] text-stalker-green/60 uppercase mb-1">Distance</div>
+<div class="text-xl font-mono text-white tracking-tighter">4.2<span class="text-xs">m</span></div>
+</div>
+<div class="bg-black/40 border border-stalker-red/30 p-2 shadow-[inset_0_0_10px_rgba(239,68,68,0.1)]">
+<div class="text-[10px] text-stalker-red/80 uppercase mb-1">Radiation</div>
+<div class="text-xl font-mono text-stalker-red tracking-tighter animate-pulse">3.6 R</div>
+</div>
+<div class="bg-black/40 border border-stalker-green/20 p-2">
+<div class="text-[10px] text-stalker-green/60 uppercase mb-1">Signal</div>
+<div class="text-xl font-mono text-stalker-green tracking-tighter">HIGH</div>
+</div>
+</div>
+<div class="h-6"></div> 
+</div>
+<div class="flex-none bg-[#0a0f0a] border-t-2 border-stalker-green/30 pt-1 pb-safe z-30">
+<div class="flex justify-between items-stretch h-14 px-1">
+<button class="flex-1 flex flex-col items-center justify-center gap-0 group active:bg-stalker-green/10 border-r border-stalker-green/10">
+<span class="material-symbols-outlined text-stalker-green/50 text-xl group-hover:text-stalker-green transition-colors">map</span>
+<span class="text-[10px] font-mono text-stalker-green/50 uppercase group-hover:text-stalker-green">Map</span>
+</button>
+<button class="flex-1 flex flex-col items-center justify-center gap-0 group active:bg-stalker-green/10 border-r border-stalker-green/10">
+<span class="material-symbols-outlined text-stalker-green/50 text-xl group-hover:text-stalker-green transition-colors">assignment</span>
+<span class="text-[10px] font-mono text-stalker-green/50 uppercase group-hover:text-stalker-green">Tasks</span>
+</button>
+<button class="flex-1 flex flex-col items-center justify-center gap-0 bg-stalker-green/10 border-t-2 border-stalker-green -mt-[3px] shadow-[0_0_10px_rgba(74,222,128,0.2)]">
+<span class="material-symbols-outlined text-stalker-green text-xl drop-shadow-[0_0_5px_rgba(74,222,128,0.8)]">radar</span>
+<span class="text-[10px] font-mono text-white uppercase font-bold tracking-wider">Detect</span>
+</button>
+<button class="flex-1 flex flex-col items-center justify-center gap-0 group active:bg-stalker-green/10 border-l border-stalker-green/10">
+<span class="material-symbols-outlined text-stalker-green/50 text-xl group-hover:text-stalker-green transition-colors">badge</span>
+<span class="text-[10px] font-mono text-stalker-green/50 uppercase group-hover:text-stalker-green">Profile</span>
+</button>
+</div>
+<div class="flex justify-between px-2 py-0.5 bg-black text-[9px] text-stalker-green/30 font-mono uppercase">
+<span>SYS_READY</span>
+<span>UI_VER_4.5</span>
+</div>
+</div>
+</div>
+</div>
+<div class="h-8 bg-gradient-to-t from-case-shadow to-case-olive border-t-4 border-black flex items-center justify-center relative z-10">
+<div class="flex gap-8">
+<div class="w-12 h-2 bg-black/30 rounded-full shadow-inner border border-white/5"></div>
+<div class="w-12 h-2 bg-black/30 rounded-full shadow-inner border border-white/5"></div>
+</div>
+</div>
+
+</body></html>

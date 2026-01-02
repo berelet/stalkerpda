@@ -1,0 +1,8 @@
+.env.local
+*.pyc
+__pycache__/
+.aws-sam/
+node_modules/
+dist/
+build/
+*.log

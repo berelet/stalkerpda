@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>S.T.A.L.K.E.R. PDA Stats</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&amp;family=VT323&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "pda-bg": "#0a0f0a",
+                        "pda-frame": "#2d3028",
+                        "pda-frame-light": "#3e4236",
+                        "pda-green": "#4caf50",
+                        "pda-amber": "#ffb74d",
+                        "pda-dim": "#1b2b1b",
+                        "pda-border": "#4a5a4a",
+                    },
+                    fontFamily: {
+                        "mono": ["Share Tech Mono", "monospace"],
+                        "pixel": ["VT323", "monospace"],
+                    },
+                    backgroundImage: {
+                        'noise': "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 opacity=%220.05%22/%3E%3C/svg%3E')",
+                    },
+                    boxShadow: {
+                        'glow': '0 0 10px rgba(76, 175, 80, 0.5)',
+                        'screen-inset': 'inset 0 0 20px rgba(0,0,0,0.8)',
+                    },
+                    animation: {
+                        'scanline': 'scanline 8s linear infinite',
+                        'flicker': 'flicker 0.15s infinite',
+                    },
+                    keyframes: {
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' }
+                        },
+                        flicker: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.98' },
+                            '25%': { opacity: '0.99' },
+                            '75%': { opacity: '0.94' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+<style>::-webkit-scrollbar {
+    width: 6px
+    }
+::-webkit-scrollbar-track {
+    background: #0a0f0a;
+    border-left: 1px solid #1b2b1b
+    }
+::-webkit-scrollbar-thumb {
+    background: #2d382d;
+    border: 1px solid #4caf50
+    }.crt-container {
+    position: relative;
+    overflow: hidden
+    }
+.crt-scanlines {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.2));
+    background-size: 100% 4px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 50
+    }
+.crt-flicker {
+    animation: flicker 0.15s infinite
+    }
+.screen-glow {
+    box-shadow: inset 0 0 40px rgba(0, 20, 0, 0.8)
+    }.glitch-text {
+    position: relative
+    }
+.glitch-text::before, .glitch-text::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%
+    }
+.glitch-text::before {
+    left: 2px;
+    text-shadow: -1px 0 #ff00c1;
+    clip: rect(44px, 450px, 56px, 0);
+    animation: glitch-anim 5s infinite linear alternate-reverse
+    }
+.glitch-text::after {
+    left: -2px;
+    text-shadow: -1px 0 #00fff9;
+    clip: rect(44px, 450px, 56px, 0);
+    animation: glitch-anim2 5s infinite linear alternate-reverse
+    }
+@keyframes glitch-anim {
+    0% {
+        clip: rect(41px, 9999px, 12px, 0);
+        } 5% {
+        clip: rect(89px, 9999px, 68px, 0);
+        } 100% {
+        clip: rect(12px, 9999px, 87px, 0);
+        }
+    }
+@keyframes glitch-anim2 {
+    0% {
+        clip: rect(65px, 9999px, 91px, 0);
+        } 5% {
+        clip: rect(12px, 9999px, 3px, 0);
+        } 100% {
+        clip: rect(54px, 9999px, 44px, 0);
+        }
+    }
+.dirty-overlay {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAF83ty3wbyPPx4Mc0_ag4g3k0d7PVtVQO5I8mw9k1JjgEVXZtVetKQ1hc0nAzQnyWBro0gMnVbI5Y6ndBfDZHzFm_Tjxdsp4Awe9O4PYLTZ-lfxAbEqsiQaZMoYaribf8B685wZGUJW9ZvIFrH2nu2-BYgAm14rXZUV9hv7TFal8ktlKz_Q2loAfb_N7wOS8o-54TIADj9AttQLj2QOUegBqTJ9MoufcTiiiwGdhylo8d57hv2HbhP68n89N2sFx5eKGuvRG-k52GF);
+    pointer-events: none
+    }</style>
+<style>
+        body {
+            background-color: #1a1c18;}
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#1a1c18] min-h-screen flex flex-col font-mono text-pda-green antialiased overflow-hidden">
+<div class="relative w-full max-w-md mx-auto h-screen flex flex-col bg-pda-frame border-x-8 border-y-4 border-[#252822] shadow-[inset_0_0_20px_rgba(0,0,0,1)]">
+<div class="absolute inset-0 dirty-overlay z-50 pointer-events-none mix-blend-overlay"></div>
+<div class="absolute top-4 left-1 z-50 flex flex-col gap-1.5 opacity-80">
+<div class="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_5px_rgba(255,0,0,0.8)] animate-pulse"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-pda-green shadow-[0_0_5px_rgba(76,175,80,0.8)]"></div>
+</div>
+<div class="flex-1 bg-pda-bg m-1 relative overflow-hidden flex flex-col border-[2px] border-[#0f120f] shadow-screen-inset">
+<div class="crt-scanlines"></div>
+<div class="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none z-40"></div>
+<div class="absolute inset-0 pointer-events-none z-40 bg-gradient-to-b from-transparent via-pda-green/5 to-transparent h-16 w-full animate-scanline opacity-20"></div>
+<div class="shrink-0 bg-[#0f140f] border-b border-pda-green/30 p-2 flex justify-between items-center z-30 relative shadow-lg">
+<div class="flex items-center gap-2">
+<span class="text-[10px] text-pda-green font-bold tracking-widest bg-pda-dim px-1 border border-pda-green/20">ONLINE</span>
+<span class="text-[10px] text-pda-green/60 uppercase tracking-widest">Net: 88%</span>
+</div>
+<div class="text-center">
+<span class="text-xs font-pixel text-pda-green tracking-[0.2em] animate-pulse">PDA v3.1</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] text-pda-amber">14:20</span>
+<div class="flex gap-[1px]">
+<div class="w-1 h-2 bg-pda-green"></div>
+<div class="w-1 h-2 bg-pda-green"></div>
+<div class="w-1 h-2 bg-pda-green"></div>
+<div class="w-1 h-2 bg-pda-green/30"></div>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto crt-flicker relative z-20 pb-20">
+<div class="px-4 py-4 border-b border-pda-green/20 mb-2">
+<div class="flex items-end justify-between">
+<h1 class="text-2xl font-bold tracking-widest text-pda-green glitch-text" data-text="СТАТИСТИКА">СТАТИСТИКА</h1>
+<span class="text-xs text-pda-amber font-mono border border-pda-amber/50 px-1">SYS_ID: 84-2911</span>
+</div>
+<div class="w-full h-px bg-pda-green/30 mt-1"></div>
+<div class="w-24 h-1 bg-pda-green mt-0.5"></div>
+</div>
+<div class="px-3 mb-4">
+<div class="bg-[#0e120e] border border-pda-green/40 p-2 relative">
+<div class="absolute top-0 left-0 w-2 h-2 border-t border-l border-pda-green"></div>
+<div class="absolute top-0 right-0 w-2 h-2 border-t border-r border-pda-green"></div>
+<div class="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-pda-green"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-pda-green"></div>
+<div class="flex gap-4">
+<div class="relative shrink-0">
+<div class="w-20 h-20 bg-cover bg-center border border-pda-green/50 filter sepia-[0.5] hue-rotate-[50deg] contrast-125" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCfCcFvPPc10Xo9mSCFHpvT2LA7HAxE8QyN66Yeq00o30gq6Z6EQBErLp_b_dSKa7yMN6wVsGkQUWoidt8QWSSsAMQAF9ZFouzIYNKTAZMetiv4FS8mocZW1UyUIg5spfCFftJMxxFIaxhN81WfNvNCV6fRHh1l9bOjZlwRqHP2ZGzrjTu-sEOy5xJb8on2FuBtTvlY5ywZ6xF4zcqOFqwsppOxHM9-YPYTOqDBaND0Rvx7dJivl8TGF3c7G3sfC3kgIFT51b7ft9EE');">
+<div class="absolute inset-0 bg-scanline opacity-30"></div>
+</div>
+</div>
+<div class="flex-1 flex flex-col justify-between py-0.5">
+<div class="flex justify-between items-center border-b border-dashed border-pda-green/30 pb-1">
+<span class="text-xl font-bold text-white tracking-wider">GHOST</span>
+<span class="material-symbols-outlined text-pda-green text-sm">verified_user</span>
+</div>
+<div class="grid grid-cols-2 gap-y-1 text-xs mt-1">
+<span class="text-pda-green/60">FACTION:</span>
+<span class="text-pda-amber text-right font-bold">LONERS</span>
+<span class="text-pda-green/60">RANK:</span>
+<span class="text-white text-right">VETERAN</span>
+<span class="text-pda-green/60">REP:</span>
+<span class="text-pda-green text-right">EXCELLENT</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 px-3 mb-4">
+<div class="bg-pda-dim border border-pda-green/20 p-2 flex flex-col relative group hover:border-pda-green/60 transition-colors">
+<span class="text-[10px] uppercase text-pda-green/50 tracking-widest mb-1">Ops Completed</span>
+<span class="text-3xl font-pixel text-white leading-none">12</span>
+<div class="absolute top-1 right-1 w-1 h-1 bg-pda-green/30 group-hover:bg-pda-green"></div>
+</div>
+<div class="bg-pda-dim border border-pda-green/20 p-2 flex flex-col relative group hover:border-pda-green/60 transition-colors">
+<span class="text-[10px] uppercase text-pda-green/50 tracking-widest mb-1">Artifacts</span>
+<span class="text-3xl font-pixel text-pda-amber leading-none shadow-[0_0_5px_rgba(255,183,77,0.3)]">04</span>
+<div class="absolute top-1 right-1 w-1 h-1 bg-pda-green/30 group-hover:bg-pda-green"></div>
+</div>
+<div class="bg-pda-dim border border-pda-green/20 p-2 flex flex-col relative group hover:border-pda-green/60 transition-colors">
+<span class="text-[10px] uppercase text-pda-green/50 tracking-widest mb-1">Travel (KM)</span>
+<span class="text-2xl font-pixel text-white leading-none">42.5</span>
+<div class="absolute top-1 right-1 w-1 h-1 bg-pda-green/30 group-hover:bg-pda-green"></div>
+</div>
+<div class="bg-pda-dim border border-pda-green/20 p-2 flex flex-col relative group hover:border-pda-green/60 transition-colors">
+<span class="text-[10px] uppercase text-pda-green/50 tracking-widest mb-1">Zone Time</span>
+<span class="text-2xl font-pixel text-white leading-none tracking-tight">18:20:00</span>
+<div class="absolute top-1 right-1 w-1 h-1 bg-pda-green/30 group-hover:bg-pda-green"></div>
+</div>
+</div>
+<div class="px-3 mb-5">
+<div class="flex items-center gap-2 mb-2 border-b border-pda-green/20 pb-1">
+<span class="w-1.5 h-1.5 bg-pda-green"></span>
+<h3 class="text-xs font-bold text-pda-green uppercase tracking-widest">Achievements</h3>
+<span class="text-[10px] text-pda-green/40 ml-auto">Total: 4</span>
+</div>
+<div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+<div class="min-w-[70px] flex flex-col items-center gap-1 group">
+<div class="w-14 h-14 border border-pda-green bg-pda-green/10 flex items-center justify-center relative shadow-glow">
+<span class="material-symbols-outlined text-pda-green text-2xl">water_drop</span>
+<div class="absolute inset-0 bg-scanline opacity-20"></div>
+</div>
+<span class="text-[9px] uppercase text-pda-green font-bold text-center leading-tight">First<br/>Blood</span>
+</div>
+<div class="min-w-[70px] flex flex-col items-center gap-1 group">
+<div class="w-14 h-14 border border-pda-green bg-pda-green/10 flex items-center justify-center relative shadow-glow">
+<span class="material-symbols-outlined text-pda-green text-2xl">explore</span>
+</div>
+<span class="text-[9px] uppercase text-pda-green font-bold text-center leading-tight">Path<br/>finder</span>
+</div>
+<div class="min-w-[70px] flex flex-col items-center gap-1 grayscale opacity-50">
+<div class="w-14 h-14 border border-pda-green/40 bg-transparent flex items-center justify-center relative">
+<span class="material-symbols-outlined text-pda-green/40 text-2xl">skull</span>
+</div>
+<span class="text-[9px] uppercase text-pda-green/40 font-bold text-center leading-tight">???</span>
+</div>
+<div class="min-w-[70px] flex flex-col items-center gap-1 grayscale opacity-50">
+<div class="w-14 h-14 border border-pda-green/40 bg-transparent flex items-center justify-center relative">
+<span class="material-symbols-outlined text-pda-green/40 text-2xl">science</span>
+</div>
+<span class="text-[9px] uppercase text-pda-green/40 font-bold text-center leading-tight">???</span>
+</div>
+</div>
+</div>
+<div class="px-3 mb-5">
+<div class="flex items-center gap-2 mb-2 border-b border-pda-green/20 pb-1">
+<span class="w-1.5 h-1.5 bg-pda-green"></span>
+<h3 class="text-xs font-bold text-pda-green uppercase tracking-widest">Relations</h3>
+</div>
+<div class="bg-[#0e120e] border border-pda-green/20 p-3 flex flex-col gap-3 relative">
+<div class="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(76,175,80,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(76,175,80,0.3)_1px,transparent_1px)] bg-[size:10px_10px]"></div>
+<div class="relative z-10">
+<div class="flex justify-between items-end mb-1">
+<span class="text-[10px] font-bold text-pda-green">LONERS</span>
+<span class="text-[10px] font-mono text-pda-green">850</span>
+</div>
+<div class="h-1.5 w-full bg-[#050805] border border-pda-green/30">
+<div class="h-full bg-pda-green shadow-[0_0_5px_rgba(76,175,80,0.5)]" style="width: 85%"></div>
+</div>
+</div>
+<div class="relative z-10">
+<div class="flex justify-between items-end mb-1">
+<span class="text-[10px] font-bold text-pda-green/70">DUTY</span>
+<span class="text-[10px] font-mono text-pda-green/70">450</span>
+</div>
+<div class="h-1.5 w-full bg-[#050805] border border-pda-green/20">
+<div class="h-full bg-pda-green/40" style="width: 45%"></div>
+</div>
+</div>
+<div class="relative z-10">
+<div class="flex justify-between items-end mb-1">
+<span class="text-[10px] font-bold text-red-500/80">BANDITS</span>
+<span class="text-[10px] font-mono text-red-500">-200</span>
+</div>
+<div class="h-1.5 w-full bg-[#050805] border border-red-900/40">
+<div class="h-full bg-red-700/60 shadow-[0_0_5px_rgba(185,28,28,0.3)]" style="width: 15%"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="px-3 mb-6">
+<div class="flex items-center gap-2 mb-2 border-b border-pda-green/20 pb-1">
+<span class="w-1.5 h-1.5 bg-pda-green"></span>
+<h3 class="text-xs font-bold text-pda-green uppercase tracking-widest">System Log</h3>
+</div>
+<div class="font-mono text-[10px] leading-relaxed opacity-90">
+<div class="flex gap-2 text-pda-green mb-1">
+<span class="opacity-50">14:00</span>
+<span>&gt; OP_COMPLETE: DARK VALLEY</span>
+<span class="ml-auto font-bold text-pda-amber">+50 REP</span>
+</div>
+<div class="flex gap-2 text-pda-green/70 mb-1 border-b border-dashed border-pda-green/10 pb-1">
+<span class="opacity-50">14:00</span>
+<span class="italic">...Updating database... OK</span>
+</div>
+<div class="flex gap-2 text-pda-green/80">
+<span class="opacity-50">09:30</span>
+<span>&gt; TRADE: ARTIFACT_SOLD</span>
+<span class="ml-auto font-bold text-pda-amber">+1500 RU</span>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full bg-[#0d120d] border-t border-pda-green/30 z-40">
+<div class="flex justify-between px-1 py-1">
+<button class="flex-1 flex flex-col items-center justify-center py-2 text-pda-green/40 hover:text-pda-green hover:bg-pda-green/5 transition-all group border-r border-pda-green/10">
+<span class="material-symbols-outlined text-[18px] group-hover:drop-shadow-[0_0_5px_rgba(76,175,80,0.8)]">map</span>
+<span class="text-[8px] font-bold tracking-widest mt-1 group-hover:text-pda-green">MAP</span>
+</button>
+<button class="flex-1 flex flex-col items-center justify-center py-2 text-pda-green/40 hover:text-pda-green hover:bg-pda-green/5 transition-all group border-r border-pda-green/10">
+<span class="material-symbols-outlined text-[18px] group-hover:drop-shadow-[0_0_5px_rgba(76,175,80,0.8)]">chat</span>
+<span class="text-[8px] font-bold tracking-widest mt-1 group-hover:text-pda-green">MSG</span>
+</button>
+<button class="flex-1 flex flex-col items-center justify-center py-2 bg-pda-green/10 text-pda-green border-x border-pda-green/30 relative">
+<div class="absolute top-0 left-0 w-full h-[2px] bg-pda-green shadow-[0_0_8px_rgba(76,175,80,1)]"></div>
+<span class="material-symbols-outlined text-[18px] drop-shadow-[0_0_5px_rgba(76,175,80,0.5)]">equalizer</span>
+<span class="text-[8px] font-bold tracking-widest mt-1">STATS</span>
+</button>
+<button class="flex-1 flex flex-col items-center justify-center py-2 text-pda-green/40 hover:text-pda-green hover:bg-pda-green/5 transition-all group border-r border-pda-green/10">
+<span class="material-symbols-outlined text-[18px] group-hover:drop-shadow-[0_0_5px_rgba(76,175,80,0.8)]">assignment</span>
+<span class="text-[8px] font-bold tracking-widest mt-1 group-hover:text-pda-green">TASKS</span>
+</button>
+<button class="flex-1 flex flex-col items-center justify-center py-2 text-pda-green/40 hover:text-pda-green hover:bg-pda-green/5 transition-all group">
+<span class="material-symbols-outlined text-[18px] group-hover:drop-shadow-[0_0_5px_rgba(76,175,80,0.8)]">backpack</span>
+<span class="text-[8px] font-bold tracking-widest mt-1 group-hover:text-pda-green">GEAR</span>
+</button>
+</div>
+<div class="h-4 bg-[#0d120d]"></div>
+</div>
+</div>
+<div class="absolute -right-2 top-1/2 -translate-y-1/2 flex flex-col gap-8 opacity-90">
+<div class="w-2 h-12 bg-[#1a1c18] rounded-r-md border-r border-y border-[#3e4236] shadow-lg"></div>
+<div class="w-2 h-8 bg-[#1a1c18] rounded-r-md border-r border-y border-[#3e4236] shadow-lg"></div>
+</div>
+</div>
+
+</body></html>

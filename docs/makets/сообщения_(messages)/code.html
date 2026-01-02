@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>S.T.A.L.K.E.R. PDA Messages</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&amp;family=VT323&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "pda-bg": "#050805",
+                        "pda-green": "#50fa7b",
+                        "pda-green-dim": "#2d5c30",
+                        "pda-amber": "#ffb86c",
+                        "pda-red": "#ff5555",
+                        "case-body": "#2a2d2a",
+                        "case-dark": "#1a1c1a",
+                    },
+                    fontFamily: {
+                        "mono": ["VT323", "monospace"],
+                        "tech": ["Share Tech Mono", "monospace"]
+                    },
+                    backgroundImage: {
+                        'noise': "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E\")",
+                    },
+                    animation: {
+                        'flicker': 'flicker 4s infinite',
+                        'scanline': 'scanline 8s linear infinite',
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        flicker: {
+                            '0%': { opacity: '0.97' },
+                            '5%': { opacity: '0.9' },
+                            '10%': { opacity: '0.97' },
+                            '15%': { opacity: '1' },
+                            '50%': { opacity: '0.98' },
+                            '52%': { opacity: '0.85' },
+                            '54%': { opacity: '0.98' },
+                            '100%': { opacity: '0.97' },
+                        },
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' }
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">:root {
+            --pda-glow: 0 0 10px rgba(80, 250, 123, 0.4);
+            --crt-curvature: inset 0 0 100px rgba(0,0,0,0.9);
+        }.text-glow {
+            text-shadow: var(--pda-glow);
+        }
+        .text-glow-red {
+            text-shadow: 0 0 8px rgba(255, 85, 85, 0.6);
+        }::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050805; 
+            border-left: 1px solid #2d5c30;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2d5c30; 
+            border: 1px solid #50fa7b;
+        }.scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.3) 50%,
+                rgba(0,0,0,0.3)
+            );
+            background-size: 100% 4px;
+        }
+        .crt-overlay {
+            background: radial-gradient(circle, rgba(16, 28, 16, 0) 60%, rgba(0, 0, 0, 0.6) 100%);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.7);
+        }
+        .screen-border {
+            box-shadow: 
+                inset 2px 2px 4px rgba(0,0,0,0.8),
+                inset -2px -2px 4px rgba(255,255,255,0.05);
+        }.night-vision-img {
+            filter: grayscale(100%) sepia(100%) hue-rotate(70deg) brightness(0.8) contrast(1.2);
+            mix-blend-mode: hard-light;
+        }.screw {
+            @apply w-3 h-3 rounded-full bg-zinc-800 shadow-[inset_1px_1px_2px_rgba(0,0,0,1),1px_1px_0px_rgba(255,255,255,0.1)];
+            position: relative;
+        }
+        .screw::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            width: 60%; height: 2px;
+            background: #111;
+        }
+        .screw::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(135deg);
+            width: 60%; height: 2px;
+            background: #111;
+        }
+        .btn-physical {
+            @apply bg-zinc-800 border-t border-zinc-700 border-b-4 border-black active:border-b-0 active:translate-y-1 transition-all shadow-lg;
+        }.glitch-text:hover {
+            animation: flicker 0.3s infinite;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-black text-pda-green font-mono overflow-hidden h-screen flex justify-center items-center select-none">
+<div class="relative w-full max-w-md h-[95vh] bg-case-body rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(255,255,255,0.05)] border-4 border-[#1a1c1a] flex flex-col p-3 overflow-hidden">
+<div class="absolute inset-0 bg-noise opacity-30 pointer-events-none rounded-[2rem] z-0"></div>
+<div class="screw absolute top-3 left-3 z-10"></div>
+<div class="screw absolute top-3 right-3 z-10"></div>
+<div class="screw absolute bottom-3 left-3 z-10"></div>
+<div class="screw absolute bottom-3 right-3 z-10"></div>
+<div class="absolute -left-1 top-24 w-1 h-12 bg-zinc-700 rounded-r border-r border-black shadow-lg"></div>
+<div class="absolute -left-1 top-40 w-1 h-12 bg-zinc-700 rounded-r border-r border-black shadow-lg"></div>
+<div class="absolute top-4 left-10 flex gap-2 z-10">
+<div class="w-1.5 h-1.5 rounded-full bg-red-900 shadow-[0_0_5px_rgba(255,0,0,0.5)] animate-pulse"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(0,255,0,0.8)] animate-pulse-fast"></div>
+</div>
+<div class="absolute top-4 right-10 flex gap-[2px] z-10">
+<div class="w-8 h-1.5 bg-black rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"></div>
+</div>
+<div class="relative flex-1 bg-pda-bg rounded-xl border-[6px] border-[#111] screen-border overflow-hidden flex flex-col mt-6 mb-2 mx-1 z-10">
+<div class="pointer-events-none absolute inset-0 z-50 scanlines opacity-30"></div>
+<div class="pointer-events-none absolute inset-0 z-50 crt-overlay"></div>
+<div class="pointer-events-none absolute inset-0 z-50 bg-green-500/5 mix-blend-overlay animate-flicker"></div>
+<div class="pointer-events-none absolute w-full h-2 bg-green-500/10 z-[51] animate-scanline blur-sm top-0"></div>
+<div class="flex items-center justify-between bg-pda-green-dim/20 px-3 py-1 border-b border-pda-green-dim backdrop-blur-sm z-40">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] animate-pulse">wifi</span>
+<span class="text-sm font-tech tracking-widest text-glow">NET:ON</span>
+</div>
+<div class="h-3 w-[1px] bg-pda-green/40"></div>
+<div class="flex items-center gap-2">
+<span class="text-sm font-tech">RAD:2.4</span>
+<span class="material-symbols-outlined text-[14px]">wb_iridescent</span>
+</div>
+<div class="flex-1"></div>
+<div class="flex items-center gap-2">
+<span class="text-sm font-tech font-bold text-glow">19:42</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">battery_charging_full</span>
+</div>
+</div>
+<div class="flex items-center justify-between px-3 py-3 border-b border-pda-green/20 bg-black/40 z-30">
+<div class="flex flex-col">
+<h2 class="text-2xl font-tech font-bold tracking-widest text-glow uppercase glitch-text">
+                        СООБЩЕНИЯ
+                    </h2>
+<span class="text-[10px] text-pda-green-dim uppercase tracking-[0.2em]">S.T.A.L.K.E.R. NET v3.0</span>
+</div>
+<button class="border border-pda-green/50 p-1 hover:bg-pda-green hover:text-black transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit_square</span>
+</button>
+</div>
+<div class="px-3 pt-2 pb-1 z-30 bg-black/20">
+<div class="flex w-full border border-pda-green-dim/50 p-[2px]">
+<label class="flex-1 cursor-pointer relative group">
+<input checked="" class="peer sr-only" name="filter" type="radio"/>
+<div class="text-center py-1 text-sm font-bold uppercase text-pda-green-dim peer-checked:bg-pda-green peer-checked:text-black transition-all hover:text-white">
+                            [ ALL ]
+                        </div>
+</label>
+<div class="w-[1px] bg-pda-green-dim/50 self-stretch"></div>
+<label class="flex-1 cursor-pointer relative group">
+<input class="peer sr-only" name="filter" type="radio"/>
+<div class="text-center py-1 text-sm font-bold uppercase text-pda-green-dim peer-checked:bg-pda-green peer-checked:text-black transition-all hover:text-white">
+                            [ FAC ]
+                        </div>
+</label>
+<div class="w-[1px] bg-pda-green-dim/50 self-stretch"></div>
+<label class="flex-1 cursor-pointer relative group">
+<input class="peer sr-only" name="filter" type="radio"/>
+<div class="text-center py-1 text-sm font-bold uppercase text-pda-green-dim peer-checked:bg-pda-green peer-checked:text-black transition-all hover:text-white">
+                            [ SYS ]
+                        </div>
+</label>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-3 space-y-4 pb-16 z-20 relative">
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none opacity-5 bg-[linear-gradient(to_right,#50fa7b_1px,transparent_1px),linear-gradient(to_bottom,#50fa7b_1px,transparent_1px)] bg-[size:20px_20px]"></div>
+<div class="relative border-2 border-pda-red bg-red-900/10 p-1 shadow-[0_0_10px_rgba(255,85,85,0.2)]">
+<div class="absolute -top-2 left-2 bg-pda-bg px-1 border border-pda-red text-pda-red text-xs font-bold tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] animate-pulse" style="font-variation-settings: 'FILL' 1;">warning</span>
+                         GM BROADCAST
+                    </div>
+<div class="absolute top-2 right-2 text-pda-red text-xs font-mono blink">NOW</div>
+<div class="p-3 pt-4">
+<h3 class="text-pda-red text-xl font-bold font-tech uppercase tracking-tight text-glow-red animate-pulse">WARNING: EMISSION IMMINENT</h3>
+<p class="text-red-300/80 text-sm mt-1 font-mono leading-tight uppercase">&gt; High energy readings detected.<br/>&gt; Seek deep cover immediately.<br/>&gt; Time to impact: 2 mins.</p>
+<button class="mt-3 w-full border border-pda-red/50 text-pda-red hover:bg-pda-red hover:text-black py-1 text-sm font-bold uppercase flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                            [ ACKNOWLEDGE ]
+                        </button>
+</div>
+</div>
+<div class="border border-pda-green/40 bg-pda-green-dim/10 p-2 relative group hover:border-pda-green transition-colors">
+<div class="absolute top-0 left-0 w-2 h-2 border-l border-t border-pda-green"></div>
+<div class="absolute top-0 right-0 w-2 h-2 border-r border-t border-pda-green"></div>
+<div class="absolute bottom-0 left-0 w-2 h-2 border-l border-b border-pda-green"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 border-r border-b border-pda-green"></div>
+<div class="flex items-center gap-3">
+<div class="relative w-12 h-12 shrink-0 border border-pda-green/50 bg-black overflow-hidden">
+<div class="absolute inset-0 bg-pda-green/30 z-10 mix-blend-color"></div>
+<img alt="Avatar" class="w-full h-full object-cover night-vision-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA_1ioQpRNO9KOYyVi83Q39L5BCRhDzvixUPJczUtudKQvDwhwIrjmizvu86krrJWv50gr90NNczRk2KbWKNYVtxwETzgj5EOVPc_T7lMG-jIOUxdLzQWcOG3MhrKKQDTCAqq-8MPaBnVEaiEr6-DCGSzHo8bs1aNhDlEUu0WJgFcWo_M2Q7R0-Csh3dW6C6QVEduiCjEXi4cuD4JSulm8USOY_ybNwCRON_60QVmZiacvELkzVf_cR902u50xAmsU1V-1B46yWMLs"/>
+<div class="absolute bottom-0 right-0 bg-black p-[1px] border-l border-t border-pda-green z-20">
+<span class="material-symbols-outlined text-[10px] text-pda-green block">mic</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1 border-b border-pda-green/20 pb-1">
+<p class="text-pda-green font-bold text-sm truncate uppercase tracking-wide">Stalker Wolf</p>
+<span class="text-xs text-pda-green-dim">14:02</span>
+</div>
+<div class="flex items-end gap-[2px] h-4 mt-1 opacity-80">
+<div class="w-1 bg-pda-green h-[40%] animate-pulse"></div>
+<div class="w-1 bg-pda-green h-[70%]"></div>
+<div class="w-1 bg-pda-green h-[100%]"></div>
+<div class="w-1 bg-pda-green h-[60%]"></div>
+<div class="w-1 bg-pda-green h-[80%]"></div>
+<div class="w-1 bg-pda-green-dim h-[40%]"></div>
+<div class="w-1 bg-pda-green-dim h-[20%]"></div>
+<span class="text-xs text-pda-green ml-auto font-mono">0:14</span>
+</div>
+</div>
+<button class="w-8 h-8 flex items-center justify-center border border-pda-green text-pda-green hover:bg-pda-green hover:text-black">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</div>
+<div class="border-l-4 border-pda-amber bg-pda-amber/5 p-2 pl-3">
+<div class="flex items-center justify-between mb-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-pda-amber text-[16px]">terminal</span>
+<span class="text-xs font-bold text-pda-amber uppercase tracking-wider">SYSTEM LOG</span>
+</div>
+<span class="text-[10px] text-pda-amber/60 font-mono">13:45</span>
+</div>
+<div>
+<p class="text-pda-amber font-tech font-bold text-sm uppercase">&gt;&gt; Task Updated: Find Artifact</p>
+<p class="text-pda-amber/80 text-xs mt-1 font-mono uppercase">Zone 4 search area expanded.<br/>Coordinates received.</p>
+</div>
+<div class="flex gap-2 mt-2">
+<button class="text-[10px] text-pda-amber border border-pda-amber/40 hover:bg-pda-amber hover:text-black px-2 py-1 uppercase font-bold transition-colors">:: DETAILS ::</button>
+<button class="text-[10px] text-pda-amber border border-pda-amber/40 hover:bg-pda-amber hover:text-black px-2 py-1 uppercase font-bold transition-colors">:: MAP ::</button>
+</div>
+</div>
+<div class="border border-pda-green/20 bg-black p-2">
+<div class="flex gap-3">
+<div class="relative w-10 h-10 shrink-0 border border-pda-green/30 mt-1">
+<div class="absolute inset-0 bg-green-900/40 z-10"></div>
+<img alt="Avatar" class="w-full h-full object-cover night-vision-img opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXhbCj8o18F9rYuiCAa_KCsPgfsECdFoLNXmqX946Q3aAx9tyt4nMVIjOTZYmsxvEAefaYZFhMaxZPfaFj3LqgvEpYVby2GEeIZm6ink8FxZXYzcIqJbiV0ziKI2aIp5-hmnjPUlrruy1oCO5Rc4dMgtaUqyDPdL2pZl7-X7PHBupRLJfvvmmbftZI5KhJg3MRv0XHCidXB3enypgv6Mi19R6cXWClLAspy4v9grrkhhgg5lMbhSqMtFZ0GNH2XdTNoa9JWqK_PrjB"/>
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-pda-green rounded-sm shadow-[0_0_5px_#50fa7b]"></div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-baseline border-b border-pda-green/10 pb-1 mb-1">
+<h4 class="text-sm font-bold text-pda-green uppercase tracking-tight">Duty Leader</h4>
+<span class="text-[10px] text-pda-green-dim">12:30</span>
+</div>
+<p class="text-pda-green/80 text-sm font-mono leading-tight uppercase">Sector B4 clear. Moving to C2 to intercept bandits. Radio silence.</p>
+<div class="flex justify-end mt-2">
+<button class="flex items-center gap-1 text-xs text-pda-green-dim hover:text-pda-green uppercase border-b border-transparent hover:border-pda-green">
+<span class="material-symbols-outlined text-[12px]">reply</span>
+                                    REPLY
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<div class="p-2 border-b border-pda-green/10 opacity-50 hover:opacity-100 transition-opacity">
+<div class="flex gap-3">
+<div class="w-10 h-10 border border-pda-green/20 flex items-center justify-center text-pda-green-dim shrink-0 bg-pda-green/5">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-baseline">
+<h4 class="text-sm font-bold text-pda-green-dim uppercase">Trader</h4>
+<span class="text-[10px] text-pda-green-dim/50">YESTERDAY</span>
+</div>
+<p class="text-pda-green-dim text-sm mt-1 uppercase font-mono">Bring me the tail. I have the meds.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 right-0 bg-black/90 border-t border-pda-green/30 z-30 px-2 py-2">
+<div class="flex justify-between items-end">
+<button class="flex flex-col items-center gap-1 group w-12">
+<span class="material-symbols-outlined text-pda-green-dim group-hover:text-pda-green text-xl">map</span>
+<span class="text-[9px] uppercase font-bold text-pda-green-dim group-hover:text-pda-green">Map</span>
+</button>
+<button class="flex flex-col items-center gap-1 group w-12">
+<span class="material-symbols-outlined text-pda-green-dim group-hover:text-pda-green text-xl">assignment</span>
+<span class="text-[9px] uppercase font-bold text-pda-green-dim group-hover:text-pda-green">Tasks</span>
+</button>
+<div class="relative -top-4">
+<div class="bg-black border border-pda-green rounded-sm p-2 shadow-[0_0_10px_rgba(80,250,123,0.3)] transform rotate-45">
+<div class="transform -rotate-45">
+<span class="material-symbols-outlined text-pda-green text-xl block">chat</span>
+</div>
+</div>
+<div class="text-center mt-2 text-[10px] font-bold text-pda-green uppercase text-glow">PDA</div>
+</div>
+<button class="flex flex-col items-center gap-1 group w-12">
+<span class="material-symbols-outlined text-pda-green-dim group-hover:text-pda-green text-xl">equalizer</span>
+<span class="text-[9px] uppercase font-bold text-pda-green-dim group-hover:text-pda-green">Stat</span>
+</button>
+<button class="flex flex-col items-center gap-1 group w-12">
+<span class="material-symbols-outlined text-pda-green-dim group-hover:text-pda-green text-xl">settings_applications</span>
+<span class="text-[9px] uppercase font-bold text-pda-green-dim group-hover:text-pda-green">Sys</span>
+</button>
+</div>
+</div>
+</div>
+<div class="mt-2 flex justify-center gap-4 px-6 mb-2">
+<button class="btn-physical w-12 h-6 rounded-sm"></button>
+<button class="btn-physical w-16 h-6 rounded-sm"></button>
+<button class="btn-physical w-12 h-6 rounded-sm"></button>
+</div>
+</div>
+
+</body></html>

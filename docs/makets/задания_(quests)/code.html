@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>S.T.A.L.K.E.R. PDA - Quests</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&amp;family=VT323&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "pda-bg": "#0a0f0a",
+                        "pda-green": "#4ade80", 
+                        "pda-green-dim": "#22c55e",
+                        "pda-amber": "#fbbf24",
+                        "pda-dark": "#050805",
+                        "pda-border": "#3f6212",
+                        "case-olive": "#3a3a30",
+                    },
+                    fontFamily: {
+                        "mono": ["Share Tech Mono", "monospace"],
+                        "pixel": ["VT323", "monospace"],
+                    },
+                    backgroundImage: {
+                        'metal-texture': 'url("https://www.transparenttextures.com/patterns/dark-matter.png")',
+                    }
+                },
+            },
+        }
+    </script>
+<style>::-webkit-scrollbar {
+    width: 6px
+    }
+::-webkit-scrollbar-track {
+    background: #050805;
+    border-left: 1px solid #1a2e05
+    }
+::-webkit-scrollbar-thumb {
+    background: #3f6212;
+    border: 1px solid #000
+    }.scanlines {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.4));
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 40
+    }
+.screen-glow {
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9);
+    animation: pulse-glow 4s infinite
+    }
+@keyframes pulse-glow {
+    0% {
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9);
+        } 50% {
+        box-shadow: inset 0 0 60px rgba(20, 50, 20, 0.4);
+        } 100% {
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9);
+        }
+    }
+.crt-flicker {
+    animation: flicker 0.15s infinite;
+    pointer-events: none;
+    background: rgba(40, 255, 40, 0.02);
+    z-index: 35
+    }
+@keyframes flicker {
+    0% {
+        opacity: 0.95;
+        } 5% {
+        opacity: 0.85;
+        } 10% {
+        opacity: 0.9;
+        } 15% {
+        opacity: 0.95;
+        } 50% {
+        opacity: 0.9;
+        } 80% {
+        opacity: 0.85;
+        } 100% {
+        opacity: 0.95;
+        }
+    }
+.text-glow {
+    text-shadow: 0 0 4px rgba(74, 222, 128, 0.6)
+    }
+.text-glow-amber {
+    text-shadow: 0 0 4px rgba(251, 191, 36, 0.6)
+    }.device-casing {
+    background-color: #2b2b24;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAdrf5XfhThQFPnpBgRqrh2jUun9NJ1z2JGAlAcjYWYDUV_IE23cX09YwO6u3eU6tADEHeYBc1stMnyoLhxEXrlq3gW4s2-WYi7b8NPGNrBBWN4j3Dw37uZ_VepemRA6MlaKZsgp0SrQQ-1vnqJPKkmZd4tpkXmYcX952PSLpSaOIvA2n-HQu1HWSIX85aoRSnYfA9zUF7Z1C2IWSFCzZrWSzzYV8n5mkhx5btbAZMtFVvXA4c3y50pP7iCoMoEMyRdzWhi7haurwnX);
+    box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.1), inset -5px -5px 15px rgba(0, 0, 0, 0.8)
+    }
+.screw {
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle at 30% 30%, #555, #111);
+    border-radius: 50%;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
+    position: relative
+    }
+.screw::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    height: 2px;
+    background: #222;
+    transform: translate(-50%, -50%) rotate(45deg)
+    }
+.screw::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2px;
+    height: 80%;
+    background: #222;
+    transform: translate(-50%, -50%) rotate(45deg)
+    }.pda-image {
+    filter: grayscale(100%) sepia(100%) hue-rotate(60deg) saturate(300%) contrast(1.2);
+    mix-blend-mode: luminosity
+    }.terminal-border {
+    border: 1px solid #3f6212;
+    position: relative
+    }
+.terminal-border::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 6px;
+    height: 6px;
+    border-top: 2px solid #4ade80;
+    border-left: 2px solid #4ade80
+    }
+.terminal-border::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 6px;
+    height: 6px;
+    border-bottom: 2px solid #4ade80;
+    border-right: 2px solid #4ade80
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#111] h-screen w-full flex items-center justify-center overflow-hidden font-mono select-none">
+<div class="relative w-full h-full max-w-md max-h-[900px] device-casing flex flex-col p-3 sm:p-5 sm:rounded-[30px] border-4 border-[#1a1a15] shadow-2xl">
+<div class="absolute top-4 left-4 screw hidden sm:block"></div>
+<div class="absolute top-4 right-4 screw hidden sm:block"></div>
+<div class="absolute bottom-4 left-4 screw hidden sm:block"></div>
+<div class="absolute bottom-4 right-4 screw hidden sm:block"></div>
+<div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-2 flex gap-1 justify-center opacity-50">
+<div class="w-1 h-full bg-black rounded-full"></div>
+<div class="w-1 h-full bg-black rounded-full"></div>
+<div class="w-1 h-full bg-black rounded-full"></div>
+<div class="w-1 h-full bg-black rounded-full"></div>
+</div>
+<div class="absolute -right-[6px] top-32 w-2 h-16 bg-[#1a1a15] rounded-r-md border-r border-t border-b border-[#444] shadow-lg hidden sm:block"></div>
+<div class="absolute -left-[6px] top-24 w-2 h-10 bg-[#3a1a15] rounded-l-md border-l border-t border-b border-[#444] shadow-lg hidden sm:block"></div>
+<div class="absolute top-6 left-8 flex flex-col gap-2 z-50">
+<div class="w-2 h-2 rounded-full bg-red-900 border border-black shadow-[0_0_5px_rgba(255,0,0,0.5)] animate-pulse"></div>
+<div class="w-2 h-2 rounded-full bg-green-900 border border-black"></div>
+</div>
+<div class="relative flex-1 bg-pda-bg border-[3px] border-[#0f140f] rounded-lg overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,1)] screen-glow flex flex-col">
+<div class="absolute inset-0 z-40 scanlines pointer-events-none opacity-40"></div>
+<div class="absolute inset-0 z-30 crt-flicker pointer-events-none"></div>
+<div class="absolute inset-0 z-30 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none mix-blend-overlay"></div>
+<header class="shrink-0 bg-[#0f140f] border-b border-pda-border z-20 relative">
+<div class="flex items-center justify-between px-2 py-1 bg-[#050805] text-[10px] sm:text-xs text-pda-green-dim font-pixel tracking-widest border-b border-pda-border/30">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[12px]">wifi</span>
+<span>NET: STALKER_NET_V2</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 text-pda-amber">
+<span class="material-symbols-outlined text-[12px]">power</span>
+<span>RAD: 0.4 mSv</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] rotate-90">battery_5_bar</span>
+<span>94%</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between px-3 py-3 bg-gradient-to-b from-[#152015] to-[#0a0f0a]">
+<div class="text-pda-green flex size-8 shrink-0 items-center justify-center border border-pda-green/40 bg-[#0a150a] shadow-[0_0_5px_rgba(74,222,128,0.2)]">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+</div>
+<div class="flex flex-col items-center">
+<h2 class="text-pda-green text-xl sm:text-2xl font-pixel font-bold leading-none tracking-[0.15em] text-glow uppercase">ЗАДАНИЯ</h2>
+<span class="text-[9px] text-pda-green-dim tracking-[0.3em] font-mono mt-1">QUEST_LOG_SYS_32</span>
+</div>
+<div class="flex w-8 flex-col items-end justify-center">
+<p class="text-pda-amber text-sm font-mono font-bold leading-normal text-glow-amber">19:42</p>
+</div>
+</div>
+<div class="px-2 pb-2 bg-[#0a0f0a]">
+<div class="flex border-b border-pda-border gap-0.5">
+<a class="flex-1 text-center py-1 bg-[#111] text-pda-green-dim hover:text-pda-green text-[10px] sm:text-xs font-bold border-t border-r border-l border-transparent hover:border-pda-border/50 transition-colors opacity-60 hover:opacity-100 uppercase tracking-wider font-pixel" href="#">
+                            [ ALL ]
+                        </a>
+<a class="flex-1 text-center py-1 bg-[#1a2e05] text-pda-green text-[10px] sm:text-xs font-bold border-t border-r border-l border-pda-green/50 shadow-[0_-2px_5px_rgba(74,222,128,0.1)] uppercase tracking-wider font-pixel text-glow relative" href="#">
+                            &gt; ACTIVE &lt;
+                        </a>
+<a class="flex-1 text-center py-1 bg-[#111] text-pda-green-dim hover:text-pda-green text-[10px] sm:text-xs font-bold border-t border-r border-l border-transparent hover:border-pda-border/50 transition-colors opacity-60 hover:opacity-100 uppercase tracking-wider font-pixel" href="#">
+                            [ COMPL ]
+                        </a>
+<a class="flex-1 text-center py-1 bg-[#111] text-red-800 hover:text-red-500 text-[10px] sm:text-xs font-bold border-t border-r border-l border-transparent hover:border-red-900/50 transition-colors opacity-60 hover:opacity-100 uppercase tracking-wider font-pixel" href="#">
+                            [ FAIL ]
+                        </a>
+</div>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto relative p-2 scrollbar-hide z-10 bg-[#050805]">
+<div class="flex items-end gap-2 mb-3 mt-1 px-1">
+<span class="text-pda-green text-lg leading-none animate-pulse">●</span>
+<h3 class="text-pda-green text-sm font-pixel tracking-[0.2em] uppercase border-b border-pda-green/30 w-full pb-1">Current_Objectives</h3>
+</div>
+<div class="mb-4 terminal-border bg-[#0a0f0a] p-1 shadow-[0_0_10px_rgba(61,138,63,0.1)]">
+<div class="flex flex-col gap-2">
+<div class="relative w-full h-28 border-b border-pda-border bg-black overflow-hidden group">
+<div class="absolute inset-0 bg-cover bg-center pda-image opacity-70 group-hover:opacity-90 transition-opacity" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCwDm_7tmi2jeLC75otnase7NqiM1QHZTKkAIcevxRlsR4eFcOfiLEVyfWEYAFKbKD643wsvDr6LhE9e_w_OFAJeYyOGWXJNM14QIN0WRQNHlzEcod7LR8cire8UFxd6mSqEsM6ZgdjJsrNwTTqw7x7nAdGjgSabj-yD1idhaxkuLc0owPgoh2RI150-KO5woSO64rRYRclFZBZz9sQoqtQjpXg4jtmvhh8XNrixc6UMZSSvnT4yilijYWlDoeCdsplyI3dIz-MAr3O");'></div>
+<div class="absolute inset-0 bg-[linear-gradient(rgba(0,255,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,0,0.1)_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none"></div>
+<div class="absolute top-0 right-0 bg-[#000] px-2 py-0.5 border-l border-b border-pda-green/50">
+<p class="text-pda-green text-xs font-mono font-bold">T-MIN: 01:45:00</p>
+</div>
+</div>
+<div class="p-2 pt-0 flex flex-col gap-2">
+<div class="flex justify-between items-start border-b border-dashed border-pda-border pb-1">
+<h4 class="text-pda-green text-lg font-pixel font-bold tracking-wide uppercase">&gt; Retrieval: Artifact</h4>
+<span class="material-symbols-outlined text-pda-green text-sm animate-spin-slow">target</span>
+</div>
+<p class="text-pda-green-dim text-xs leading-tight font-mono">
+                                // OBJ: Locate "Fireball" artifact.
+                                <br/>// NOTE: Scan anomalies in marked sector.
+                            </p>
+<div class="grid grid-cols-2 gap-px bg-pda-border/30 border border-pda-border/30 mt-1">
+<div class="bg-[#0c140c] p-1.5">
+<span class="text-[#567a58] block text-[9px] font-pixel uppercase">Target_Loc</span>
+<span class="text-pda-green-dim text-xs">Red Forest, B7</span>
+</div>
+<div class="bg-[#0c140c] p-1.5 text-right">
+<span class="text-[#567a58] block text-[9px] font-pixel uppercase">Bounty</span>
+<span class="text-pda-amber font-bold text-xs">5,000 RUB</span>
+</div>
+</div>
+<button class="w-full mt-1 border border-pda-green bg-[#1a2e05] hover:bg-pda-green hover:text-black text-pda-green text-xs font-bold font-pixel tracking-widest uppercase py-2 transition-all flex items-center justify-center gap-2 group">
+<span class="material-symbols-outlined text-[14px]">map</span>
+                                [ SHOW_ON_PDA_MAP ]
+                            </button>
+</div>
+</div>
+</div>
+<div class="mb-4 terminal-border bg-[#0a0f0a] p-1 shadow-[0_0_10px_rgba(61,138,63,0.1)]">
+<div class="flex flex-col gap-2">
+<div class="relative w-full h-28 border-b border-pda-border bg-black overflow-hidden group">
+<div class="absolute inset-0 bg-cover bg-center pda-image opacity-70 group-hover:opacity-90 transition-opacity" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC-J7-tCROJdYsrG8NCtRAgmUsK6T-q73louzbQDbIRZd8a2a73bY8UFCKKg_Dqu0rJ4HcuX6vzvwAetmPBr3SPH6AivOmhqoTdAU3zSR2-9UF8ntt-xOe1mbz9J7axZeME0C0AZBsZeVl7f6FKFv8iiaAcbbI1Se43SKLhIH3re38RZ9q49ll_re4puDu52qrMU76Q2Uq8KY8oQWOY8X_F_I2Qgr2_e0Q7_e5AF710i4BuKFVRviTdsBHlEqgyfKYI0ebTSCdItKdh");'></div>
+<div class="absolute inset-0 bg-[linear-gradient(rgba(0,255,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,0,0.1)_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none"></div>
+<div class="absolute top-0 right-0 bg-[#000] px-2 py-0.5 border-l border-b border-red-500/50">
+<p class="text-red-500 text-xs font-mono font-bold animate-pulse">! CRIT: 00:15:22</p>
+</div>
+</div>
+<div class="p-2 pt-0 flex flex-col gap-2">
+<div class="flex justify-between items-start border-b border-dashed border-pda-border pb-1">
+<h4 class="text-pda-green text-lg font-pixel font-bold tracking-wide uppercase">&gt; Escort: Scientist</h4>
+<span class="material-symbols-outlined text-red-500 text-sm">warning</span>
+</div>
+<p class="text-pda-green-dim text-xs leading-tight font-mono">
+                                // OBJ: Escort Prof. Kruglov.
+                                <br/>// NOTE: Ensure survival through tunnels.
+                            </p>
+<div class="grid grid-cols-2 gap-px bg-pda-border/30 border border-pda-border/30 mt-1">
+<div class="bg-[#0c140c] p-1.5">
+<span class="text-[#567a58] block text-[9px] font-pixel uppercase">Target_Loc</span>
+<span class="text-pda-green-dim text-xs">Wild Territory</span>
+</div>
+<div class="bg-[#0c140c] p-1.5 text-right">
+<span class="text-[#567a58] block text-[9px] font-pixel uppercase">Bounty</span>
+<span class="text-pda-amber font-bold text-xs">8,000 RUB</span>
+</div>
+</div>
+<button class="w-full mt-1 border border-pda-green bg-[#1a2e05] hover:bg-pda-green hover:text-black text-pda-green text-xs font-bold font-pixel tracking-widest uppercase py-2 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[14px]">map</span>
+                                [ SHOW_ON_PDA_MAP ]
+                            </button>
+</div>
+</div>
+</div>
+<div class="flex items-end gap-2 mb-3 mt-4 px-1 opacity-70">
+<span class="text-pda-green-dim text-lg leading-none">○</span>
+<h3 class="text-pda-green-dim text-sm font-pixel tracking-[0.2em] uppercase border-b border-pda-green/20 w-full pb-1">Log_History</h3>
+</div>
+<div class="mb-2 p-2 border border-pda-green/20 bg-[#0a0f0a] opacity-60 hover:opacity-90 transition-opacity">
+<div class="flex flex-row items-center gap-3">
+<div class="size-12 border border-pda-green/30 bg-cover bg-center pda-image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuACRPu1SY0LFGmujfMNV-a5WsZmhGIuQnS_cdaEshin3F8GBxf957fsan9o23gDkb7ADGLMc5qXIcJR8qtOhHPg5aJ4HzLeBVTjwKSBOu7_lmZRKuocQrHeNlu56eHf7jSJGJheC5P8gupTGYgyUqRyMzlp1zFCR53pRnFri8DPRyynHc0rMw0DB_SIMol3HSpG3ZmY-rYM5iCt2uhZvWfsygFI9oHzwQge44zLbCU8DoZF5OkxtSf2w-8G7ebYK9uBqY843pVYkXfA");'></div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h4 class="text-pda-green-dim text-sm font-bold font-pixel uppercase truncate">Clear Bandit Camp</h4>
+<span class="text-[9px] text-black bg-pda-green px-1 font-mono uppercase font-bold">DONE</span>
+</div>
+<p class="text-[#567a58] text-[10px] font-mono">&gt; Reward Transferred: 2500 RUB</p>
+<p class="text-[#3a523b] text-[9px] font-mono mt-0.5">LOG_ID: 8842-A // 14:30</p>
+</div>
+</div>
+</div>
+<div class="mb-8 p-2 border border-red-900/30 bg-[#0a0f0a] opacity-60 hover:opacity-90 transition-opacity">
+<div class="flex flex-row items-center gap-3">
+<div class="size-12 border border-red-900/30 bg-cover bg-center pda-image grayscale contrast-125" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD2FTc7J-RAFompzyJji-dnLub-orXAcBTHsMCMh-LCPHvsSW95nGVVJgY0NGEhFXPdt7WQx2arWGHaBT_KtHMf7ML2NtVOZv9aYC6ucUcotXuswiNcqAF9uRYHdD1c9q_KJjxuYwhThGV_IOB0rXlX1jlHt1h7LnPp73NOgmMy38eMWwl4YpzR_GJm4r7i59U7DMWWMZges_QmgWMIZ6IK2jH04T14HYJHMDiYWQlT7Qa2Dx12NdV-0j0dPo7snK060aCX_cxSUdcU");'></div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h4 class="text-red-900/70 text-sm font-bold font-pixel uppercase truncate line-through decoration-red-900">Establish Comm Link</h4>
+<span class="text-[9px] text-red-900 border border-red-900 px-1 font-mono uppercase font-bold">FAIL</span>
+</div>
+<p class="text-red-900/50 text-[10px] font-mono">&gt; ERR: Target Destroyed</p>
+<p class="text-[#3a523b] text-[9px] font-mono mt-0.5">LOG_ID: 8841-B // YESTERDAY</p>
+</div>
+</div>
+</div>
+</main>
+<nav class="shrink-0 bg-[#0f140f] border-t-2 border-pda-border z-20">
+<div class="flex items-center justify-between h-14 px-1">
+<a class="flex flex-col items-center justify-center flex-1 h-full text-[#3a523b] hover:text-pda-green hover:bg-[#1a2e05] transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] mb-0.5">map</span>
+<span class="text-[9px] tracking-widest font-pixel uppercase">MAP</span>
+</a>
+<div class="w-px h-8 bg-pda-border/30"></div>
+<a class="flex flex-col items-center justify-center flex-1 h-full text-[#3a523b] hover:text-pda-green hover:bg-[#1a2e05] transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] mb-0.5">backpack</span>
+<span class="text-[9px] tracking-widest font-pixel uppercase">GEAR</span>
+</a>
+<div class="w-px h-8 bg-pda-border/30"></div>
+<a class="flex flex-col items-center justify-center flex-1 h-full bg-[#1a2e05] text-pda-green border-t-2 border-pda-green -mt-[2px] shadow-[0_-5px_10px_rgba(74,222,128,0.1)]" href="#">
+<span class="material-symbols-outlined text-[20px] mb-0.5 text-glow">assignment_late</span>
+<span class="text-[9px] tracking-widest font-pixel uppercase font-bold text-glow">TASKS</span>
+</a>
+<div class="w-px h-8 bg-pda-border/30"></div>
+<a class="flex flex-col items-center justify-center flex-1 h-full text-[#3a523b] hover:text-pda-green hover:bg-[#1a2e05] transition-colors group relative" href="#">
+<span class="absolute top-3 right-3 h-1.5 w-1.5 rounded-full bg-pda-green animate-ping"></span>
+<span class="absolute top-3 right-3 h-1.5 w-1.5 rounded-full bg-pda-green"></span>
+<span class="material-symbols-outlined text-[20px] mb-0.5">chat</span>
+<span class="text-[9px] tracking-widest font-pixel uppercase">NET</span>
+</a>
+<div class="w-px h-8 bg-pda-border/30"></div>
+<a class="flex flex-col items-center justify-center flex-1 h-full text-[#3a523b] hover:text-pda-green hover:bg-[#1a2e05] transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] mb-0.5">badge</span>
+<span class="text-[9px] tracking-widest font-pixel uppercase">ID</span>
+</a>
+</div>
+</nav>
+<div class="h-2 bg-[#050805] border-t border-pda-border/30 flex justify-center gap-1 items-center">
+<div class="w-1 h-1 bg-pda-green rounded-full opacity-50"></div>
+<div class="w-1 h-1 bg-[#3a523b] rounded-full opacity-30"></div>
+<div class="w-1 h-1 bg-[#3a523b] rounded-full opacity-30"></div>
+</div>
+</div>
+<div class="absolute bottom-5 left-1/2 -translate-x-1/2 text-[#111] font-bold text-[10px] tracking-widest opacity-40 shadow-[1px_1px_1px_rgba(255,255,255,0.1)] font-sans hidden sm:block">
+            S.T.A.L.K.E.R.
+        </div>
+</div>
+
+</body></html>

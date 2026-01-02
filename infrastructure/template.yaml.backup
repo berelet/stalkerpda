@@ -1,0 +1,569 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: PDA ZONE - S.T.A.L.K.E.R. Airsoft Game Platform (MySQL + Geolocation)
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, prod]
+  
+  DBUsername:
+    Type: String
+    Default: pda_admin
+    NoEcho: true
+  
+  DBPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+  
+  JWTSecret:
+    Type: String
+    NoEcho: true
+    MinLength: 32
+  
+  AllowedIP:
+    Type: String
+    Description: Your IP for RDS access (e.g., 1.2.3.4/32)
+    Default: 0.0.0.0/0
+
+Globals:
+  Function:
+    Runtime: python3.11
+    Timeout: 30
+    MemorySize: 256
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        DB_HOST: !GetAtt MySQLDB.Endpoint.Address
+        DB_PORT: !GetAtt MySQLDB.Endpoint.Port
+        DB_NAME: pda_zone
+        DB_USER: !Ref DBUsername
+        DB_PASSWORD: !Ref DBPassword
+        JWT_SECRET: !Ref JWTSecret
+        CONNECTIONS_TABLE: !Ref ConnectionsTable
+        WEBSOCKET_API_ENDPOINT: !Sub "https://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}"
+
+Resources:
+  # RDS MySQL (Public Access)
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for RDS MySQL - Public Access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: !Ref AllowedIP
+      Tags:
+        - Key: Name
+          Value: !Sub pda-zone-rds-sg-${Environment}
+
+  MySQLDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub pda-zone-db-${Environment}
+      DBInstanceClass: db.t3.micro
+      Engine: mysql
+      EngineVersion: '8.0'
+      DBName: pda_zone
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      AllocatedStorage: 20
+      StorageType: gp2
+      VPCSecurityGroups:
+        - !GetAtt DBSecurityGroup.GroupId
+      PubliclyAccessible: true
+      BackupRetentionPeriod: 0
+      DeletionProtection: false
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  # S3 Bucket (Frontend)
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub pda-zone-frontend-${Environment}-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ['*']
+            AllowedMethods: [GET, HEAD]
+            AllowedOrigins: ['*']
+            MaxAge: 3600
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Resource: !Sub ${FrontendBucket.Arn}/*
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}
+
+  # CloudFront
+  CloudFrontOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub pda-zone-oac-${Environment}
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        PriceClass: PriceClass_100
+        
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+            OriginAccessControlId: !Ref CloudFrontOAC
+          
+          - Id: APIOrigin
+            DomainName: !Sub ${RestApi}.execute-api.${AWS::Region}.amazonaws.com
+            CustomOriginConfig:
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          Compress: true
+
+        CacheBehaviors:
+          - PathPattern: /api/*
+            TargetOriginId: APIOrigin
+            ViewerProtocolPolicy: https-only
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+
+        CustomErrorResponses:
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+
+  # API Gateway (REST)
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub pda-zone-api-${Environment}
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+
+  # Lambda - Auth
+  LoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-login-${Environment}
+      Handler: src.handlers.auth.login_handler
+      CodeUri: ../backend/
+      Events:
+        Login:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/auth/login
+            Method: POST
+
+  RegisterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-register-${Environment}
+      Handler: src.handlers.auth.register_handler
+      CodeUri: ../backend/
+      Events:
+        Register:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/auth/register
+            Method: POST
+
+  # Lambda - Players
+  PlayersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-players-${Environment}
+      Handler: src.handlers.players.handler
+      CodeUri: ../backend/
+      Events:
+        GetPlayers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/players
+            Method: GET
+        GetPlayer:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/players/{id}
+            Method: GET
+        UpdatePlayer:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/players/{id}
+            Method: PUT
+
+  # Lambda - Location
+  LocationUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-location-update-${Environment}
+      Handler: src.handlers.location.update_handler
+      CodeUri: ../backend/
+      Events:
+        UpdateLocation:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/location
+            Method: POST
+        GetMyLocation:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/location/me
+            Method: GET
+        GetCurrentZone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/zones/current
+            Method: GET
+
+  # Lambda - Artifacts
+  ArtifactsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-artifacts-${Environment}
+      Handler: src.handlers.artifacts.handler
+      CodeUri: ../backend/
+      Events:
+        ScanArtifacts:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/artifacts/scan
+            Method: POST
+        ExtractArtifact:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/artifacts/{id}/extract
+            Method: POST
+        GetArtifacts:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/artifacts
+            Method: GET
+
+  # Lambda - Contracts
+  ContractsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-contracts-${Environment}
+      Handler: src.handlers.contracts.handler
+      CodeUri: ../backend/
+      Events:
+        GetContracts:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/contracts
+            Method: GET
+        CreateContract:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/contracts
+            Method: POST
+        AcceptContract:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/contracts/{id}/accept
+            Method: POST
+
+  # Lambda - Zones
+  ZonesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-zones-${Environment}
+      Handler: src.handlers.zones.handler
+      CodeUri: ../backend/
+      Events:
+        GetZones:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/zones
+            Method: GET
+        ControlZone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/zones/{id}/control
+            Method: POST
+
+  # Lambda - Admin
+  AdminFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-${Environment}
+      Handler: src.handlers.admin.handler
+      CodeUri: ../backend/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - execute-api:ManageConnections
+              Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*"
+      Events:
+        GetAllLocations:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/locations
+            Method: GET
+        GetLocationHistory:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/locations/{id}/history
+            Method: GET
+        CreateZone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/zones
+            Method: POST
+        UpdateZone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/zones/{id}
+            Method: PUT
+        GameEvents:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/events
+            Method: GET
+        SpawnArtifact:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/artifacts/spawn
+            Method: POST
+        BroadcastMessage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/broadcast
+            Method: POST
+
+  # WebSocket API
+  WebSocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub pda-zone-websocket-${Environment}
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: $request.body.action
+
+  WebSocketStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref WebSocketApi
+      StageName: !Ref Environment
+      AutoDeploy: true
+
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref WebSocketApi
+      RouteKey: $connect
+      AuthorizationType: NONE
+      Target: !Sub integrations/${ConnectIntegration}
+
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref WebSocketApi
+      RouteKey: $disconnect
+      AuthorizationType: NONE
+      Target: !Sub integrations/${DisconnectIntegration}
+
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref WebSocketApi
+      RouteKey: $default
+      AuthorizationType: NONE
+      Target: !Sub integrations/${DefaultIntegration}
+
+  ConnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref WebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketConnectFunction.Arn}/invocations
+
+  DisconnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref WebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketDisconnectFunction.Arn}/invocations
+
+  DefaultIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref WebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketMessageFunction.Arn}/invocations
+
+  WebSocketConnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-ws-connect-${Environment}
+      Handler: src.handlers.websocket.connect_handler
+      CodeUri: ../backend/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+
+  WebSocketDisconnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-ws-disconnect-${Environment}
+      Handler: src.handlers.websocket.disconnect_handler
+      CodeUri: ../backend/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+
+  WebSocketMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-ws-message-${Environment}
+      Handler: src.handlers.websocket.message_handler
+      CodeUri: ../backend/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - execute-api:ManageConnections
+              Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*"
+
+  WebSocketConnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WebSocketConnectFunction
+      Principal: apigateway.amazonaws.com
+
+  WebSocketDisconnectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WebSocketDisconnectFunction
+      Principal: apigateway.amazonaws.com
+
+  WebSocketMessagePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WebSocketMessageFunction
+      Principal: apigateway.amazonaws.com
+
+  # DynamoDB
+  ConnectionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub pda-zone-connections-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: connectionId
+          AttributeType: S
+        - AttributeName: playerId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: connectionId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: playerIdIndex
+          KeySchema:
+            - AttributeName: playerId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+Outputs:
+  CloudFrontURL:
+    Description: CloudFront Distribution URL
+    Value: !Sub https://${CloudFrontDistribution.DomainName}
+
+  ApiURL:
+    Description: API Gateway URL
+    Value: !Sub https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
+
+  WebSocketURL:
+    Description: WebSocket API URL
+    Value: !Sub wss://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
+
+  S3BucketName:
+    Description: S3 Bucket for Frontend
+    Value: !Ref FrontendBucket
+
+  RDSEndpoint:
+    Description: RDS MySQL Endpoint (Public)
+    Value: !GetAtt MySQLDB.Endpoint.Address
+  
+  RDSPort:
+    Description: RDS MySQL Port
+    Value: !GetAtt MySQLDB.Endpoint.Port
+
+  ConnectionString:
+    Description: MySQL Connection String
+    Value: !Sub "mysql://${DBUsername}:****@${MySQLDB.Endpoint.Address}:${MySQLDB.Endpoint.Port}/pda_zone"

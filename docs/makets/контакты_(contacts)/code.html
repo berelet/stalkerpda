@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>S.T.A.L.K.E.R. PDA Contacts</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "pda-bg": "#0a0f0a",
+                        "pda-frame": "#2a2825",
+                        "pda-frame-light": "#3d3a35",
+                        "pda-screen": "#050805",
+                        "stalker-green": "#4daf4c",
+                        "stalker-green-dim": "#2d5e2d",
+                        "stalker-amber": "#d4a017",
+                        "stalker-red": "#bf3636",
+                        "ui-border": "#3d4a3d",
+                    },
+                    fontFamily: {
+                        "display": ["Share Tech Mono", "monospace"],
+                        "mono": ["Share Tech Mono", "monospace"],
+                        "pixel": ["Silkscreen", "cursive"]
+                    },
+                    boxShadow: {
+                        "crt": "inset 0 0 20px rgba(0,0,0,0.9), 0 0 10px rgba(77, 175, 76, 0.2)",
+                        "inner-bevel": "inset 2px 2px 4px rgba(0,0,0,0.8), inset -1px -1px 2px rgba(255,255,255,0.1)",
+                        "outer-bevel": "2px 2px 5px rgba(0,0,0,0.6), inset 1px 1px 1px rgba(255,255,255,0.15)"
+                    }
+                },
+            },
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&amp;family=Silkscreen:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>body {
+    background-color: #1a1815;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuD9h6ucA8AXALK7OrglHGp3kun-Xdkmay_0jRbX8WeGX94uQLv_6GXKkJuZk_YMWDamMXmFUBQhTW0RUCwBMjut8UfH-gf7PksY0Ivnn9VMEQ0jlc2VqmXqQj_g8msGvGh3l4kLjp_9Gw7vmnDMOYy0qTTWe3Dx0MUCeOJ7LhTBcsgJ5ZdbFMp6fobmwWSEPG07P2GjSWwrs3H9bv1CaEqtrmxdRwlLLR50NGkkSbIDvIK-6_-ZQAu2JvMJ0p5S0jTxihlanBnXz7n1)
+    }.pda-casing {
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9), inset 2px 2px 5px rgba(255, 255, 255, 0.05);
+    border: 12px solid #2a2825;
+    border-image: linear-gradient(135deg, #383530, #1f1d1a) 1;
+    position: relative
+    }.scanlines {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.2));
+    background-size: 100% 3px;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50
+    }@keyframes flicker {
+    0% {
+        opacity: 0.97;
+        } 5% {
+        opacity: 0.95;
+        } 10% {
+        opacity: 0.9;
+        } 15% {
+        opacity: 0.95;
+        } 20% {
+        opacity: 0.98;
+        } 50% {
+        opacity: 0.95;
+        } 80% {
+        opacity: 0.98;
+        } 90% {
+        opacity: 0.93;
+        } 100% {
+        opacity: 0.97;
+        }
+    }
+.screen-flicker {
+    animation: flicker 4s infinite
+    }.text-glow {
+    text-shadow: 0 0 2px rgba(77, 175, 76, 0.6), 0 0 8px rgba(77, 175, 76, 0.2)
+    }
+.text-glow-amber {
+    text-shadow: 0 0 2px rgba(212, 160, 23, 0.6), 0 0 8px rgba(212, 160, 23, 0.2)
+    }
+.text-glow-red {
+    text-shadow: 0 0 2px rgba(191, 54, 54, 0.6), 0 0 8px rgba(191, 54, 54, 0.2)
+    }::-webkit-scrollbar {
+    width: 6px
+    }
+::-webkit-scrollbar-track {
+    background: #050805;
+    border-left: 1px solid #1f2e1f
+    }
+::-webkit-scrollbar-thumb {
+    background: #2d5e2d;
+    border: 1px solid #050805
+    }.grime-overlay {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuDciAB8l9FWw96lqV3nqQRdnGwfW98fjZ5iwi3PvQufd-YwHfSYuLl3yTjZ8aciYCBba9fHRLgYpTbbI6lgYYxqRRbwavTE4QczpSkC4t4vYjs8EWl83zICGdpJLfBYNRN_nV-lyznqigfZFdI9AmicxNpT9TzjLvxyEi9c2LIhqXupNPOrOQiT3XYsQPJ0n_NAAHkp3UqGPWVr1yari7urkYIgL5uWlpcXnjxRwGfw8tc-Ld44Zg-Y6JUXcN4VtO0OV5YNprvEyoni);
+    opacity: 0.15;
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    mix-blend-mode: overlay
+    }.glitch-hover:hover {
+    animation: glitch-anim 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+    color: #d4a017
+    }
+@keyframes glitch-anim {
+    0% {
+        transform: translate(0)
+        } 20% {
+        transform: translate(-1px, 1px)
+        } 40% {
+        transform: translate(-1px, -1px)
+        } 60% {
+        transform: translate(1px, 1px)
+        } 80% {
+        transform: translate(1px, -1px)
+        } 100% {
+        transform: translate(0)
+        }
+    }.screw {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #1a1815;
+    border-radius: 50%;
+    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 1), 1px 1px 0 rgba(255, 255, 255, 0.1);
+    z-index: 100
+    }
+.screw::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    height: 2px;
+    background: #0a0908;
+    transform: translate(-50%, -50%) rotate(45deg)
+    }
+.screw::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    height: 2px;
+    background: #0a0908;
+    transform: translate(-50%, -50%) rotate(-45deg)
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#151310] h-screen flex flex-col items-center justify-center overflow-hidden font-display text-stalker-green select-none">
+<div class="relative w-full h-full max-w-md max-h-[900px] flex flex-col bg-[#22201d] rounded-xl overflow-hidden shadow-2xl border-4 border-[#2f2c28]">
+<div class="screw top-2 left-2"></div>
+<div class="screw top-2 right-2"></div>
+<div class="screw bottom-2 left-2"></div>
+<div class="screw bottom-2 right-2"></div>
+<div class="absolute top-12 left-1 z-50 flex flex-col gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_5px_#ef4444]"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-green-900 shadow-[inset_0_0_2px_black]"></div>
+</div>
+<div class="flex-1 m-3 mb-12 bg-pda-bg relative overflow-hidden rounded shadow-crt border border-[#3d4a3d] flex flex-col screen-flicker">
+<div class="scanlines"></div>
+<div class="grime-overlay"></div>
+<div class="absolute inset-0 pointer-events-none z-40 bg-[radial-gradient(circle_at_center,transparent_50%,rgba(0,0,0,0.6)_100%)]"></div>
+<div class="flex items-center justify-between bg-pda-screen px-3 py-1.5 border-b border-stalker-green-dim z-30 h-8 shrink-0">
+<div class="flex items-center gap-2">
+<span class="text-[10px] text-stalker-green tracking-widest font-bold">PDA v.3.1</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 text-stalker-amber">
+<span class="material-symbols-outlined text-[14px]">wifi</span>
+<span class="text-[10px]">NET</span>
+</div>
+<span class="text-sm font-bold tracking-widest text-stalker-green text-glow">14:02</span>
+<div class="w-6 h-3 border border-stalker-green/50 p-0.5 flex items-center">
+<div class="h-full w-[80%] bg-stalker-green text-glow"></div>
+</div>
+</div>
+</div>
+<div class="bg-pda-screen border-b border-stalker-green-dim relative z-20 shrink-0">
+<div class="px-3 py-2 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-[10px] text-stalker-green/50 uppercase tracking-[0.2em] mb-[-4px] pl-0.5">Section</span>
+<h1 class="text-2xl font-pixel text-stalker-green tracking-tight uppercase text-glow">CONTACTS</h1>
+</div>
+<div class="flex gap-1">
+<button class="w-8 h-8 flex items-center justify-center border border-stalker-green/30 bg-[#0f140f] hover:bg-stalker-green/20 hover:border-stalker-green transition-all group">
+<span class="material-symbols-outlined text-[18px] group-hover:text-white">search</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center border border-stalker-green/30 bg-[#0f140f] hover:bg-stalker-green/20 hover:border-stalker-green transition-all group">
+<span class="material-symbols-outlined text-[18px] group-hover:text-white">filter_list</span>
+</button>
+</div>
+</div>
+<div class="flex border-t border-stalker-green-dim bg-[#0c120c]">
+<button class="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider text-black bg-stalker-green border-r border-stalker-green-dim hover:brightness-110 transition-all text-center">
+                        ALL
+                    </button>
+<button class="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider text-stalker-green/60 hover:text-stalker-green hover:bg-stalker-green/10 border-r border-stalker-green-dim transition-all text-center">
+                        LONER
+                    </button>
+<button class="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider text-stalker-green/60 hover:text-stalker-red hover:bg-stalker-red/10 border-r border-stalker-green-dim transition-all text-center">
+                        DUTY
+                    </button>
+<button class="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider text-stalker-green/60 hover:text-stalker-amber hover:bg-stalker-amber/10 transition-all text-center">
+                        FREE
+                    </button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-2 space-y-4 pb-12 relative z-10 custom-scrollbar">
+<div class="relative">
+<div class="flex items-center gap-2 mb-2 border-b border-stalker-green/30 pb-1">
+<div class="w-1.5 h-1.5 bg-stalker-amber rotate-45"></div>
+<h3 class="text-xs font-bold text-stalker-amber tracking-[0.15em] uppercase">Loners [3]</h3>
+<div class="flex-1 h-px bg-gradient-to-r from-stalker-green/30 to-transparent"></div>
+</div>
+<div class="space-y-2">
+<div class="group bg-[#0f140f] border border-stalker-green/20 hover:border-stalker-green/60 transition-all duration-200 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-4 h-4 border-t border-r border-stalker-green/40"></div>
+<div class="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-stalker-green/40"></div>
+<div class="flex p-2 gap-3 items-center">
+<div class="relative shrink-0">
+<div class="w-12 h-12 bg-cover bg-center grayscale contrast-125 border border-stalker-green/30" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBaLN8l-Wv0Y5exDf1Gv7rt_J5s376ukd7Gs3H-5ZkBCkcGk4ZCaPncFHmf1VNRn4u88F2g315tNRP0Acf_8hQOvI-EevYWUjbgWH8dAlEcZDIzvIjWv7uN_OLdQUODpb-kQjGkuqkoYh6Tz8wMtSh9FkNx4neLbJtt18gtiHCP3Cy_U-SwlOoUmezxkwSvFFk0-XoXztfEa2r0gsu8S73u0j6t3kKOpbsOr7LDRhT_m6etR2WZayD6OLAlS5wMRHkXZscBcXG8f-P2");'></div>
+<div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-stalker-green border border-black shadow-[0_0_4px_#4daf4c]"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<h4 class="text-white font-bold text-sm tracking-wider glitch-hover cursor-pointer">STRELOK</h4>
+<span class="text-stalker-green text-[10px]">45m</span>
+</div>
+<p class="text-stalker-green/60 text-[10px] uppercase truncate">Rookie Village</p>
+<div class="mt-1 h-1 w-full bg-[#1a241a] rounded-sm overflow-hidden">
+<div class="h-full w-[90%] bg-stalker-green/40"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<button class="text-stalker-green hover:text-white hover:bg-stalker-green/20 p-1 border border-transparent hover:border-stalker-green/40 transition-all">
+<span class="material-symbols-outlined text-[16px] block">chat</span>
+</button>
+</div>
+</div>
+</div>
+<div class="group bg-[#0f140f] border border-stalker-green/20 hover:border-stalker-green/60 transition-all duration-200 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-4 h-4 border-t border-r border-stalker-green/40"></div>
+<div class="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-stalker-green/40"></div>
+<div class="flex p-2 gap-3 items-center">
+<div class="relative shrink-0">
+<div class="w-12 h-12 bg-cover bg-center grayscale contrast-125 border border-stalker-green/30" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDCzhwDlRv4gZeXrvBErTJ0zQHBnumS3YYCG_WveRylAb1WXyVDnoCsQEkLzO8SXFHKSdVqGZvCVLVJaTETHQ71Gkk7QmzLyaSIWofUi53ORC1hLZlPlHALXARr5f-uJHhObCaOVfEOJb7A54FqIXhhABMkOQH2IUUX04UKddHJAUMU2exfDNgVlREyp_NC0xmFo-Ksh3UTzq8O8P2seDoOcmTi8tQQdqiWedx9MriWwJMrAWSNDlnTwZRg3atJfOJp9D_pEZdnaKm1");'></div>
+<div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-stalker-green border border-black shadow-[0_0_4px_#4daf4c]"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<h4 class="text-white font-bold text-sm tracking-wider glitch-hover cursor-pointer">GHOST</h4>
+<span class="text-stalker-green text-[10px]">120m</span>
+</div>
+<p class="text-stalker-green/60 text-[10px] uppercase truncate">Garbage Checkpoint</p>
+<div class="mt-1 h-1 w-full bg-[#1a241a] rounded-sm overflow-hidden">
+<div class="h-full w-[60%] bg-stalker-green/40"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<button class="text-stalker-green hover:text-white hover:bg-stalker-green/20 p-1 border border-transparent hover:border-stalker-green/40 transition-all">
+<span class="material-symbols-outlined text-[16px] block">chat</span>
+</button>
+</div>
+</div>
+</div>
+<div class="group bg-[#0a0f0a] border border-stalker-green/10 opacity-60 relative overflow-hidden">
+<div class="flex p-2 gap-3 items-center">
+<div class="relative shrink-0">
+<div class="w-12 h-12 bg-cover bg-center grayscale contrast-150 brightness-50 border border-stalker-green/10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBptHndCLr7yiW2hCzxBeFjG4gF9F5f-exhYdRBI9A3omXbixopk5SGMEbfYFQyTTd1VcGtDua2GNk2X2ck3ZOwjfL3DiQr34AWRyulPpwTvAbI3gjQGQ4798-9X2cC4tvfPytzxKoe2_PxwdCBHKa2pKvGNwvWVH_yIos3RNQBaSk-d759CbLBfsWvFVdRZ-UNLdkuF5G57EHyo4WINfn_2cA3P1janBqZGH-6zUvxUR5w_EJRamtqXuOTzU9QceCMI6nHfyuieahq");'></div>
+<div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-gray-600 border border-black"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<h4 class="text-gray-400 font-bold text-sm tracking-wider">FANG</h4>
+<span class="text-gray-600 text-[10px]">---</span>
+</div>
+<p class="text-gray-600 text-[10px] uppercase truncate">Last seen: 2h ago</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="relative mt-4">
+<div class="flex items-center gap-2 mb-2 border-b border-stalker-red/30 pb-1">
+<div class="w-1.5 h-1.5 bg-stalker-red rotate-45"></div>
+<h3 class="text-xs font-bold text-stalker-red tracking-[0.15em] uppercase text-glow-red">Duty [1]</h3>
+<div class="flex-1 h-px bg-gradient-to-r from-stalker-red/30 to-transparent"></div>
+</div>
+<div class="space-y-2">
+<div class="group bg-[#150a0a] border border-stalker-red/20 hover:border-stalker-red/60 transition-all duration-200 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-4 h-4 border-t border-r border-stalker-red/40"></div>
+<div class="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-stalker-red/40"></div>
+<div class="flex p-2 gap-3 items-center">
+<div class="relative shrink-0">
+<div class="w-12 h-12 bg-cover bg-center grayscale contrast-125 border border-stalker-red/30" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCU4lyALX3zV1qg2oC_elEGQ2lqQoMEG-LAZDJGJm5LLDg6ndR8B5M1hg73VQ49kItfjZDLhJ-4oU8EoKxgDzJDWgZr17wB1uLZrbgItU3gyrmkGEqOZOu9T8P_Uy4q04JC3CFyzVXfY8EU6TLTxIWSqBS_k6Ay-3X9eGeIXfAq0GAn37HWFVqCmsV1YtV60qus6xqMoNcqrMA9xrSg95DINiLWO3kUF5MSYoFpQytpdoBMUEcAXgN6upsYH0-pGgRFACdxSLWKa922");'></div>
+<div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-stalker-green border border-black shadow-[0_0_4px_#4daf4c]"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<h4 class="text-white font-bold text-sm tracking-wider glitch-hover cursor-pointer group-hover:text-stalker-red">VORONIN</h4>
+<span class="text-stalker-green text-[10px]">350m</span>
+</div>
+<p class="text-stalker-red/60 text-[10px] uppercase truncate">Bar • HQ</p>
+<div class="mt-1 h-1 w-full bg-[#241a1a] rounded-sm overflow-hidden">
+<div class="h-full w-[100%] bg-stalker-red/60"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<button class="text-stalker-red hover:text-white hover:bg-stalker-red/20 p-1 border border-transparent hover:border-stalker-red/40 transition-all">
+<span class="material-symbols-outlined text-[16px] block">chat</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="relative mt-4">
+<div class="flex items-center gap-2 mb-2 border-b border-stalker-green/30 pb-1">
+<div class="w-1.5 h-1.5 bg-stalker-green rotate-45"></div>
+<h3 class="text-xs font-bold text-stalker-green tracking-[0.15em] uppercase text-glow">Freedom [1]</h3>
+<div class="flex-1 h-px bg-gradient-to-r from-stalker-green/30 to-transparent"></div>
+</div>
+<div class="space-y-2">
+<div class="group bg-[#0f140f] border border-stalker-green/30 hover:border-stalker-green/60 transition-all duration-200 relative overflow-hidden">
+<div class="absolute inset-0 bg-stalker-amber/5 animate-pulse pointer-events-none"></div>
+<div class="absolute top-0 right-0 w-4 h-4 border-t border-r border-stalker-green/40"></div>
+<div class="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-stalker-green/40"></div>
+<div class="flex p-2 gap-3 items-center">
+<div class="relative shrink-0">
+<div class="w-12 h-12 bg-cover bg-center grayscale contrast-125 border border-stalker-amber/30" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAMwdWQxopZk5PGS9W9tybZxBEKzZet1deAK50estkF18P9riQrWWJZio82HvHKany-IGpkSDTgHk5o_YRqpPP02Q2QHJYIpk4XL1DrPCs_lUl7rGk4Azk49uNEUEAqxZHjp013_NxCtBf5RZlIfxIakpFWTk4PBzVN3dQFt5qIZWPmYDBWOf50eYuYukBMrJjS-utsX-92lCM-K8xRh4gMGtqDA2uXRuY61PgpGLKVBNufFOqCdJFdnWPAXDRUeY7_aFYUA4zhzH2i");'></div>
+<div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-stalker-amber border border-black shadow-[0_0_4px_#d4a017] animate-pulse"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<h4 class="text-white font-bold text-sm tracking-wider glitch-hover cursor-pointer group-hover:text-stalker-amber">LUKASH</h4>
+<span class="text-stalker-amber text-[10px]">850m</span>
+</div>
+<p class="text-stalker-amber text-[10px] uppercase truncate font-bold animate-pulse">! IN COMBAT !</p>
+<div class="mt-1 h-1 w-full bg-[#24221a] rounded-sm overflow-hidden">
+<div class="h-full w-[40%] bg-stalker-amber/60"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<button class="text-stalker-amber hover:text-white hover:bg-stalker-amber/20 p-1 border border-transparent hover:border-stalker-amber/40 transition-all">
+<span class="material-symbols-outlined text-[16px] block">warning</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="h-8"></div>
+</div>
+<div class="absolute bottom-0 left-0 right-0 bg-pda-screen border-t border-stalker-green-dim z-30">
+<div class="h-[2px] w-full bg-[#1f2e1f] relative">
+<div class="absolute left-1/4 top-0 w-12 h-full bg-stalker-green/40"></div>
+<div class="absolute right-1/4 top-0 w-4 h-full bg-stalker-green/40"></div>
+</div>
+<div class="flex justify-between items-stretch h-10 px-1">
+<button class="flex-1 flex flex-col items-center justify-center text-stalker-green/40 hover:text-stalker-green hover:bg-stalker-green/10 transition-colors group border-r border-[#1f2e1f]">
+<span class="text-[10px] uppercase font-bold tracking-wider group-hover:text-glow">Map</span>
+</button>
+<button class="flex-1 flex flex-col items-center justify-center text-stalker-green/40 hover:text-stalker-green hover:bg-stalker-green/10 transition-colors group border-r border-[#1f2e1f]">
+<span class="text-[10px] uppercase font-bold tracking-wider group-hover:text-glow">Tasks</span>
+</button>
+<button class="flex-1 flex flex-col items-center justify-center bg-stalker-green/20 text-stalker-green relative shadow-[inset_0_0_10px_rgba(77,175,76,0.2)]">
+<div class="absolute top-0 inset-x-0 h-[1px] bg-stalker-green shadow-[0_0_5px_#4daf4c]"></div>
+<span class="text-[10px] uppercase font-bold tracking-wider text-glow">Ctcts</span>
+</button>
+<button class="flex-1 flex flex-col items-center justify-center text-stalker-green/40 hover:text-stalker-green hover:bg-stalker-green/10 transition-colors group border-r border-[#1f2e1f]">
+<span class="text-[10px] uppercase font-bold tracking-wider group-hover:text-glow">Gear</span>
+</button>
+<button class="flex-1 flex flex-col items-center justify-center text-stalker-green/40 hover:text-stalker-green hover:bg-stalker-green/10 transition-colors group">
+<span class="text-[10px] uppercase font-bold tracking-wider group-hover:text-glow">Data</span>
+</button>
+</div>
+</div>
+</div>
+<div class="absolute bottom-3 w-full flex justify-center gap-8 z-50">
+<button class="w-12 h-6 rounded bg-[#151310] shadow-outer-bevel border border-[#3d3a35] active:translate-y-px transition-transform flex items-center justify-center group">
+<div class="w-4 h-1 bg-[#2f2c28] rounded-full group-active:bg-stalker-green/50"></div>
+</button>
+<button class="w-12 h-6 rounded bg-[#151310] shadow-outer-bevel border border-[#3d3a35] active:translate-y-px transition-transform flex items-center justify-center group">
+<div class="w-4 h-1 bg-[#2f2c28] rounded-full group-active:bg-stalker-green/50"></div>
+</button>
+</div>
+<div class="absolute -right-[8px] top-32 w-[6px] h-16 bg-[#1a1815] rounded-r border-y border-r border-[#3d3a35] shadow-lg"></div>
+<div class="absolute -right-[8px] top-52 w-[6px] h-16 bg-[#1a1815] rounded-r border-y border-r border-[#3d3a35] shadow-lg"></div>
+</div>
+
+</body></html>
