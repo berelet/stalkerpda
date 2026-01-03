@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import CreateArtifactModal from '../components/CreateArtifactModal'
 import { uploadService } from '../services/upload'
+import api from '../services/api'
 
 interface ArtifactFormData {
   name: string
@@ -21,16 +22,25 @@ export default function ArtifactsPage() {
       
       let imageUrl = ''
       if (data.image) {
-        // Upload image to S3
         imageUrl = await uploadService.uploadArtifactImage(data.image)
       }
 
-      // TODO: Create artifact with imageUrl
-      console.log('Creating artifact:', { ...data, imageUrl })
+      // Create artifact type
+      await api.post('/api/admin/artifact-types', {
+        name: data.name,
+        rarity: data.rarity,
+        value: data.value,
+        bonusLives: data.bonusLives,
+        radiationResist: data.radiationResist,
+        imageUrl,
+      })
+
+      alert('Artifact type created successfully!')
+      setIsModalOpen(false)
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating artifact:', error)
-      alert('Failed to create artifact')
+      alert(error.response?.data?.error || 'Failed to create artifact')
     } finally {
       setIsUploading(false)
     }

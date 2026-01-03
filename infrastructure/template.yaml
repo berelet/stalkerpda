@@ -524,6 +524,27 @@ Resources:
             Path: /api/admin/upload-url
             Method: POST
 
+  # Artifact Types Function
+  ArtifactTypesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-artifact-types-${Environment}
+      Handler: src.handlers.artifact_types.handler
+      CodeUri: ../backend/
+      Events:
+        CreateArtifactType:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/artifact-types
+            Method: POST
+        ListArtifactTypes:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/artifact-types
+            Method: GET
+
   # WebSocket API
   WebSocketApi:
     Type: AWS::ApiGatewayV2::Api
