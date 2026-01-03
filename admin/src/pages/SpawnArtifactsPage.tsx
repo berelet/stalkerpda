@@ -42,7 +42,8 @@ export default function SpawnArtifactsPage() {
   const [longitude, setLongitude] = useState(18.0686)
   const [durationType, setDurationType] = useState<'hours' | 'exact'>('hours')
   const [durationHours, setDurationHours] = useState('24')
-  const [exactDateTime, setExactDateTime] = useState('')
+  const [startDateTime, setStartDateTime] = useState('')
+  const [endDateTime, setEndDateTime] = useState('')
   const [spawning, setSpawning] = useState(false)
   const [markerPosition, setMarkerPosition] = useState<[number, number]>([59.3293, 18.0686])
   const [mapKey, setMapKey] = useState(0) // Force map re-render
@@ -100,9 +101,9 @@ export default function SpawnArtifactsPage() {
       let expiresAt: string | undefined
       if (durationType === 'hours' && durationHours) {
         expiresAt = new Date(Date.now() + parseInt(durationHours) * 60 * 60 * 1000).toISOString()
-      } else if (durationType === 'exact' && exactDateTime) {
-        // Convert local datetime to ISO with Kyiv timezone offset
-        expiresAt = new Date(exactDateTime).toISOString()
+      } else if (durationType === 'exact' && endDateTime) {
+        // Convert local datetime to ISO (UTC)
+        expiresAt = new Date(endDateTime).toISOString()
       }
       
       if (editingArtifactId) {
@@ -171,7 +172,7 @@ export default function SpawnArtifactsPage() {
       const expiresDate = new Date(artifact.expiresAt) // UTC time
       const now = new Date() // Local time
       
-      // Calculate hours left (both dates are in milliseconds since epoch, so comparison is correct)
+      // Calculate hours left
       const hoursLeft = Math.ceil((expiresDate.getTime() - now.getTime()) / (1000 * 60 * 60))
       
       if (hoursLeft > 0 && hoursLeft <= 168) {
@@ -180,13 +181,18 @@ export default function SpawnArtifactsPage() {
       } else {
         setDurationType('exact')
         // Format for datetime-local input (YYYY-MM-DDTHH:mm)
-        // datetime-local expects local time, so we need to convert UTC to local
-        const year = expiresDate.getFullYear()
-        const month = String(expiresDate.getMonth() + 1).padStart(2, '0')
-        const day = String(expiresDate.getDate()).padStart(2, '0')
-        const hours = String(expiresDate.getHours()).padStart(2, '0')
-        const minutes = String(expiresDate.getMinutes()).padStart(2, '0')
-        setExactDateTime(`${year}-${month}-${day}T${hours}:${minutes}`)
+        const formatDateTime = (date: Date) => {
+          const year = date.getFullYear()
+          const month = String(date.getMonth() + 1).padStart(2, '0')
+          const day = String(date.getDate()).padStart(2, '0')
+          const hours = String(date.getHours()).padStart(2, '0')
+          const minutes = String(date.getMinutes()).padStart(2, '0')
+          return `${year}-${month}-${day}T${hours}:${minutes}`
+        }
+        
+        // Start time = now, End time = expires
+        setStartDateTime(formatDateTime(now))
+        setEndDateTime(formatDateTime(expiresDate))
       }
     }
     
@@ -198,7 +204,8 @@ export default function SpawnArtifactsPage() {
     setEditingArtifactId(null)
     setSelectedType('')
     setDurationHours('24')
-    setExactDateTime('')
+    setStartDateTime('')
+    setEndDateTime('')
     setDurationType('hours')
   }
 
@@ -377,16 +384,33 @@ export default function SpawnArtifactsPage() {
                   </div>
                 )}
 
-                {/* Exact DateTime Input */}
+                {/* Exact DateTime Input - Time Range */}
                 {durationType === 'exact' && (
-                  <div>
-                    <input
-                      type="datetime-local"
-                      value={exactDateTime}
-                      onChange={(e) => setExactDateTime(e.target.value)}
-                      className="w-full bg-[#101b22] border border-[#233948] text-white px-4 py-2.5 rounded-lg focus:outline-none focus:border-[#1e9cf1] focus:ring-1 focus:ring-[#1e9cf1]"
-                    />
-                    <p className="text-xs text-[#91b3ca] mt-1">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-[#91b3ca] mb-1">
+                        Start Time
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={startDateTime}
+                        onChange={(e) => setStartDateTime(e.target.value)}
+                        className="w-full bg-[#101b22] border border-[#233948] text-white px-4 py-2.5 rounded-lg focus:outline-none focus:border-[#1e9cf1] focus:ring-1 focus:ring-[#1e9cf1]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[#91b3ca] mb-1">
+                        End Time
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={endDateTime}
+                        onChange={(e) => setEndDateTime(e.target.value)}
+                        required={durationType === 'exact'}
+                        className="w-full bg-[#101b22] border border-[#233948] text-white px-4 py-2.5 rounded-lg focus:outline-none focus:border-[#1e9cf1] focus:ring-1 focus:ring-[#1e9cf1]"
+                      />
+                    </div>
+                    <p className="text-xs text-[#91b3ca]">
                       Time zone: Europe/Kyiv (UTC+2)
                     </p>
                   </div>
