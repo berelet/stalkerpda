@@ -48,6 +48,17 @@ export interface Artifact {
   extractedAt?: string;
 }
 
+export interface ArtifactType {
+  id: string;
+  name: string;
+  rarity: 'common' | 'uncommon' | 'rare' | 'legendary';
+  value: number;
+  bonusLives: number;
+  radiationResist: number;
+  imageUrl: string;
+  createdAt: string;
+}
+
 export interface RadiationZone {
   id: string;
   name: string;

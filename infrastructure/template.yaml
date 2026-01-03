@@ -544,6 +544,12 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /api/admin/artifact-types
             Method: GET
+        UpdateArtifactType:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/artifact-types/{id}
+            Method: PUT
 
   # WebSocket API
   WebSocketApi:

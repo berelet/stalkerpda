@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import CreateArtifactModal from '../components/CreateArtifactModal'
 import { uploadService } from '../services/upload'
 import api from '../services/api'
+import { ArtifactType } from '../../../shared/types'
 
 interface ArtifactFormData {
   name: string
@@ -10,17 +11,6 @@ interface ArtifactFormData {
   bonusLives: number
   radiationResist: number
   image?: File
-}
-
-interface ArtifactType {
-  id: string
-  name: string
-  rarity: string
-  value: number
-  bonusLives: number
-  radiationResist: number
-  imageUrl: string
-  createdAt: string
 }
 
 const rarityColors = {
@@ -35,6 +25,7 @@ export default function ArtifactsPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [artifacts, setArtifacts] = useState<ArtifactType[]>([])
   const [loading, setLoading] = useState(true)
+  const [editingArtifact, setEditingArtifact] = useState<ArtifactType | undefined>()
 
   const loadArtifacts = async () => {
     try {
@@ -51,34 +42,57 @@ export default function ArtifactsPage() {
     loadArtifacts()
   }, [])
 
-  const handleCreateArtifact = async (data: ArtifactFormData) => {
+  const handleSubmitArtifact = async (data: ArtifactFormData) => {
     try {
       setIsUploading(true)
       
-      let imageUrl = ''
+      let imageUrl = editingArtifact?.imageUrl || ''
       if (data.image) {
         imageUrl = await uploadService.uploadArtifactImage(data.image)
       }
 
-      await api.post('/api/admin/artifact-types', {
-        name: data.name,
-        rarity: data.rarity,
-        value: data.value,
-        bonusLives: data.bonusLives,
-        radiationResist: data.radiationResist,
-        imageUrl,
-      })
+      if (editingArtifact) {
+        await api.put(`/api/admin/artifact-types/${editingArtifact.id}`, {
+          name: data.name,
+          rarity: data.rarity,
+          value: data.value,
+          bonusLives: data.bonusLives,
+          radiationResist: data.radiationResist,
+          imageUrl,
+        })
+        alert('Artifact updated!')
+      } else {
+        await api.post('/api/admin/artifact-types', {
+          name: data.name,
+          rarity: data.rarity,
+          value: data.value,
+          bonusLives: data.bonusLives,
+          radiationResist: data.radiationResist,
+          imageUrl,
+        })
+        alert('Artifact created!')
+      }
 
-      alert('Artifact type created successfully!')
       setIsModalOpen(false)
+      setEditingArtifact(undefined)
       loadArtifacts()
       
     } catch (error: any) {
-      console.error('Error creating artifact:', error)
-      alert(error.response?.data?.error || 'Failed to create artifact')
+      console.error('Error saving artifact:', error)
+      alert(error.response?.data?.error || 'Failed to save artifact')
     } finally {
       setIsUploading(false)
     }
+  }
+
+  const handleEdit = (artifact: ArtifactType) => {
+    setEditingArtifact(artifact)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setEditingArtifact(undefined)
   }
 
   return (
@@ -132,7 +146,7 @@ export default function ArtifactsPage() {
                   </span>
                 </div>
 
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-sm mb-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[#91b3ca]">Value:</span>
                     <span className="text-white font-mono">{artifact.value}</span>
@@ -152,6 +166,14 @@ export default function ArtifactsPage() {
                     </div>
                   )}
                 </div>
+
+                <button
+                  onClick={() => handleEdit(artifact)}
+                  className="w-full h-9 rounded-lg bg-[#233948] hover:bg-primary/20 border border-primary/30 hover:border-primary text-primary font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">edit</span>
+                  Edit
+                </button>
               </div>
             </div>
           ))}
@@ -160,9 +182,10 @@ export default function ArtifactsPage() {
 
       <CreateArtifactModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleCreateArtifact}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmitArtifact}
         isUploading={isUploading}
+        artifact={editingArtifact}
       />
     </div>
   )

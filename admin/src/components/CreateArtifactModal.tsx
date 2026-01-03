@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { ArtifactType } from '../../../shared/types'
 
 interface CreateArtifactModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (data: ArtifactFormData) => void
   isUploading?: boolean
+  artifact?: ArtifactType
 }
 
 interface ArtifactFormData {
@@ -16,7 +18,7 @@ interface ArtifactFormData {
   image?: File
 }
 
-export default function CreateArtifactModal({ isOpen, onClose, onSubmit, isUploading = false }: CreateArtifactModalProps) {
+export default function CreateArtifactModal({ isOpen, onClose, onSubmit, isUploading = false, artifact }: CreateArtifactModalProps) {
   const [formData, setFormData] = useState<ArtifactFormData>({
     name: '',
     rarity: 'rare',
@@ -25,6 +27,30 @@ export default function CreateArtifactModal({ isOpen, onClose, onSubmit, isUploa
     radiationResist: 0,
   })
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (artifact) {
+      setFormData({
+        name: artifact.name,
+        rarity: artifact.rarity,
+        value: artifact.value,
+        bonusLives: artifact.bonusLives,
+        radiationResist: artifact.radiationResist,
+      })
+      if (artifact.imageUrl) {
+        setImagePreview(artifact.imageUrl)
+      }
+    } else {
+      setFormData({
+        name: '',
+        rarity: 'rare',
+        value: 5000,
+        bonusLives: 0,
+        radiationResist: 0,
+      })
+      setImagePreview(null)
+    }
+  }, [artifact, isOpen])
 
   if (!isOpen) return null
 
@@ -52,10 +78,12 @@ export default function CreateArtifactModal({ isOpen, onClose, onSubmit, isUploa
         <div className="flex items-center justify-between border-b border-[#233948] bg-[#152028] px-6 py-4">
           <div className="flex flex-col gap-1">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">science</span>
-              Create Artifact
+              <span className="material-symbols-outlined text-primary">{artifact ? 'edit' : 'science'}</span>
+              {artifact ? 'Edit Artifact' : 'Create Artifact'}
             </h2>
-            <p className="text-xs font-mono text-[#91b3ca] uppercase tracking-wider">// DATABASE ENTRY_ID: NEW</p>
+            <p className="text-xs font-mono text-[#91b3ca] uppercase tracking-wider">
+              // DATABASE ENTRY_ID: {artifact ? artifact.id.slice(0, 8).toUpperCase() : 'NEW'}
+            </p>
           </div>
           <button onClick={onClose} className="text-[#91b3ca] hover:text-white transition-colors rounded-lg p-2 hover:bg-[#233948]">
             <span className="material-symbols-outlined">close</span>
@@ -154,12 +182,12 @@ export default function CreateArtifactModal({ isOpen, onClose, onSubmit, isUploa
               {isUploading ? (
                 <>
                   <span className="material-symbols-outlined animate-spin">progress_activity</span>
-                  Uploading...
+                  {artifact ? 'Updating...' : 'Uploading...'}
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined">add_circle</span>
-                  Create Artifact
+                  <span className="material-symbols-outlined">{artifact ? 'save' : 'add_circle'}</span>
+                  {artifact ? 'Update Artifact' : 'Create Artifact'}
                 </>
               )}
             </button>
