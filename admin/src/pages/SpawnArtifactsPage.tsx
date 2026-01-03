@@ -44,6 +44,7 @@ export default function SpawnArtifactsPage() {
   const [exactDateTime, setExactDateTime] = useState('')
   const [spawning, setSpawning] = useState(false)
   const [markerPosition, setMarkerPosition] = useState<[number, number]>([59.3293, 18.0686])
+  const [mapKey, setMapKey] = useState(0) // Force map re-render
 
   useEffect(() => {
     loadData()
@@ -56,6 +57,7 @@ export default function SpawnArtifactsPage() {
           setLatitude(lat)
           setLongitude(lng)
           setMarkerPosition([lat, lng])
+          setMapKey(prev => prev + 1) // Force map to re-center
         },
         () => {
           // Ignore errors, use default Stockholm coordinates
@@ -179,28 +181,34 @@ export default function SpawnArtifactsPage() {
                   Select Artifact Type
                 </label>
                 <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto p-2 bg-[#101b22] border border-[#233948] rounded-lg">
-                  {artifactTypes.map((type) => (
-                    <button
-                      key={type.id}
-                      type="button"
-                      onClick={() => setSelectedType(type.id)}
-                      className={`p-3 rounded-lg border transition-all text-left ${
-                        selectedType === type.id
-                          ? 'border-[#1e9cf1] bg-[#1e9cf1]/10 shadow-[0_0_10px_rgba(30,156,241,0.3)]'
-                          : 'border-[#233948] hover:border-[#1e9cf1]/50 hover:bg-[#233948]/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {type.imageUrl && (
-                          <img src={type.imageUrl} alt={type.name} className="w-8 h-8 object-cover rounded" />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="text-white text-sm font-medium truncate">{type.name}</div>
-                          <div className="text-xs text-[#91b3ca] capitalize">{type.rarity}</div>
+                  {loading ? (
+                    <div className="col-span-2 text-center text-[#91b3ca] py-4">Loading...</div>
+                  ) : artifactTypes.length === 0 ? (
+                    <div className="col-span-2 text-center text-[#91b3ca] py-4">No artifacts available</div>
+                  ) : (
+                    artifactTypes.map((type) => (
+                      <button
+                        key={type.id}
+                        type="button"
+                        onClick={() => setSelectedType(type.id)}
+                        className={`p-3 rounded-lg border transition-all text-left ${
+                          selectedType === type.id
+                            ? 'border-[#1e9cf1] bg-[#1e9cf1]/10 shadow-[0_0_10px_rgba(30,156,241,0.3)]'
+                            : 'border-[#233948] hover:border-[#1e9cf1]/50 hover:bg-[#233948]/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {type.imageUrl && (
+                            <img src={type.imageUrl} alt={type.name} className="w-8 h-8 object-cover rounded" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-white text-sm font-medium truncate">{type.name}</div>
+                            <div className="text-xs text-[#91b3ca] capitalize">{type.rarity}</div>
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -211,6 +219,7 @@ export default function SpawnArtifactsPage() {
                 </label>
                 <div className="h-[300px] rounded-lg overflow-hidden border border-[#233948]">
                   <MapContainer
+                    key={mapKey}
                     center={markerPosition}
                     zoom={13}
                     style={{ height: '100%', width: '100%' }}
