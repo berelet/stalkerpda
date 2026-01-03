@@ -32,6 +32,7 @@ def create_artifact_type(event, context):
             return error_response('Artifact name is required', 400)
         
         artifact_id = str(uuid.uuid4())
+        player_id = event.get('requestContext', {}).get('authorizer', {}).get('playerId')
         
         with get_db() as conn:
             with conn.cursor() as cursor:
@@ -39,7 +40,7 @@ def create_artifact_type(event, context):
                     """INSERT INTO artifact_types 
                     (id, name, rarity, base_value, bonus_lives, radiation_resist, image_url, created_by)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-                    (artifact_id, name, rarity, value, bonus_lives, radiation_resist, image_url, event['requestContext']['authorizer']['playerId'])
+                    (artifact_id, name, rarity, value, bonus_lives, radiation_resist, image_url, player_id)
                 )
                 conn.commit()
         
