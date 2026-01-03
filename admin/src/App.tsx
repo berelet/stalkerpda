@@ -5,36 +5,35 @@ import PlayersPage from './pages/PlayersPage'
 import ArtifactsPage from './pages/ArtifactsPage'
 import ZonesPage from './pages/ZonesPage'
 import ContractsPage from './pages/ContractsPage'
+import Layout from './components/Layout'
 import { useAuthStore } from './stores/authStore'
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
 
+  if (!isAuthenticated) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      </BrowserRouter>
+    )
+  }
+
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/"
-          element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/players"
-          element={isAuthenticated ? <PlayersPage /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/artifacts"
-          element={isAuthenticated ? <ArtifactsPage /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/zones"
-          element={isAuthenticated ? <ZonesPage /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/contracts"
-          element={isAuthenticated ? <ContractsPage /> : <Navigate to="/login" />}
-        />
-      </Routes>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/players" element={<PlayersPage />} />
+          <Route path="/artifacts" element={<ArtifactsPage />} />
+          <Route path="/zones" element={<ZonesPage />} />
+          <Route path="/contracts" element={<ContractsPage />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Layout>
     </BrowserRouter>
   )
 }
