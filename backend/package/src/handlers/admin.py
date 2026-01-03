@@ -20,6 +20,12 @@ def handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                'Access-Control-Allow-Methods': 'GET,OPTIONS'
+            },
             'body': json.dumps({
                 'players': [
                     {
@@ -43,6 +49,10 @@ def handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -67,6 +77,7 @@ def history_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'track': [
                     {
@@ -82,6 +93,7 @@ def history_handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -111,6 +123,7 @@ def spawn_artifact_handler(event, context):
         
         return {
             'statusCode': 201,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'id': artifact_id,
                 'name': artifact_type['name'],
@@ -121,6 +134,7 @@ def spawn_artifact_handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -144,6 +158,7 @@ def create_radiation_zone_handler(event, context):
         
         return {
             'statusCode': 201,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'id': zone_id,
                 'name': body['name'],
@@ -154,6 +169,7 @@ def create_radiation_zone_handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -176,6 +192,7 @@ def create_control_point_handler(event, context):
         
         return {
             'statusCode': 201,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'id': cp_id,
                 'name': body['name']
@@ -185,5 +202,6 @@ def create_control_point_handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }

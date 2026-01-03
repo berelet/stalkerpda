@@ -117,9 +117,25 @@ def me_handler(event, context):
                     (player_id,)
                 )
                 player_data = cursor.fetchone()
+                
+                # Get player roles
+                cursor.execute(
+                    """SELECT is_gm, is_bartender, permissions 
+                    FROM player_roles WHERE player_id = %s""",
+                    (player_id,)
+                )
+                roles_data = cursor.fetchone()
         
         if not player_data:
             return error_response('Player not found', 404, 'NOT_FOUND')
+        
+        # Determine role for frontend
+        role = 'player'
+        if roles_data:
+            if roles_data.get('is_gm'):
+                role = 'gm'
+            elif roles_data.get('is_bartender'):
+                role = 'bartender'
         
         response = {
             'id': player_data['id'],
@@ -132,6 +148,7 @@ def me_handler(event, context):
             'currentLives': player_data['current_lives'],
             'currentRadiation': player_data['current_radiation'],
             'qrCode': player_data['qr_code'],
+            'role': role,
             'stats': {
                 'kills': player_data['total_kills'],
                 'deaths': player_data['total_deaths'],

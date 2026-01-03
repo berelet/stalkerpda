@@ -27,6 +27,7 @@ def handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'radiationZones': [
                     {
@@ -55,6 +56,7 @@ def handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -82,6 +84,7 @@ def capture_handler(event, context):
                 if not cp:
                     return {
                         'statusCode': 404,
+            'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Control point not found'}})
                     }
                 
@@ -91,6 +94,7 @@ def capture_handler(event, context):
                 if distance > cp['capture_radius']:
                     return {
                         'statusCode': 400,
+            'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'TOO_FAR', 'message': f'Too far ({distance:.1f}m)'}})
                     }
                 
@@ -107,6 +111,7 @@ def capture_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'success': True,
                 'captureStarted': True,
@@ -117,6 +122,7 @@ def capture_handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -141,6 +147,7 @@ def complete_capture_handler(event, context):
                 if not result or result['capturing_by'] != player_id:
                     return {
                         'statusCode': 400,
+            'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'Capture not started'}})
                     }
                 
@@ -149,6 +156,7 @@ def complete_capture_handler(event, context):
                 if elapsed < config.CAPTURE_DURATION:
                     return {
                         'statusCode': 409,
+            'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'TOO_EARLY', 'message': f'Wait {config.CAPTURE_DURATION - int(elapsed)}s'}})
                     }
                 
@@ -163,6 +171,7 @@ def complete_capture_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'success': True,
                 'controlledByFaction': result['faction'],
@@ -173,6 +182,7 @@ def complete_capture_handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -194,11 +204,13 @@ def cancel_capture_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'success': True})
         }
     
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }

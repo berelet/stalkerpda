@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from src.database import get_db
 from src.middleware.auth import require_auth
-from src.models.schemas import CreateContractRequest
+# from src.models.schemas import CreateContractRequest
 
 @require_auth
 def handler(event, context):
@@ -58,12 +58,14 @@ def handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps(response)
         }
     
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -90,6 +92,7 @@ def my_contracts_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'active': [{'id': c['id'], 'title': c['title'], 'reward': float(c['reward'])} for c in active],
                 'completed': [{'id': c['id'], 'title': c['title'], 'reward': float(c['reward'])} for c in completed]
@@ -99,6 +102,7 @@ def my_contracts_handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -108,7 +112,20 @@ def create_handler(event, context):
     try:
         player_id = event['player']['player_id']
         body = json.loads(event.get('body', '{}'))
-        request = CreateContractRequest(**body)
+        
+        # Simple validation
+        contract_type = body.get('type')
+        title = body.get('title')
+        description = body.get('description')
+        reward = body.get('reward')
+        
+        if not all([contract_type, title, reward]):
+            return {
+                'statusCode': 400,
+            'headers': {'Content-Type': 'application/json'},
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'Missing required fields'}})
+            }
         
         with get_db() as conn:
             with conn.cursor() as cursor:
@@ -119,16 +136,18 @@ def create_handler(event, context):
                 )
                 player = cursor.fetchone()
                 
-                if float(player['balance']) < request.reward:
+                if float(player['balance']) < reward:
                     return {
                         'statusCode': 400,
+            'headers': {'Content-Type': 'application/json'},
+                        'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'INSUFFICIENT_BALANCE', 'message': 'Insufficient balance'}})
                     }
                 
                 # Deduct escrow
                 cursor.execute(
                     "UPDATE players SET balance = balance - %s WHERE id = %s",
-                    (request.reward, player_id)
+                    (reward, player_id)
                 )
                 
                 # Create contract
@@ -138,10 +157,10 @@ def create_handler(event, context):
                     (id, type, issuer_id, title, description, reward, escrow_amount, escrow_held,
                     target_player_id, destination_lat, destination_lng, expires_at, faction_restriction)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, TRUE, %s, %s, %s, %s, %s)""",
-                    (contract_id, request.type.value, player_id, request.title, request.description,
-                     request.reward, request.reward, request.targetPlayerId,
-                     request.destinationLat, request.destinationLng, request.expiresAt,
-                     request.factionRestriction.value if request.factionRestriction else None)
+                    (contract_id, contract_type, player_id, title, description or '',
+                     reward, reward, body.get('targetPlayerId'),
+                     body.get('destinationLat'), body.get('destinationLng'), body.get('expiresAt'),
+                     body.get('factionRestriction'))
                 )
                 
                 cursor.execute(
@@ -152,6 +171,7 @@ def create_handler(event, context):
         
         return {
             'statusCode': 201,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'id': contract_id,
                 'escrowHeld': True,
@@ -162,6 +182,8 @@ def create_handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -184,17 +206,20 @@ def accept_handler(event, context):
                 if cursor.rowcount == 0:
                     return {
                         'statusCode': 409,
+            'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'CONFLICT', 'message': 'Contract not available'}})
                     }
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'success': True})
         }
     
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -216,12 +241,14 @@ def complete_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'success': True, 'awaitingConfirmation': True})
         }
     
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -245,6 +272,7 @@ def confirm_handler(event, context):
                 if not contract or contract['status'] != 'in_progress':
                     return {
                         'statusCode': 400,
+            'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'Contract not ready'}})
                     }
                 
@@ -258,6 +286,7 @@ def confirm_handler(event, context):
                     if not role or not role['is_gm']:
                         return {
                             'statusCode': 403,
+            'headers': {'Content-Type': 'application/json'},
                             'body': json.dumps({'error': {'code': 'FORBIDDEN', 'message': 'Not authorized'}})
                         }
                 
@@ -289,6 +318,7 @@ def confirm_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'success': True,
                 'rewardPaid': float(contract['reward']),
@@ -299,5 +329,6 @@ def confirm_handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }

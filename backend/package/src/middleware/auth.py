@@ -1,6 +1,6 @@
 from functools import wraps
 from typing import Optional
-from src.utils.auth import decode_jwt_token
+from src.utils.auth_simple import decode_jwt_token
 
 def get_current_player(event: dict) -> Optional[dict]:
     """Extract player from JWT token in event"""

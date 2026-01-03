@@ -3,7 +3,6 @@ import uuid
 from datetime import datetime, timedelta
 from src.database import get_db
 from src.middleware.auth import require_auth
-from src.models.schemas import ExtractArtifactRequest
 from src.utils.geo import haversine_distance
 from src.config import config
 
@@ -45,12 +44,19 @@ def handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps(response)
         }
     
     except Exception as e:
+        print(f"Artifacts error: {e}")
+        import traceback
+        traceback.print_exc()
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -61,7 +67,17 @@ def extract_handler(event, context):
         player_id = event['player']['player_id']
         artifact_id = event['pathParameters']['id']
         body = json.loads(event.get('body', '{}'))
-        request = ExtractArtifactRequest(**body)
+        
+        latitude = body.get('latitude')
+        longitude = body.get('longitude')
+        
+        if not latitude or not longitude:
+            return {
+                'statusCode': 400,
+            'headers': {'Content-Type': 'application/json'},
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'Location required'}})
+            }
         
         with get_db() as conn:
             with conn.cursor() as cursor:
@@ -76,24 +92,27 @@ def extract_handler(event, context):
                 if not artifact:
                     return {
                         'statusCode': 404,
+            'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Artifact not found'}})
                     }
                 
                 if artifact['state'] not in ['visible', 'hidden']:
                     return {
                         'statusCode': 409,
+            'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'CONFLICT', 'message': 'Artifact not available'}})
                     }
                 
                 # Check distance
                 distance = haversine_distance(
-                    request.latitude, request.longitude,
+                    latitude, longitude,
                     float(artifact['latitude']), float(artifact['longitude'])
                 )
                 
                 if distance > config.ARTIFACT_PICKUP_RADIUS:
                     return {
                         'statusCode': 400,
+            'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'TOO_FAR', 'message': f'Too far from artifact ({distance:.1f}m)'}})
                     }
                 
@@ -110,6 +129,7 @@ def extract_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'success': True,
                 'extractionStarted': True,
@@ -120,6 +140,7 @@ def extract_handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -146,12 +167,14 @@ def complete_handler(event, context):
                 if not artifact:
                     return {
                         'statusCode': 404,
+            'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Artifact not found'}})
                     }
                 
                 if artifact['state'] != 'extracting' or artifact['extracting_by'] != player_id:
                     return {
                         'statusCode': 400,
+            'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'Extraction not started'}})
                     }
                 
@@ -160,6 +183,7 @@ def complete_handler(event, context):
                 if elapsed < config.EXTRACTION_DURATION:
                     return {
                         'statusCode': 409,
+            'headers': {'Content-Type': 'application/json'},
                         'body': json.dumps({'error': {'code': 'TOO_EARLY', 'message': f'Wait {config.EXTRACTION_DURATION - int(elapsed)}s'}})
                     }
                 
@@ -201,12 +225,14 @@ def complete_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps(response)
         }
     
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -228,12 +254,14 @@ def cancel_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'success': True})
         }
     
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -255,11 +283,13 @@ def drop_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'success': True})
         }
     
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }

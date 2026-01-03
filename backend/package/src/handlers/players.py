@@ -2,7 +2,6 @@ import json
 import uuid
 from src.database import get_db
 from src.middleware.auth import require_auth
-from src.models.schemas import LootPlayerRequest
 from src.utils.game import calculate_loot_money, should_loot_item, should_lose_item_on_death
 
 @require_auth
@@ -19,6 +18,7 @@ def handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'players': [
                     {
@@ -34,6 +34,7 @@ def handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -120,12 +121,14 @@ def death_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps(response)
         }
     
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -135,14 +138,21 @@ def loot_handler(event, context):
     try:
         looter_id = event['player']['player_id']
         body = json.loads(event.get('body', '{}'))
-        request = LootPlayerRequest(**body)
+        victim_qr_code = body.get('victimQrCode')
+        
+        if not victim_qr_code:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'QR code required'}})
+            }
         
         with get_db() as conn:
             with conn.cursor() as cursor:
                 # Find victim by QR code
                 cursor.execute(
                     "SELECT id, nickname, balance FROM players WHERE qr_code = %s",
-                    (request.victimQrCode,)
+                    (victim_qr_code,)
                 )
                 victim = cursor.fetchone()
                 
@@ -240,7 +250,7 @@ def loot_handler(event, context):
                     (str(uuid.uuid4()), looter_id, victim_id, money_stolen,
                      json.dumps([e['id'] for e in looted_equipment]),
                      json.dumps([a['id'] for a in looted_artifacts]),
-                     request.victimQrCode)
+                     victim_qr_code)
                 )
                 
                 # Get looter's new balance
@@ -262,11 +272,13 @@ def loot_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps(response)
         }
     
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }

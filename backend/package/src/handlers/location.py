@@ -3,7 +3,6 @@ import uuid
 from datetime import datetime
 from src.database import get_db
 from src.middleware.auth import require_auth
-from src.models.schemas import LocationUpdate
 from src.utils.geo import haversine_distance, point_in_circle
 from src.config import config
 
@@ -13,7 +12,19 @@ def update_handler(event, context):
     try:
         player_id = event['player']['player_id']
         body = json.loads(event.get('body', '{}'))
-        request = LocationUpdate(**body)
+        
+        # Simple validation
+        latitude = body.get('latitude')
+        longitude = body.get('longitude')
+        accuracy = body.get('accuracy')
+        
+        if not latitude or not longitude:
+            return {
+                'statusCode': 400,
+            'headers': {'Content-Type': 'application/json'},
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'Latitude and longitude required'}})
+            }
         
         with get_db() as conn:
             with conn.cursor() as cursor:
@@ -26,14 +37,14 @@ def update_handler(event, context):
                     longitude = VALUES(longitude),
                     accuracy = VALUES(accuracy),
                     updated_at = CURRENT_TIMESTAMP""",
-                    (player_id, request.latitude, request.longitude, request.accuracy)
+                    (player_id, latitude, longitude, accuracy)
                 )
                 
                 # Add to history
                 cursor.execute(
                     """INSERT INTO location_history (player_id, latitude, longitude, accuracy)
                     VALUES (%s, %s, %s, %s)""",
-                    (player_id, request.latitude, request.longitude, request.accuracy)
+                    (player_id, latitude, longitude, accuracy)
                 )
                 
                 # Check radiation zones
@@ -46,7 +57,7 @@ def update_handler(event, context):
                 current_radiation_zones = []
                 for zone in radiation_zones:
                     if point_in_circle(
-                        request.latitude, request.longitude,
+                        latitude, longitude,
                         float(zone['center_lat']), float(zone['center_lng']),
                         zone['radius']
                     ):
@@ -67,7 +78,7 @@ def update_handler(event, context):
                 nearby_control_points = []
                 for cp in control_points:
                     distance = haversine_distance(
-                        request.latitude, request.longitude,
+                        latitude, longitude,
                         float(cp['latitude']), float(cp['longitude'])
                     )
                     if distance <= 50:  # Show if within 50m
@@ -90,7 +101,7 @@ def update_handler(event, context):
                 nearby_artifacts = []
                 for art in artifacts:
                     distance = haversine_distance(
-                        request.latitude, request.longitude,
+                        latitude, longitude,
                         float(art['latitude']), float(art['longitude'])
                     )
                     if distance <= config.ARTIFACT_DETECTION_RADIUS:
@@ -119,11 +130,21 @@ def update_handler(event, context):
         
         return {
             'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                'Access-Control-Allow-Methods': 'POST,OPTIONS'
+            },
             'body': json.dumps(response)
         }
     
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }

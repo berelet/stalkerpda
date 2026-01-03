@@ -35,6 +35,26 @@
   }
 }
 
+/* Leaflet map styling for STALKER theme */
+.leaflet-container {
+  font-family: monospace;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #0a0a0a;
+  border: 1px solid #00ff00;
+  color: #00ff00;
+}
+
+.leaflet-popup-tip {
+  background: #0a0a0a;
+  border: 1px solid #00ff00;
+}
+
+.map-tiles {
+  filter: grayscale(0.3) contrast(1.1);
+}
+
 @keyframes flicker {
   0% { opacity: 0.95; }
   50% { opacity: 0.98; }

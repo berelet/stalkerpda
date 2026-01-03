@@ -2,6 +2,7 @@ import json
 import uuid
 from src.database import get_db
 from src.utils.auth_simple import hash_password, verify_password, create_jwt_token, generate_qr_code
+from src.utils.responses import success_response, error_response
 from src.config import config
 
 def login_handler(event, context):
@@ -12,11 +13,7 @@ def login_handler(event, context):
         password = body.get('password')
         
         if not email or not password:
-            return {
-                'statusCode': 400,
-                'headers': {'Content-Type': 'application/json'},
-                'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'Email and password required'}})
-            }
+            return error_response('Email and password required', 400, 'BAD_REQUEST')
         
         with get_db() as conn:
             with conn.cursor() as cursor:
@@ -27,11 +24,7 @@ def login_handler(event, context):
                 player = cursor.fetchone()
         
         if not player or not verify_password(password, player['password_hash']):
-            return {
-                'statusCode': 401,
-                'headers': {'Content-Type': 'application/json'},
-                'body': json.dumps({'error': {'code': 'UNAUTHORIZED', 'message': 'Invalid credentials'}})
-            }
+            return error_response('Invalid credentials', 401, 'UNAUTHORIZED')
         
         token = create_jwt_token(player['id'])
         
@@ -43,19 +36,11 @@ def login_handler(event, context):
             'token': token
         }
         
-        return {
-            'statusCode': 200,
-            'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps(response)
-        }
+        return success_response(response)
     
     except Exception as e:
         print(f"Login error: {e}")
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
-        }
+        return error_response(str(e), 500, 'INTERNAL_ERROR')
 
 def register_handler(event, context):
     """POST /api/auth/register"""
@@ -67,11 +52,7 @@ def register_handler(event, context):
         faction = body.get('faction')
         
         if not all([nickname, email, password, faction]):
-            return {
-                'statusCode': 400,
-                'headers': {'Content-Type': 'application/json'},
-                'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'All fields required'}})
-            }
+            return error_response('All fields required', 400, 'BAD_REQUEST')
         
         with get_db() as conn:
             with conn.cursor() as cursor:
@@ -82,11 +63,7 @@ def register_handler(event, context):
                 existing = cursor.fetchone()
                 
                 if existing:
-                    return {
-                        'statusCode': 409,
-                        'headers': {'Content-Type': 'application/json'},
-                        'body': json.dumps({'error': {'code': 'CONFLICT', 'message': 'Nickname or email already exists'}})
-                    }
+                    return error_response('Nickname or email already exists', 409, 'CONFLICT')
                 
                 player_id = str(uuid.uuid4())
                 qr_code = generate_qr_code(player_id)
@@ -111,21 +88,13 @@ def register_handler(event, context):
                     'token': token
                 }
                 
-                return {
-                    'statusCode': 201,
-                    'headers': {'Content-Type': 'application/json'},
-                    'body': json.dumps(response)
-                }
+                return success_response(response, 201)
     
     except Exception as e:
         print(f"Register error: {e}")
         import traceback
         traceback.print_exc()
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
-        }
+        return error_response(str(e), 500, 'INTERNAL_ERROR')
 
 def me_handler(event, context):
     """GET /api/auth/me"""
@@ -134,11 +103,7 @@ def me_handler(event, context):
     try:
         player = get_current_player(event)
         if not player:
-            return {
-                'statusCode': 401,
-                'headers': {'Content-Type': 'application/json'},
-                'body': json.dumps({'error': {'code': 'UNAUTHORIZED', 'message': 'Authentication required'}})
-            }
+            return error_response('Authentication required', 401, 'UNAUTHORIZED')
         
         player_id = player['player_id']
         
@@ -152,13 +117,25 @@ def me_handler(event, context):
                     (player_id,)
                 )
                 player_data = cursor.fetchone()
+                
+                # Get player roles
+                cursor.execute(
+                    """SELECT is_gm, is_bartender, permissions 
+                    FROM player_roles WHERE player_id = %s""",
+                    (player_id,)
+                )
+                roles_data = cursor.fetchone()
         
         if not player_data:
-            return {
-                'statusCode': 404,
-                'headers': {'Content-Type': 'application/json'},
-                'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Player not found'}})
-            }
+            return error_response('Player not found', 404, 'NOT_FOUND')
+        
+        # Determine role for frontend
+        role = 'player'
+        if roles_data:
+            if roles_data.get('is_gm'):
+                role = 'gm'
+            elif roles_data.get('is_bartender'):
+                role = 'bartender'
         
         response = {
             'id': player_data['id'],
@@ -171,6 +148,7 @@ def me_handler(event, context):
             'currentLives': player_data['current_lives'],
             'currentRadiation': player_data['current_radiation'],
             'qrCode': player_data['qr_code'],
+            'role': role,
             'stats': {
                 'kills': player_data['total_kills'],
                 'deaths': player_data['total_deaths'],
@@ -179,16 +157,8 @@ def me_handler(event, context):
             }
         }
         
-        return {
-            'statusCode': 200,
-            'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps(response)
-        }
+        return success_response(response)
     
     except Exception as e:
         print(f"Me error: {e}")
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json'},
-            'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
-        }
+        return error_response(str(e), 500, 'INTERNAL_ERROR')
