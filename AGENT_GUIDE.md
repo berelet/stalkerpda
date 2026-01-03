@@ -393,6 +393,33 @@ API Gateway CORS is configured to allow:
 - Methods: GET, POST, PUT, DELETE, OPTIONS
 - Headers: Content-Type, Authorization, X-Amz-Date, X-Api-Key, X-Amz-Security-Token
 
+**⚠️ IMPORTANT: All Lambda handlers MUST return CORS headers:**
+
+```python
+return {
+    'statusCode': 200,
+    'headers': {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+        'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
+    },
+    'body': json.dumps({...})
+}
+```
+
+**Common CORS Issues:**
+1. **Missing headers in response** - Always include all 4 CORS headers in every Lambda response
+2. **502 Bad Gateway** - Usually means Lambda function doesn't exist or has wrong handler path
+3. **OPTIONS preflight fails** - API Gateway handles OPTIONS automatically, but Lambda must return CORS headers
+4. **New endpoints fail** - Check that SAM template has correct handler path and function exists
+
+**Quick Fix Checklist:**
+- ✅ Lambda handler returns all CORS headers (Origin, Headers, Methods)
+- ✅ SAM template has correct `Handler: src.handlers.module.function_name`
+- ✅ Function is deployed (`sam build && sam deploy`)
+- ✅ CloudFront cache invalidated if using CloudFront
+
 ### Database Access
 RDS instance is publicly accessible (AllowedIP=0.0.0.0/0) for development. Restrict this in production.
 
