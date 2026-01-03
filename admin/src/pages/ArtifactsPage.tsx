@@ -7,6 +7,7 @@ interface ArtifactFormData {
   value: number
   bonusLives: number
   radiationResist: number
+  image?: File
 }
 
 export default function ArtifactsPage() {
