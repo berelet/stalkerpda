@@ -86,6 +86,7 @@ Resources:
           Value: !Ref Environment
 
   # S3 Bucket (Frontend)
+  # S3 Bucket (PDA Frontend)
   FrontendBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -117,7 +118,39 @@ Resources:
               StringEquals:
                 AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}
 
-  # CloudFront
+  # S3 Bucket (Admin Panel)
+  AdminBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub pda-zone-admin-${Environment}-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ['*']
+            AllowedMethods: [GET, HEAD]
+            AllowedOrigins: ['*']
+            MaxAge: 3600
+
+  AdminBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AdminBucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Resource: !Sub ${AdminBucket.Arn}/*
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${AdminCloudFrontDistribution}
+
+  # CloudFront OAC (shared)
   CloudFrontOAC:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
@@ -127,6 +160,7 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
+  # CloudFront Distribution (PDA)
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -161,6 +195,36 @@ Resources:
             CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
             OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
             AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+
+        CustomErrorResponses:
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+
+  # CloudFront Distribution (Admin Panel)
+  AdminCloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        PriceClass: PriceClass_100
+        
+        Origins:
+          - Id: AdminS3Origin
+            DomainName: !GetAtt AdminBucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+            OriginAccessControlId: !Ref CloudFrontOAC
+
+        DefaultCacheBehavior:
+          TargetOriginId: AdminS3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          Compress: true
 
         CustomErrorResponses:
           - ErrorCode: 404
@@ -555,14 +619,33 @@ Resources:
         Enabled: true
 
 Outputs:
+  # PDA Frontend
   CloudFrontURL:
-    Description: CloudFront Distribution URL
+    Description: PDA CloudFront Distribution URL
     Value: !Sub https://${CloudFrontDistribution.DomainName}
 
   CloudFrontDistributionId:
-    Description: CloudFront Distribution ID
+    Description: PDA CloudFront Distribution ID
     Value: !Ref CloudFrontDistribution
 
+  S3BucketName:
+    Description: S3 Bucket for PDA Frontend
+    Value: !Ref FrontendBucket
+
+  # Admin Panel
+  AdminCloudFrontURL:
+    Description: Admin Panel CloudFront Distribution URL
+    Value: !Sub https://${AdminCloudFrontDistribution.DomainName}
+
+  AdminCloudFrontDistributionId:
+    Description: Admin Panel CloudFront Distribution ID
+    Value: !Ref AdminCloudFrontDistribution
+
+  AdminS3BucketName:
+    Description: S3 Bucket for Admin Panel
+    Value: !Ref AdminBucket
+
+  # API
   ApiURL:
     Description: API Gateway URL
     Value: !Sub https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
@@ -571,10 +654,7 @@ Outputs:
     Description: WebSocket API URL
     Value: !Sub wss://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
 
-  S3BucketName:
-    Description: S3 Bucket for Frontend
-    Value: !Ref FrontendBucket
-
+  # Database
   RDSEndpoint:
     Description: RDS MySQL Endpoint (Public)
     Value: !GetAtt MySQLDB.Endpoint.Address
