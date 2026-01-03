@@ -327,8 +327,8 @@ def get_spawned_artifacts_handler(event, context):
                         'latitude': float(a['latitude']),
                         'longitude': float(a['longitude']),
                         'state': a['state'],
-                        'spawnedAt': a['spawned_at'].isoformat() if a['spawned_at'] else None,
-                        'expiresAt': a['expires_at'].isoformat() if a['expires_at'] else None
+                        'spawnedAt': a['spawned_at'].isoformat() + 'Z' if a['spawned_at'] else None,
+                        'expiresAt': a['expires_at'].isoformat() + 'Z' if a['expires_at'] else None
                     }
                     for a in artifacts
                 ]
