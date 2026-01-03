@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react'
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import api from '../services/api'
+
+// Fix Leaflet default marker icon
+delete (L.Icon.Default.prototype as any)._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+})
 
 interface ArtifactType {
   id: string
@@ -26,13 +37,31 @@ export default function SpawnArtifactsPage() {
   
   // Spawn form state
   const [selectedType, setSelectedType] = useState('')
-  const [latitude, setLatitude] = useState('')
-  const [longitude, setLongitude] = useState('')
-  const [duration, setDuration] = useState('24') // hours
+  const [latitude, setLatitude] = useState(59.3293)
+  const [longitude, setLongitude] = useState(18.0686)
+  const [durationType, setDurationType] = useState<'hours' | 'exact'>('hours')
+  const [durationHours, setDurationHours] = useState('24')
+  const [exactDateTime, setExactDateTime] = useState('')
   const [spawning, setSpawning] = useState(false)
+  const [markerPosition, setMarkerPosition] = useState<[number, number]>([59.3293, 18.0686])
 
   useEffect(() => {
     loadData()
+    // Get user's location on mount
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude
+          const lng = position.coords.longitude
+          setLatitude(lat)
+          setLongitude(lng)
+          setMarkerPosition([lat, lng])
+        },
+        () => {
+          // Ignore errors, use default Stockholm coordinates
+        }
+      )
+    }
   }, [])
 
   const loadData = async () => {
@@ -57,20 +86,26 @@ export default function SpawnArtifactsPage() {
 
     try {
       setSpawning(true)
-      const expiresAt = duration ? new Date(Date.now() + parseInt(duration) * 60 * 60 * 1000).toISOString() : undefined
+      
+      let expiresAt: string | undefined
+      if (durationType === 'hours' && durationHours) {
+        expiresAt = new Date(Date.now() + parseInt(durationHours) * 60 * 60 * 1000).toISOString()
+      } else if (durationType === 'exact' && exactDateTime) {
+        // Convert local datetime to ISO with Kyiv timezone offset
+        expiresAt = new Date(exactDateTime).toISOString()
+      }
       
       await api.post('/api/admin/artifacts/spawn', {
         typeId: selectedType,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
+        latitude: typeof latitude === 'number' ? latitude : parseFloat(String(latitude)),
+        longitude: typeof longitude === 'number' ? longitude : parseFloat(String(longitude)),
         expiresAt
       })
 
       // Reset form
       setSelectedType('')
-      setLatitude('')
-      setLongitude('')
-      setDuration('24')
+      setDurationHours('24')
+      setExactDateTime('')
       
       // Reload spawned artifacts
       loadData()
@@ -81,18 +116,20 @@ export default function SpawnArtifactsPage() {
     }
   }
 
-  const handleGetCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLatitude(position.coords.latitude.toFixed(6))
-          setLongitude(position.coords.longitude.toFixed(6))
-        },
-        (error) => {
-          console.error('Error getting location:', error)
-        }
-      )
-    }
+  const handleMapClick = (lat: number, lng: number) => {
+    setLatitude(lat)
+    setLongitude(lng)
+    setMarkerPosition([lat, lng])
+  }
+
+  // Map click handler component
+  function MapClickHandler() {
+    useMapEvents({
+      click: (e) => {
+        handleMapClick(e.latlng.lat, e.latlng.lng)
+      },
+    })
+    return null
   }
 
   const handleRemoveArtifact = async (artifactId: string) => {
@@ -136,84 +173,130 @@ export default function SpawnArtifactsPage() {
             <h2 className="text-xl font-bold text-white mb-4">Spawn New Artifact</h2>
             
             <form onSubmit={handleSpawn} className="space-y-4">
-              {/* Artifact Type */}
+              {/* Artifact Type - Visual Grid */}
               <div>
                 <label className="block text-sm font-medium text-[#91b3ca] mb-2">
-                  Artifact Type
+                  Select Artifact Type
                 </label>
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  required
-                  className="w-full bg-[#101b22] border border-[#233948] text-white px-4 py-2.5 rounded-lg focus:outline-none focus:border-[#1e9cf1] focus:ring-1 focus:ring-[#1e9cf1]"
-                >
-                  <option value="">Select artifact type...</option>
+                <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto p-2 bg-[#101b22] border border-[#233948] rounded-lg">
                   {artifactTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.name} ({type.rarity})
-                    </option>
+                    <button
+                      key={type.id}
+                      type="button"
+                      onClick={() => setSelectedType(type.id)}
+                      className={`p-3 rounded-lg border transition-all text-left ${
+                        selectedType === type.id
+                          ? 'border-[#1e9cf1] bg-[#1e9cf1]/10 shadow-[0_0_10px_rgba(30,156,241,0.3)]'
+                          : 'border-[#233948] hover:border-[#1e9cf1]/50 hover:bg-[#233948]/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {type.imageUrl && (
+                          <img src={type.imageUrl} alt={type.name} className="w-8 h-8 object-cover rounded" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white text-sm font-medium truncate">{type.name}</div>
+                          <div className="text-xs text-[#91b3ca] capitalize">{type.rarity}</div>
+                        </div>
+                      </div>
+                    </button>
                   ))}
-                </select>
-              </div>
-
-              {/* Coordinates */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-[#91b3ca] mb-2">
-                    Latitude
-                  </label>
-                  <input
-                    type="number"
-                    step="0.000001"
-                    value={latitude}
-                    onChange={(e) => setLatitude(e.target.value)}
-                    required
-                    placeholder="59.329323"
-                    className="w-full bg-[#101b22] border border-[#233948] text-white px-4 py-2.5 rounded-lg focus:outline-none focus:border-[#1e9cf1] focus:ring-1 focus:ring-[#1e9cf1] font-mono text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#91b3ca] mb-2">
-                    Longitude
-                  </label>
-                  <input
-                    type="number"
-                    step="0.000001"
-                    value={longitude}
-                    onChange={(e) => setLongitude(e.target.value)}
-                    required
-                    placeholder="18.068581"
-                    className="w-full bg-[#101b22] border border-[#233948] text-white px-4 py-2.5 rounded-lg focus:outline-none focus:border-[#1e9cf1] focus:ring-1 focus:ring-[#1e9cf1] font-mono text-sm"
-                  />
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleGetCurrentLocation}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-[#233948] text-[#91b3ca] hover:text-white hover:bg-[#233948] transition-colors"
-              >
-                <span className="material-symbols-outlined text-[20px]">my_location</span>
-                Use My Current Location
-              </button>
-
-              {/* Duration */}
+              {/* Map */}
               <div>
                 <label className="block text-sm font-medium text-[#91b3ca] mb-2">
-                  Active Duration (hours)
+                  Location (click on map to select)
                 </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="168"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  placeholder="24"
-                  className="w-full bg-[#101b22] border border-[#233948] text-white px-4 py-2.5 rounded-lg focus:outline-none focus:border-[#1e9cf1] focus:ring-1 focus:ring-[#1e9cf1]"
-                />
-                <p className="text-xs text-[#91b3ca] mt-1">
-                  Leave empty for permanent artifact
-                </p>
+                <div className="h-[300px] rounded-lg overflow-hidden border border-[#233948]">
+                  <MapContainer
+                    center={markerPosition}
+                    zoom={13}
+                    style={{ height: '100%', width: '100%' }}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    />
+                    <Marker position={markerPosition} />
+                    <MapClickHandler />
+                  </MapContainer>
+                </div>
+              </div>
+
+              {/* Coordinates Display */}
+              <div className="bg-[#101b22] border border-[#233948] rounded-lg p-3">
+                <div className="text-xs text-[#91b3ca] mb-1">Selected Coordinates:</div>
+                <div className="font-mono text-sm text-white">
+                  {latitude.toFixed(6)}, {longitude.toFixed(6)}
+                </div>
+              </div>
+
+              {/* Expiration Time */}
+              <div>
+                <label className="block text-sm font-medium text-[#91b3ca] mb-2">
+                  Expiration Time
+                </label>
+                
+                {/* Duration Type Toggle */}
+                <div className="flex gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setDurationType('hours')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      durationType === 'hours'
+                        ? 'bg-[#1e9cf1] text-white'
+                        : 'bg-[#101b22] text-[#91b3ca] border border-[#233948] hover:text-white'
+                    }`}
+                  >
+                    Duration (hours)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDurationType('exact')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      durationType === 'exact'
+                        ? 'bg-[#1e9cf1] text-white'
+                        : 'bg-[#101b22] text-[#91b3ca] border border-[#233948] hover:text-white'
+                    }`}
+                  >
+                    Exact Time
+                  </button>
+                </div>
+
+                {/* Hours Input */}
+                {durationType === 'hours' && (
+                  <div>
+                    <input
+                      type="number"
+                      min="1"
+                      max="168"
+                      value={durationHours}
+                      onChange={(e) => setDurationHours(e.target.value)}
+                      placeholder="24"
+                      className="w-full bg-[#101b22] border border-[#233948] text-white px-4 py-2.5 rounded-lg focus:outline-none focus:border-[#1e9cf1] focus:ring-1 focus:ring-[#1e9cf1]"
+                    />
+                    <p className="text-xs text-[#91b3ca] mt-1">
+                      Artifact will expire in {durationHours || '0'} hours
+                    </p>
+                  </div>
+                )}
+
+                {/* Exact DateTime Input */}
+                {durationType === 'exact' && (
+                  <div>
+                    <input
+                      type="datetime-local"
+                      value={exactDateTime}
+                      onChange={(e) => setExactDateTime(e.target.value)}
+                      className="w-full bg-[#101b22] border border-[#233948] text-white px-4 py-2.5 rounded-lg focus:outline-none focus:border-[#1e9cf1] focus:ring-1 focus:ring-[#1e9cf1]"
+                    />
+                    <p className="text-xs text-[#91b3ca] mt-1">
+                      Time zone: Europe/Kyiv (UTC+2)
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Submit */}
