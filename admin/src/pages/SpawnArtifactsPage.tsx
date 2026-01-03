@@ -168,8 +168,10 @@ export default function SpawnArtifactsPage() {
     
     // Set expiration time
     if (artifact.expiresAt) {
-      const expiresDate = new Date(artifact.expiresAt)
-      const now = new Date()
+      const expiresDate = new Date(artifact.expiresAt) // UTC time
+      const now = new Date() // Local time
+      
+      // Calculate hours left (both dates are in milliseconds since epoch, so comparison is correct)
       const hoursLeft = Math.ceil((expiresDate.getTime() - now.getTime()) / (1000 * 60 * 60))
       
       if (hoursLeft > 0 && hoursLeft <= 168) {
@@ -178,10 +180,13 @@ export default function SpawnArtifactsPage() {
       } else {
         setDurationType('exact')
         // Format for datetime-local input (YYYY-MM-DDTHH:mm)
-        const localDateTime = new Date(expiresDate.getTime() - expiresDate.getTimezoneOffset() * 60000)
-          .toISOString()
-          .slice(0, 16)
-        setExactDateTime(localDateTime)
+        // datetime-local expects local time, so we need to convert UTC to local
+        const year = expiresDate.getFullYear()
+        const month = String(expiresDate.getMonth() + 1).padStart(2, '0')
+        const day = String(expiresDate.getDate()).padStart(2, '0')
+        const hours = String(expiresDate.getHours()).padStart(2, '0')
+        const minutes = String(expiresDate.getMinutes()).padStart(2, '0')
+        setExactDateTime(`${year}-${month}-${day}T${hours}:${minutes}`)
       }
     }
     
