@@ -104,6 +104,7 @@ def history_handler(event, context):
         }
 
 @require_gm
+@require_gm
 def spawn_artifact_handler(event, context):
     """POST /api/admin/artifacts/spawn - Spawn artifact with expiration"""
     try:

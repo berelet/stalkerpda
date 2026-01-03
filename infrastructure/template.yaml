@@ -499,6 +499,67 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /api/admin/artifacts/spawn
             Method: POST
+
+  # Admin Spawn Artifact Function
+  AdminSpawnArtifactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-spawn-artifact-${Environment}
+      Handler: src.handlers.admin.spawn_artifact_handler
+      CodeUri: ../backend/
+      Events:
+        SpawnArtifact:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/artifacts/spawn
+            Method: POST
+
+  AdminFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-${Environment}
+      Handler: src.handlers.admin.handler
+      CodeUri: ../backend/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - execute-api:ManageConnections
+              Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*"
+      Events:
+        GetAllLocations:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/locations
+            Method: GET
+        GetLocationHistory:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/locations/{id}/history
+            Method: GET
+        CreateZone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/zones
+            Method: POST
+        UpdateZone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/zones/{id}
+            Method: PUT
+        GameEvents:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/events
+            Method: GET
         BroadcastMessage:
           Type: Api
           Properties:

@@ -69,14 +69,21 @@ export default function SpawnArtifactsPage() {
   const loadData = async () => {
     try {
       setLoading(true)
+      console.log('Loading artifact types and spawned artifacts...')
       const [typesRes, spawnedRes] = await Promise.all([
         api.get('/api/admin/artifact-types'),
         api.get('/api/admin/artifacts/spawned')
       ])
+      console.log('Artifact types response:', typesRes.data)
+      console.log('Spawned artifacts response:', spawnedRes.data)
       setArtifactTypes(typesRes.data.artifacts || [])
       setSpawnedArtifacts(spawnedRes.data.artifacts || [])
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load data:', error)
+      if (error.response) {
+        console.error('Error response:', error.response.data)
+        console.error('Error status:', error.response.status)
+      }
     } finally {
       setLoading(false)
     }
@@ -104,15 +111,21 @@ export default function SpawnArtifactsPage() {
         expiresAt
       })
 
+      console.log('Artifact spawned successfully, reloading list...')
+      
       // Reset form
       setSelectedType('')
       setDurationHours('24')
       setExactDateTime('')
       
       // Reload spawned artifacts
-      loadData()
-    } catch (error) {
+      await loadData()
+      console.log('List reloaded')
+    } catch (error: any) {
       console.error('Failed to spawn artifact:', error)
+      if (error.response) {
+        console.error('Spawn error response:', error.response.data)
+      }
     } finally {
       setSpawning(false)
     }
