@@ -213,12 +213,13 @@ stalkerpda/
    - ✅ Separate React app for Game Masters
    - ✅ GM authentication (requires is_gm=1 in database)
    - ✅ Dashboard with overview & stats
-   - ✅ Players management page
+   - ✅ Players management page with search, filters, and status toggle
    - ✅ Artifacts spawning interface with image upload
    - ✅ Zones creation and management
    - ✅ Contracts management
    - ✅ Deployed separately from main frontend
    - ✅ Image upload through Lambda (base64) to avoid CORS issues
+   - ✅ Player status management (enable/disable accounts)
 
 ### ⏳ TODO (60%)
 - **Frontend features** - Map with geolocation, real-time WebSocket, game mechanics UI
@@ -320,10 +321,17 @@ open https://d3gda670zz1dlb.cloudfront.net
 # Test flow:
 # 1. Login with GM account (requires is_gm=1 in database)
 # 2. Dashboard - view stats and overview
-# 3. Players - manage player accounts
+# 3. Players - manage player accounts (search, filter, toggle status)
 # 4. Artifacts - spawn artifacts at coordinates
 # 5. Zones - create and manage radiation zones
 # 6. Contracts - manage contracts
+
+# Players Page Features:
+# - Search by nickname, ID, or email
+# - Filter by status (All / Active / Inactive)
+# - View faction, last online, lives, radiation
+# - Toggle player status (alive/dead) to enable/disable accounts
+# - Inactive players cannot login to PDA or admin panel
 ```
 
 ## Next Steps (Priority Order)
