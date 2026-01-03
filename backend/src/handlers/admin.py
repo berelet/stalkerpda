@@ -390,6 +390,9 @@ def delete_artifact_handler(event, context):
                         },
                         'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Artifact not found'}})
                     }
+                
+                # Invalidate cache
+                cursor.execute("UPDATE cache_versions SET version = version + 1 WHERE cache_key = 'artifacts'")
         
         return {
             'statusCode': 200,
@@ -535,6 +538,9 @@ def remove_and_reset_artifact_handler(event, context):
                     WHERE id = %s""",
                     (artifact_id,)
                 )
+                
+                # Invalidate cache
+                cursor.execute("UPDATE cache_versions SET version = version + 1 WHERE cache_key = 'artifacts'")
         
         return {
             'statusCode': 200,

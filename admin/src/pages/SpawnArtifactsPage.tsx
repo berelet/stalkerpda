@@ -217,19 +217,6 @@ export default function SpawnArtifactsPage() {
     }
   }
 
-  const handleRemoveAndReset = async (artifactId: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (!confirm('Remove from player inventory AND return to map?')) return
-
-    try {
-      await api.post(`/api/admin/artifacts/${artifactId}/remove-and-reset`)
-      await loadData()
-    } catch (error) {
-      console.error('Failed to remove and reset artifact:', error)
-      alert('Failed to remove and reset artifact')
-    }
-  }
-
   const handleDeleteArtifact = async (artifactId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     if (!confirm('Delete artifact spawn completely?')) return
@@ -539,22 +526,13 @@ export default function SpawnArtifactsPage() {
                         </div>
                         <div className="flex gap-1">
                           {artifact.state === 'extracted' && (
-                            <>
-                              <button
-                                onClick={(e) => handleResetToMap(artifact.id, e)}
-                                className="p-2 rounded-lg text-[#91b3ca] hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
-                                title="Reset to Map (player keeps copy)"
-                              >
-                                <span className="material-symbols-outlined text-[18px]">refresh</span>
-                              </button>
-                              <button
-                                onClick={(e) => handleRemoveAndReset(artifact.id, e)}
-                                className="p-2 rounded-lg text-[#91b3ca] hover:text-yellow-400 hover:bg-yellow-500/10 transition-colors"
-                                title="Remove from inventory & reset"
-                              >
-                                <span className="material-symbols-outlined text-[18px]">undo</span>
-                              </button>
-                            </>
+                            <button
+                              onClick={(e) => handleResetToMap(artifact.id, e)}
+                              className="p-2 rounded-lg text-[#91b3ca] hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                              title="Reset to Map (player keeps copy)"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">refresh</span>
+                            </button>
                           )}
                           <button
                             onClick={(e) => handleDeleteArtifact(artifact.id, e)}
