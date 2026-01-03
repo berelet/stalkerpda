@@ -214,12 +214,59 @@ stalkerpda/
    - ✅ GM authentication (requires is_gm=1 in database)
    - ✅ Dashboard with overview & stats
    - ✅ Players management page with search, filters, and status toggle
-   - ✅ Artifacts spawning interface with image upload
+   - ✅ Artifacts spawning interface with interactive map and time controls
    - ✅ Zones creation and management
    - ✅ Contracts management
    - ✅ Deployed separately from main frontend
    - ✅ Image upload through Lambda (base64) to avoid CORS issues
    - ✅ Player status management (enable/disable accounts)
+
+### Artifact Spawning System
+
+**Admin Interface (Spawn Artifacts Page):**
+- Visual artifact type selection (grid with images)
+- Interactive Leaflet map for coordinate selection (click to place)
+- Two time modes:
+  - **Duration (hours):** Artifact expires N hours from now (1-168 hours)
+  - **Exact Time:** Specify start and end datetime (time range)
+- Edit mode: Click on spawned artifact to edit location/time
+- List of active artifacts with status indicators (Editing, Expired, Collected)
+
+**Database Schema:**
+```sql
+-- artifacts table
+id VARCHAR(36) PRIMARY KEY
+type_id VARCHAR(36) -- FK to artifact_types
+latitude DECIMAL(10,8)
+longitude DECIMAL(11,8)
+state ENUM('hidden','visible','extracting','extracted','lost')
+spawned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+expires_at TIMESTAMP NULL  -- When artifact becomes inactive
+```
+
+**Backend Endpoints:**
+- `POST /api/admin/artifacts/spawn` - Create artifact (requires GM)
+  - Body: `{typeId, latitude, longitude, expiresAt?}`
+  - Handler: `src.handlers.admin.spawn_artifact_handler`
+- `GET /api/admin/artifacts/spawned` - List all spawned artifacts (requires GM)
+  - Returns: artifacts with type_name, coordinates, state, timestamps
+  - Handler: `src.handlers.admin.get_spawned_artifacts_handler`
+- `DELETE /api/admin/artifacts/{id}` - Remove artifact (requires GM)
+  - Handler: `src.handlers.admin.delete_artifact_handler`
+
+**Frontend Detection (PDA):**
+- Players detect artifacts within 15m radius (see `specs/game-mechanics/FINAL-SPEC.md`)
+- Detection happens on location update: `POST /api/location/update`
+- Backend checks: `distance(player_location, artifact_location) <= 15m`
+- Returns nearby artifacts in response
+- Artifacts must be: `state='hidden'` AND `(expires_at IS NULL OR expires_at > NOW())`
+
+**Key Implementation Notes:**
+- All timestamps MUST include 'Z' suffix (UTC indicator)
+- Leaflet map auto-centers on user's geolocation
+- Edit mode: delete old + create new (no UPDATE endpoint)
+- Expired artifacts shown in list but not returned to players
+- Artifact types stored in `artifact_types` table (managed via Artifacts Library page)
 
 ### ⏳ TODO (60%)
 - **Frontend features** - Map with geolocation, real-time WebSocket, game mechanics UI
