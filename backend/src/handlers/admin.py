@@ -446,13 +446,16 @@ def reset_artifact_to_map_handler(event, context):
                         'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'Artifact not collected'}})
                     }
                 
-                # Reset to map (keep owner_id - player keeps copy)
+                # Reset to map (clear owner_id so it appears in queries, player keeps copy in inventory)
                 cursor.execute(
                     """UPDATE artifacts 
-                    SET state = 'hidden', extracting_by = NULL, extraction_started_at = NULL
+                    SET state = 'hidden', owner_id = NULL, extracting_by = NULL, extraction_started_at = NULL
                     WHERE id = %s""",
                     (artifact_id,)
                 )
+                
+                # Invalidate cache
+                cursor.execute("UPDATE cache_versions SET version = version + 1 WHERE cache_key = 'artifacts'")
         
         return {
             'statusCode': 200,
