@@ -1,5 +1,12 @@
 # Agent Guide
 
+## ⚠️ REQUIRED READING
+
+**Before working on this project, you MUST read:**
+- `specs/game-mechanics/FINAL-SPEC.md` - Complete game mechanics specification
+
+This document contains all game rules, formulas, and mechanics that must be followed.
+
 ## AWS Configuration
 
 This project uses the **`stalker`** AWS profile exclusively.
@@ -16,6 +23,7 @@ All AWS CLI commands and operations must use `--profile stalker` or set `AWS_PRO
 
 ### URLs
 - **Frontend:** https://d384azcb4go67w.cloudfront.net
+- **Admin Panel:** https://d3gda670zz1dlb.cloudfront.net
 - **API:** https://czqg4fcsqi.execute-api.eu-north-1.amazonaws.com/dev
 - **WebSocket:** wss://08xq76njp7.execute-api.eu-north-1.amazonaws.com/dev
 
@@ -28,10 +36,15 @@ All AWS CLI commands and operations must use `--profile stalker` or set `AWS_PRO
 
 ### AWS Resources
 - RDS MySQL 8.0 (db.t3.micro, publicly accessible)
-- S3 Bucket: pda-zone-frontend-dev-707694916945
-- CloudFront Distribution
+- S3 Buckets:
+  - Frontend: pda-zone-frontend-dev-707694916945
+  - Admin: pda-zone-admin-dev-707694916945
+  - Artifacts (images): pda-zone-artifacts-dev-707694916945
+- CloudFront Distributions:
+  - Frontend: d384azcb4go67w
+  - Admin: d3gda670zz1dlb
 - API Gateway (REST + WebSocket)
-- 11 Lambda Functions (auth, players, location, artifacts, contracts, zones, admin, websocket)
+- 12 Lambda Functions (auth, players, location, artifacts, contracts, zones, admin, websocket, upload)
 - DynamoDB Table: pda-zone-connections-dev
 
 ## Credentials
@@ -104,6 +117,22 @@ stalkerpda/
 │   ├── package.json        # ✅ React 18 + TypeScript + Vite
 │   └── dist/               # ✅ Deployed to CloudFront
 │
+├── admin/                   # ✅ COMPLETE - Admin Panel (Game Master)
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── LoginPage.tsx      # ✅ GM authentication
+│   │   │   ├── DashboardPage.tsx  # ✅ Overview & stats
+│   │   │   ├── PlayersPage.tsx    # ✅ Player management
+│   │   │   ├── ArtifactsPage.tsx  # ✅ Spawn artifacts
+│   │   │   ├── ZonesPage.tsx      # ✅ Create/manage zones
+│   │   │   └── ContractsPage.tsx  # ✅ Contract management
+│   │   ├── components/     # ✅ Reusable UI components
+│   │   ├── services/       # ✅ API client
+│   │   ├── stores/         # ✅ Auth store
+│   │   └── utils/          # ✅ Utilities
+│   ├── package.json        # ✅ React 18 + TypeScript + Vite
+│   └── dist/               # ✅ Deployed separately
+│
 ├── docs/
 │   ├── base_scripts/       # Setup prompts and guides
 │   └── makets/             # UI mockups
@@ -133,6 +162,7 @@ stalkerpda/
 3. **Database (100%)**
    - ✅ 18 tables created and migrated
    - ✅ Migrations applied to RDS (database/migrations/)
+   - ✅ Roles system: `player_roles` table with `is_gm`, `is_bartender`, `permissions`
    - ✅ Seed data loaded:
      - 8 artifact types (Moonlight, Flash, Droplet, Fireball, Gravi, Crystal, Battery, Mica)
      - 9 equipment types (3 armors, 3 rings, 3 anti-rads)
@@ -179,6 +209,17 @@ stalkerpda/
    - ⏳ Contract acceptance/completion flow
    - ⏳ Zone capture mechanics
 
+7. **Admin Panel (100%)**
+   - ✅ Separate React app for Game Masters
+   - ✅ GM authentication (requires is_gm=1 in database)
+   - ✅ Dashboard with overview & stats
+   - ✅ Players management page
+   - ✅ Artifacts spawning interface with image upload
+   - ✅ Zones creation and management
+   - ✅ Contracts management
+   - ✅ Deployed separately from main frontend
+   - ✅ Image upload through Lambda (base64) to avoid CORS issues
+
 ### ⏳ TODO (60%)
 - **Frontend features** - Map with geolocation, real-time WebSocket, game mechanics UI
 - **Advanced features** - Push notifications, PWA, offline mode
@@ -204,6 +245,9 @@ make deploy ENVIRONMENT=dev
 # Frontend only
 make deploy-fe ENVIRONMENT=dev
 
+# Admin panel only
+make deploy-admin ENVIRONMENT=dev
+
 # Check status
 ./infrastructure/scripts/check-status.sh
 
@@ -220,6 +264,19 @@ mysql -h pda-zone-db-dev.ctwu68aqagdj.eu-north-1.rds.amazonaws.com \
 
 # Run migrations (if needed)
 cd database && DB_PASSWORD="4c78768f1a2191ef978adafa18d4de87" ./run_migrations.sh
+
+# Grant GM role to a player
+mysql -h pda-zone-db-dev.ctwu68aqagdj.eu-north-1.rds.amazonaws.com \
+      -u pda_admin -p"4c78768f1a2191ef978adafa18d4de87" pda_zone \
+      -e "INSERT INTO player_roles (player_id, is_gm) VALUES ('PLAYER_ID', 1) 
+          ON DUPLICATE KEY UPDATE is_gm = 1;"
+
+# Check GM users
+mysql -h pda-zone-db-dev.ctwu68aqagdj.eu-north-1.rds.amazonaws.com \
+      -u pda_admin -p"4c78768f1a2191ef978adafa18d4de87" pda_zone \
+      -e "SELECT p.nickname, p.email, pr.is_gm FROM players p 
+          LEFT JOIN player_roles pr ON p.id = pr.player_id 
+          WHERE pr.is_gm = 1;"
 ```
 
 ### Testing API
@@ -253,6 +310,20 @@ open https://d384azcb4go67w.cloudfront.net
 # 4. Navigate between pages (Map, Inventory, Contracts, Profile)
 # 5. Test Google Translate widget (🌐 button in bottom-right)
 # 6. Logout and verify cookies are cleared
+```
+
+### Admin Panel Testing
+```bash
+# Open in browser
+open https://d3gda670zz1dlb.cloudfront.net
+
+# Test flow:
+# 1. Login with GM account (requires is_gm=1 in database)
+# 2. Dashboard - view stats and overview
+# 3. Players - manage player accounts
+# 4. Artifacts - spawn artifacts at coordinates
+# 5. Zones - create and manage radiation zones
+# 6. Contracts - manage contracts
 ```
 
 ## Next Steps (Priority Order)
@@ -316,6 +387,69 @@ API Gateway CORS is configured to allow:
 
 ### Database Access
 RDS instance is publicly accessible (AllowedIP=0.0.0.0/0) for development. Restrict this in production.
+
+### Roles System
+**Structure:**
+- `players` table - no role field (removed to avoid confusion)
+- `player_roles` table - contains `player_id`, `is_gm`, `is_bartender`, `permissions` (JSON)
+- Backend uses LEFT JOIN to fetch role data: `SELECT ... FROM players p LEFT JOIN player_roles pr ON p.id = pr.player_id`
+
+**Admin Access:**
+- Admin panel requires `is_gm = 1` in `player_roles` table
+- Login endpoint returns `is_gm` boolean in response
+- Frontend checks `data.is_gm` and rejects non-GM users
+
+**Grant GM Access:**
+```sql
+INSERT INTO player_roles (player_id, is_gm) 
+VALUES ('player-uuid-here', 1) 
+ON DUPLICATE KEY UPDATE is_gm = 1;
+```
+
+### Image Upload System
+**Architecture:**
+- Frontend converts images to base64
+- Upload via POST `/api/admin/upload` (Lambda API)
+- Lambda decodes base64 and uploads to S3
+- Returns public S3 URL
+
+**Why not presigned URLs?**
+- S3 presigned URLs with PUT method trigger CORS preflight
+- Browser adds headers that cause CORS validation failures
+- Direct upload through Lambda avoids all CORS issues
+
+**S3 Configuration:**
+- Bucket: `pda-zone-artifacts-dev-707694916945`
+- CORS enabled for GET requests (public read)
+- Bucket policy allows public read: `s3:GetObject` for all
+- Images stored at: `artifacts/{uuid}.{ext}`
+
+**To add CORS to S3 bucket:**
+```bash
+aws s3api put-bucket-cors --bucket BUCKET_NAME --cors-configuration '{
+  "CORSRules": [{
+    "AllowedOrigins": ["*"],
+    "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3000
+  }]
+}' --profile stalker --region eu-north-1
+```
+
+**To make bucket publicly readable:**
+```bash
+aws s3api put-bucket-policy --bucket BUCKET_NAME --policy '{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "PublicReadGetObject",
+    "Effect": "Allow",
+    "Principal": "*",
+    "Action": "s3:GetObject",
+    "Resource": "arn:aws:s3:::BUCKET_NAME/*"
+  }]
+}' --profile stalker --region eu-north-1
+```
 
 ## Technical Details
 
