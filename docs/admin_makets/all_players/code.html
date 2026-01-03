@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>S.T.A.L.K.E.R. GM Admin - All Players</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e9cf1",
+                        "primary-dark": "#157abd",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101b22",
+                        "surface-dark": "#18242e",
+                        "border-dark": "#233948",
+                        "text-secondary": "#91b3ca",
+                        "success": "#22c55e",
+                        "danger": "#ef4444",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for tactical feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101b22; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #233948; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1e9cf1; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden h-screen flex">
+<!-- Sidebar -->
+<aside class="w-64 flex flex-col border-r border-border-dark bg-background-dark shrink-0 h-full hidden md:flex">
+<div class="p-6 pb-2">
+<div class="flex items-center gap-3 mb-8">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border border-primary/30" data-alt="Radioactive hazard symbol with grunge texture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCsOgvHLftbwRaFIlPLSRjOpkyYGBsiWVqLoGd4QIww3elB9_Z9IXCtBhQrl_0aCofsuL2cyMrGeh3_IRZolUs8XncUN9kmx8F8eCaTWau7PV0U5T1VQlyUt0BGDMPqluhs853tWjiWN78SWarP-6X9G0x5afHcHH_vQllYNyRRXuehWS2PJRnlLfI6GwGZL5PtXyNvH8UF4IUEyGMojdrrB9ZxH2PwTW0ysGDni8L_bOxugyAhQwf-5kVwDWK4XhnGdsPtSBJFZ1kO");'></div>
+<div class="flex flex-col">
+<h1 class="text-white text-base font-bold leading-tight tracking-wide">ZONE CONTROL</h1>
+<p class="text-text-secondary text-xs font-mono">Ver. 0.9.1.b</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-border-dark hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:text-primary transition-colors">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/20 shadow-[0_0_10px_rgba(30,156,241,0.1)]" href="#">
+<span class="material-symbols-outlined text-[24px] fill-1">groups</span>
+<span class="text-sm font-bold">All Players</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-border-dark hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:text-primary transition-colors">flag</span>
+<span class="text-sm font-medium">Factions</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-border-dark hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:text-primary transition-colors">map</span>
+<span class="text-sm font-medium">Map</span>
+</a>
+<div class="h-px bg-border-dark my-2 mx-3"></div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-border-dark hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:text-primary transition-colors">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-4 border-t border-border-dark">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-dark border border-border-dark">
+<div class="relative">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-8" data-alt="Portrait of a military officer in uniform" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDLQu8VKJIqzcMnfHZMgSisaWE3HF6sSQgJ3eY4wo9a_4oGY8LMD52RFmsUNiXCx5bzzOKawEefUrLZSe7qLyaiqvymg0cEPnPkoOh-CiUTrohWxl8BUdUaa8vIgjAoQ1v51scbu-b7qVQfCwl76IHWa-XdLM3MvS5ESytyhnNGfRMOLExXUJG1b5p0z9A6XUdOpLO_HE953Pum19xj4xe4A0UyVlXNOBc-rcUtYPQfrS1qXXdRx-HDdphjoM8Hlxq8FliGpKWrC71D");'></div>
+<div class="absolute -bottom-0.5 -right-0.5 size-2.5 bg-success rounded-full border-2 border-surface-dark"></div>
+</div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-white text-sm font-medium truncate">Maj. Degtyarev</span>
+<span class="text-text-secondary text-xs truncate">Head Admin</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<div class="flex flex-1 flex-col h-full overflow-hidden relative bg-background-dark">
+<!-- Header -->
+<header class="flex items-center justify-between border-b border-border-dark px-6 py-3 bg-surface-dark z-10 shrink-0">
+<!-- Mobile Menu Toggle (Visible only on small screens) -->
+<button class="md:hidden text-text-secondary hover:text-white mr-4">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<!-- Breadcrumbs -->
+<div class="flex items-center text-sm font-medium">
+<span class="text-text-secondary">Management</span>
+<span class="mx-2 text-border-dark">/</span>
+<span class="text-white">All Players</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<button class="flex items-center justify-center size-10 rounded-lg text-text-secondary hover:bg-border-dark hover:text-white transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2.5 right-2.5 size-2 bg-primary rounded-full animate-pulse"></span>
+</button>
+</div>
+<button class="flex items-center justify-center size-10 rounded-lg text-text-secondary hover:bg-border-dark hover:text-white transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Page Content -->
+<main class="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth">
+<div class="max-w-7xl mx-auto flex flex-col gap-6">
+<!-- Page Heading & Main Actions -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<h1 class="text-3xl font-bold text-white tracking-tight">All Players</h1>
+<p class="text-text-secondary mt-1">Manage registration, status, and player profiles.</p>
+</div>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-[0_4px_14px_0_rgba(30,156,241,0.39)] active:translate-y-0.5">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Add New Player</span>
+</button>
+</div>
+<!-- Filters & Search Toolbar -->
+<div class="bg-surface-dark rounded-xl border border-border-dark p-4 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+<!-- Search -->
+<div class="relative flex-1 max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary">search</span>
+<input class="w-full bg-background-dark border border-border-dark text-white pl-10 pr-4 py-2.5 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-gray-600 transition-all font-mono text-sm" placeholder="Search by nickname, ID or PDA UUID..." type="text"/>
+</div>
+<!-- Filters Group -->
+<div class="flex flex-wrap items-center gap-3">
+<!-- Status Filter -->
+<div class="flex bg-background-dark p-1 rounded-lg border border-border-dark">
+<button class="px-3 py-1.5 rounded text-sm font-medium bg-surface-dark text-white shadow-sm border border-border-dark/50">All</button>
+<button class="px-3 py-1.5 rounded text-sm font-medium text-text-secondary hover:text-white transition-colors">Active</button>
+<button class="px-3 py-1.5 rounded text-sm font-medium text-text-secondary hover:text-white transition-colors">Inactive</button>
+</div>
+<div class="h-6 w-px bg-border-dark hidden md:block"></div>
+<!-- Sort/More -->
+<button class="flex items-center gap-2 px-3 py-2 rounded-lg border border-border-dark bg-background-dark text-text-secondary hover:text-white hover:border-primary/50 transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+                            Filter
+                        </button>
+</div>
+</div>
+<!-- Data Table -->
+<div class="bg-surface-dark rounded-xl border border-border-dark overflow-hidden shadow-sm flex flex-col">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#151f28] border-b border-border-dark">
+<th class="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider w-[35%]">Nickname / UUID</th>
+<th class="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Faction</th>
+<th class="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Last Online</th>
+<th class="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark">
+<!-- Row 1 -->
+<tr class="group hover:bg-white/[0.02] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat bg-cover rounded-lg size-10 shadow-inner border border-border-dark" data-alt="Gritty portrait of a stalker in a gas mask" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCn7GIyCeQ5vGTEUSj4Jhbj6VWhIfRCzihiVqGRJiBkrzgA6T1MFjPaHh4j3Dsu6a9Dym0DcW7nr6JEaXWD01y2QQTzUDBoVlOOSeu5FuBuKFNZRFp53eUBLHR0uJkN_FeWb0LJlicsV0aiq7Mf0RpI8HvFc8L0dsawctjnNC1mjv6vs1jua3US1PjJbjFOSeYd9RxGe8hQ18fVbf3Myb6lD1OkXDqBNb4u_fMbpxnD2-ozYaI5KihVDeLFrKq2q04sOWrAz9V7eq1A");'></div>
+<div class="flex flex-col">
+<span class="text-white font-medium">Strelok</span>
+<span class="text-xs text-text-secondary font-mono">ID: 884-291-ACT</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded border border-yellow-500/20 bg-yellow-500/10 text-yellow-500 text-xs font-medium">
+                                            Loner
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
+<span class="text-white text-sm">Active</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-text-secondary text-sm font-mono">2023-10-27 <span class="text-border-dark">|</span> 14:30</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg text-text-secondary hover:text-white hover:bg-border-dark transition-colors" title="View Profile">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors" title="Toggle Status">
+<span class="material-symbols-outlined text-[20px]">toggle_on</span>
+</button>
+<button class="p-2 rounded-lg text-text-secondary hover:text-danger hover:bg-danger/10 transition-colors" title="More">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-white/[0.02] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat bg-cover rounded-lg size-10 shadow-inner border border-border-dark" data-alt="Portrait of a soldier in black tactical gear" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAAr0r_PSxDVnLDv1nkJ3LFxyRINxQPRDaiwpgR2Fj3NGiA6kdVVnq8mbaijH9O26VF3tqi4s2dTpvMnN-NCYCv7jwDH6ENF7Z4nXS-qeVIiBLQeqf6rBgEpD9MC18mlfSbpyNf4vzlwUsOASB3l6lEYef6fpSzStOzxYJUzaYfCrxDEsIis1cnuXxamxpt0edyfS9pVNIoBdotYr7CwTMvMQE4JeJA5y7GDeZlUzCAfO9Z7RDYt99BtT3-epIKsEmRzbaOI0B2A4RA");'></div>
+<div class="flex flex-col">
+<span class="text-white font-medium">Voronin</span>
+<span class="text-xs text-text-secondary font-mono">ID: 102-559-DTY</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded border border-red-500/20 bg-red-500/10 text-red-500 text-xs font-medium">
+                                            Duty
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
+<span class="text-white text-sm">Active</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-text-secondary text-sm font-mono">2023-10-27 <span class="text-border-dark">|</span> 12:15</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg text-text-secondary hover:text-white hover:bg-border-dark transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">toggle_on</span>
+</button>
+<button class="p-2 rounded-lg text-text-secondary hover:text-danger hover:bg-danger/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-white/[0.02] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat bg-cover rounded-lg size-10 shadow-inner border border-border-dark grayscale opacity-70" data-alt="Portrait of a hooded figure in a swamp" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAvMOMaCTkGlqVBf5XVZKlFAVZcIrNv0XADi1TRyQHCYeHQwO7g2mBGBFVZmCirTkPdqBdtReZ6GqdPrAjAlWt6tDoUuo6m-aZGi2AiRv-Zt5ilOHlZlwLvevAq-yZC7Dezg0yv9RVqvGZV8nX9NKMs6E2UkkKe3ctzwkMFOGTzfkPwCcCuXFcHXX7zypMakvNL3Vm_JC5LB0PhvmbZc8ipzYClPSErOQYppFYArZK19Q_3Ll7qLP4z7TZH09fQ_tWspkQwubtVP5Cs");'></div>
+<div class="flex flex-col">
+<span class="text-text-secondary font-medium">Ghost</span>
+<span class="text-xs text-text-secondary/60 font-mono">ID: 000-000-UNK</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded border border-gray-600/30 bg-gray-600/10 text-gray-400 text-xs font-medium">
+                                            Unknown
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-text-secondary/50"></div>
+<span class="text-text-secondary text-sm">Inactive</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-text-secondary/60 text-sm font-mono">2021-04-12 <span class="text-border-dark">|</span> 09:00</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg text-text-secondary hover:text-white hover:bg-border-dark transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-2 rounded-lg text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">toggle_off</span>
+</button>
+<button class="p-2 rounded-lg text-text-secondary hover:text-danger hover:bg-danger/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-white/[0.02] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat bg-cover rounded-lg size-10 shadow-inner border border-border-dark" data-alt="Portrait of a scientist in an orange hazmat suit" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA6SgHryndLi-rOpLMb817ZEoyAKpC57_UTWKcKDlswxoRZyFC8TYvfRb3AedWAV4S6ECZAqMZscuKhw_t5ebgBFAF1bPKWH3698cqQYs1zyP29kDLLmLwflkU8Ly0hO7v7pOMm4sJspG85e0ynl3IDb4n65-7VlmZKPBch2JKHOEXFtxTxdHo4lFY7RGtlY88SEEINcVDeLwxZsUvuJq_rLd5bOMshgw7qFw5kvkrwKd0nIp4hljsyaVHk_YjOWoV1YAH2uVQkafKX");'></div>
+<div class="flex flex-col">
+<span class="text-white font-medium">Sakharov</span>
+<span class="text-xs text-text-secondary font-mono">ID: 771-SCI-YANTAR</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded border border-blue-400/20 bg-blue-400/10 text-blue-400 text-xs font-medium">
+                                            Ecologist
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
+<span class="text-white text-sm">Active</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-text-secondary text-sm font-mono">2023-10-27 <span class="text-border-dark">|</span> 16:45</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg text-text-secondary hover:text-white hover:bg-border-dark transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">toggle_on</span>
+</button>
+<button class="p-2 rounded-lg text-text-secondary hover:text-danger hover:bg-danger/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="group hover:bg-white/[0.02] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat bg-cover rounded-lg size-10 shadow-inner border border-border-dark" data-alt="Portrait of a freedom fighter in camouflage" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAZ9wfPFzgK5P4wqZuk3roc7qZQ1by7WybVqfGfzYv1t0Dm9sxEeG9yOpeIyx0wb6LmpfCrrEssg1BeiPSh2qOSFPTnGC9RuGiGVzWk1sRjhWV3Yp3V9YtCNACc3tqpezR40OXFP7T-0-tLPh9dpWor3011-vZiyhNqfV0do-dsfU8GhtFqidDkUpRLqHxYoBma2RErsq0QWgGxw7RNYaDa66k8EcdjuizMuo4rTPFSWbxpgr__iMsiv4SZBVId1OuKRFAmGTU2fTc4");'></div>
+<div class="flex flex-col">
+<span class="text-white font-medium">Lukas</span>
+<span class="text-xs text-text-secondary font-mono">ID: 404-FRD-BASE</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded border border-green-500/20 bg-green-500/10 text-green-500 text-xs font-medium">
+                                            Freedom
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
+<span class="text-white text-sm">Active</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-text-secondary text-sm font-mono">2023-10-27 <span class="text-border-dark">|</span> 13:20</span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg text-text-secondary hover:text-white hover:bg-border-dark transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">toggle_on</span>
+</button>
+<button class="p-2 rounded-lg text-text-secondary hover:text-danger hover:bg-danger/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="flex items-center justify-between px-6 py-4 border-t border-border-dark bg-surface-dark">
+<span class="text-sm text-text-secondary">Showing <span class="text-white font-medium">1-5</span> of <span class="text-white font-medium">142</span> players</span>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded hover:bg-border-dark text-text-secondary disabled:opacity-50 disabled:cursor-not-allowed">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<div class="flex items-center gap-1 px-2">
+<button class="size-8 rounded flex items-center justify-center bg-primary text-white text-sm font-medium">1</button>
+<button class="size-8 rounded flex items-center justify-center text-text-secondary hover:bg-border-dark hover:text-white text-sm transition-colors">2</button>
+<button class="size-8 rounded flex items-center justify-center text-text-secondary hover:bg-border-dark hover:text-white text-sm transition-colors">3</button>
+<span class="text-text-secondary">...</span>
+<button class="size-8 rounded flex items-center justify-center text-text-secondary hover:bg-border-dark hover:text-white text-sm transition-colors">12</button>
+</div>
+<button class="p-1 rounded hover:bg-border-dark text-white">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Zone Control - Contracts Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e9cf1",
+                        "primary-dark": "#167dc4",
+                        "accent-success": "#22c55e",
+                        "accent-warning": "#eab308",
+                        "accent-danger": "#ef4444",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f161b", /* Deep dark slate */
+                        "surface-dark": "#162028", /* Slightly lighter for cards */
+                        "surface-dark-hover": "#1d2a35",
+                        "border-dark": "#2d3f4e",
+                        "text-muted": "#91b3ca",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, #2d3f4e11 1px, transparent 1px), linear-gradient(to bottom, #2d3f4e11 1px, transparent 1px)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar for tactical feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f161b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2d3f4e; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3e5669; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white overflow-x-hidden antialiased selection:bg-primary selection:text-white">
+<div class="flex h-screen w-full bg-background-light dark:bg-background-dark">
+<!-- Side Navigation -->
+<aside class="flex w-72 flex-col border-r border-border-dark bg-background-dark shrink-0 hidden lg:flex">
+<div class="flex h-full flex-col justify-between p-6">
+<div class="flex flex-col gap-8">
+<!-- User Profile -->
+<div class="flex items-center gap-4 group cursor-pointer">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12 ring-2 ring-primary/30 group-hover:ring-primary transition-all duration-300" data-alt="Avatar of a stalker wearing a gas mask in profile" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBm6Q5_qe3_5Vysz5xMoOO98jXtAo-MX8nsACdLnEYxl0DO9yBa4BCJFEKo4zPUXXyosRcWo5zl6brOhIQP_Xq8b7X7IHM6LF4mXKYaDNMRW-x5jJMTc55OgmUuI87AxfVWprKDicpLHlxuuutoA__SSkpB8VWV4O0mOTpjr0qlQ_qbkWnKTjtH83updwRCQeJE4LdFzvNm9T2U7dOuiXEWln3yK7TSyvFobRfjBTILVvV-blwIGYbKA1UhRXakbTObshHtJMy41Srt");'>
+</div>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-accent-success rounded-full border-2 border-background-dark"></div>
+</div>
+<div class="flex flex-col">
+<h1 class="text-white text-base font-bold tracking-tight">GM_Sid</h1>
+<p class="text-text-muted text-xs font-mono uppercase tracking-wider">Zone Admin - Level 5</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-text-muted hover:bg-surface-dark hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors">dashboard</span>
+<span class="text-sm font-medium tracking-wide">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-text-muted hover:bg-surface-dark hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors">map</span>
+<span class="text-sm font-medium tracking-wide">Zone Map</span>
+</a>
+<!-- Active State -->
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg bg-primary/10 border border-primary/20 text-primary group shadow-[0_0_15px_-3px_rgba(30,156,241,0.2)]" href="#">
+<span class="material-symbols-outlined text-primary">assignment</span>
+<span class="text-sm font-bold tracking-wide">Contracts</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-text-muted hover:bg-surface-dark hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors">groups</span>
+<span class="text-sm font-medium tracking-wide">Factions</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-text-muted hover:bg-surface-dark hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined text-text-muted group-hover:text-primary transition-colors">inventory_2</span>
+<span class="text-sm font-medium tracking-wide">Loot Tables</span>
+</a>
+</nav>
+</div>
+<!-- Footer System Status -->
+<div class="flex flex-col gap-4 mt-auto">
+<div class="h-px w-full bg-border-dark"></div>
+<div class="flex justify-between items-center text-xs text-text-muted font-mono">
+<span class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-accent-success animate-pulse"></span>
+                            SYSTEM ONLINE
+                        </span>
+<span>v2.4.1</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden relative bg-grid-pattern bg-[length:24px_24px]">
+<!-- Header -->
+<header class="flex-none px-8 py-6 border-b border-border-dark bg-background-dark/95 backdrop-blur-sm z-10 sticky top-0">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3">
+<h2 class="text-3xl font-black text-white tracking-tighter uppercase font-display">Contracts</h2>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-border-dark text-text-muted border border-white/10 font-mono">SEC_LEVEL_4</span>
+</div>
+<p class="text-text-muted text-sm max-w-lg">Manage bounties, item retrieval requests, and elimination targets across the Zone.</p>
+</div>
+<button class="flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-all shadow-lg shadow-primary/20 group">
+<span class="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-transform duration-300">add</span>
+<span>New Contract</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-8">
+<div class="max-w-7xl mx-auto flex flex-col gap-6">
+<!-- Filters & Search Toolbar -->
+<div class="flex flex-col xl:flex-row gap-4 items-stretch xl:items-center justify-between bg-surface-dark border border-border-dark p-2 rounded-xl shadow-sm">
+<!-- Search -->
+<div class="flex-1 min-w-[300px]">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-background-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono" placeholder="Search ID, Target, or Stalker..." type="text"/>
+</div>
+</div>
+<!-- Filters -->
+<div class="flex flex-wrap gap-2 items-center">
+<div class="h-8 w-px bg-border-dark mx-2 hidden xl:block"></div>
+<!-- Status Chips -->
+<div class="flex bg-background-dark rounded-lg p-1 border border-border-dark">
+<button class="px-3 py-1.5 rounded-md bg-primary text-white text-xs font-bold shadow-sm">All</button>
+<button class="px-3 py-1.5 rounded-md text-text-muted hover:text-white hover:bg-white/5 text-xs font-medium transition-all">Pending</button>
+<button class="px-3 py-1.5 rounded-md text-text-muted hover:text-white hover:bg-white/5 text-xs font-medium transition-all">Active</button>
+<button class="px-3 py-1.5 rounded-md text-text-muted hover:text-white hover:bg-white/5 text-xs font-medium transition-all">Completed</button>
+</div>
+<!-- Sort Dropdown Trigger (Mock) -->
+<button class="flex items-center gap-2 px-3 py-2 rounded-lg border border-border-dark hover:bg-white/5 text-text-muted text-xs font-medium ml-auto xl:ml-0 transition-colors">
+<span class="material-symbols-outlined text-[18px]">sort</span>
+<span>Sort: Newest</span>
+</button>
+</div>
+</div>
+<!-- Contracts Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
+<!-- CARD 1: PENDING APPROVAL (High Importance) -->
+<article class="flex flex-col bg-surface-dark hover:bg-surface-dark-hover border-l-4 border-l-accent-warning border-y border-r border-border-dark rounded-r-xl rounded-l-sm overflow-hidden shadow-md hover:shadow-xl transition-all group">
+<!-- Card Header -->
+<div class="p-5 border-b border-white/5 flex justify-between items-start gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-xs font-mono text-accent-warning bg-accent-warning/10 px-1.5 py-0.5 rounded border border-accent-warning/20">PENDING</span>
+<span class="text-xs font-mono text-text-muted">#CTR-402</span>
+</div>
+<h3 class="text-lg font-bold text-white leading-tight">Elimination: Bandit Leader</h3>
+<p class="text-sm text-text-muted mt-1">Location: <span class="text-white">Garbage, Train Hangar</span></p>
+</div>
+<div class="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-white/10" data-alt="Abstract icon representing a target crosshair" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDQRAJ2gT8KEn3kZZGzCCy8XWQUDAAgA8LlrDeFQpngzolEgMe3CsGLUMXT9cpSeP-AzZBsefpjdae6rPrr7roLnJ_h-yZPmxsJLXB7cTBE-dOgZfeEVFb_PS9FwdYmLMfRerJH0CYEyveFMgE5cXHiepcTczOpREE_v-Jp_jTFRV-GxrYX67vsZ2Sz13hwPXzMWh4dutQw2LMXAe2fpHa6KbolBH8CrsIxZ9SheciJH41szJeqThL44LMxoW9ye2sONguJjNICwK7r');"></div>
+</div>
+<!-- Card Body -->
+<div class="p-5 flex-1 flex flex-col gap-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-text-muted">Requester:</span>
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-cover" data-alt="Requester avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAqo--iBEPHC9QgjjbxaDMAqs1lxdSj2RZax-nB67X0fYK3bp02MBJb0KFPEu94NUWaSRJZDHHYS7ALyl1qWnUBqHXz_1VV4PavXaYlVs7OyH9GHyDsqPhWZYV2v-5FMGtXRB_jHqTu7l_ZEBXe1xZ6JsujCe3GnBdysnjWCLN3Rxjc5HFapEmF-DEJHoB3oWZDRowQiZdTOZjBkGPxxkpiJtcZyL9DRbeEKAcRt0ZPjJX6ld-SmskuO8OsY1Y7SIXbgBrPNZfwNDpO');"></div>
+<span class="text-white font-medium">Stalker 'Ghost'</span>
+</div>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-text-muted">Reward:</span>
+<span class="font-mono font-bold text-accent-success">15,000 RU</span>
+</div>
+<div class="h-px bg-white/5 w-full my-1"></div>
+<p class="text-xs text-text-muted italic">"Target has been harassing rookie stalkers. Needs to be taken out quietly."</p>
+</div>
+<!-- Card Footer / Actions -->
+<div class="p-4 bg-background-dark/50 border-t border-white/5 flex gap-2">
+<button class="flex-1 flex items-center justify-center gap-2 bg-primary/10 hover:bg-primary hover:text-white text-primary border border-primary/20 py-2 rounded font-semibold text-sm transition-all">
+<span class="material-symbols-outlined text-[18px]">check</span> Confirm
+                                </button>
+<button class="flex-none px-3 flex items-center justify-center bg-white/5 hover:bg-accent-danger hover:text-white text-text-muted border border-white/10 py-2 rounded transition-all" title="Reject">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</article>
+<!-- CARD 2: ACTIVE (In Progress) -->
+<article class="flex flex-col bg-surface-dark hover:bg-surface-dark-hover border-l-4 border-l-accent-success border-y border-r border-border-dark rounded-r-xl rounded-l-sm overflow-hidden shadow-md hover:shadow-xl transition-all group relative">
+<!-- Tactical overlay graphic -->
+<div class="absolute top-0 right-0 p-2 opacity-5 pointer-events-none">
+<span class="material-symbols-outlined text-6xl">radar</span>
+</div>
+<!-- Card Header -->
+<div class="p-5 border-b border-white/5 flex justify-between items-start gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-xs font-mono text-accent-success bg-accent-success/10 px-1.5 py-0.5 rounded border border-accent-success/20 animate-pulse">ACTIVE</span>
+<span class="text-xs font-mono text-text-muted">#CTR-399</span>
+</div>
+<h3 class="text-lg font-bold text-white leading-tight">Retrieval: "Flash" Artifact</h3>
+<p class="text-sm text-text-muted mt-1">Location: <span class="text-white">Agroprom Underground</span></p>
+</div>
+<div class="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-white/10" data-alt="Abstract icon representing a glowing artifact" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC0W1xq_lCF0XDDA6I7JINochtOFjJlHcufqb1neHuJGBtCF7ju9l-xAv-2yiiwbu4SAIe4NvPexXbGeledkSY_nsfzcbooLcwuL0VYDKxkJqtlu44JoEuDl6bDuGvD2sqr3001pDYXLOan-FRAI4IhjJVOGzm4YHcG5Gjqvqp7V9Yb7C-0oVy6zZuXTqaHra-TXGBIO_6vFnS4A9phcucwOp48Zo0RG1k1g-YzPVtgvqRYdHs3LjPUV2AngHMf6Bhy9VQ3hU4eK2Vi');"></div>
+</div>
+<!-- Card Body -->
+<div class="p-5 flex-1 flex flex-col gap-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-text-muted">Assigned Unit:</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-primary">groups</span>
+<span class="text-white font-medium">Freedom Squad A</span>
+</div>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-text-muted">Time Remaining:</span>
+<span class="font-mono font-bold text-white">01:42:15</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full bg-background-dark rounded-full h-1.5 mt-2 overflow-hidden">
+<div class="bg-accent-success h-full rounded-full w-[65%] shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+</div>
+</div>
+<!-- Card Footer / Actions -->
+<div class="p-4 bg-background-dark/50 border-t border-white/5 grid grid-cols-2 gap-2">
+<button class="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 py-2 rounded font-medium text-sm transition-all">
+<span class="material-symbols-outlined text-[18px]">map</span> Track
+                                </button>
+<button class="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 py-2 rounded font-medium text-sm transition-all">
+<span class="material-symbols-outlined text-[18px]">chat</span> Comms
+                                </button>
+</div>
+</article>
+<!-- CARD 3: OPEN (Available) -->
+<article class="flex flex-col bg-surface-dark hover:bg-surface-dark-hover border-l-4 border-l-primary border-y border-r border-border-dark rounded-r-xl rounded-l-sm overflow-hidden shadow-md hover:shadow-xl transition-all group opacity-90 hover:opacity-100">
+<!-- Card Header -->
+<div class="p-5 border-b border-white/5 flex justify-between items-start gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-xs font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">OPEN</span>
+<span class="text-xs font-mono text-text-muted">#CTR-405</span>
+</div>
+<h3 class="text-lg font-bold text-white leading-tight">Delivery: Medical Supplies</h3>
+<p class="text-sm text-text-muted mt-1">Location: <span class="text-white">Cordon -&gt; Rostock</span></p>
+</div>
+<div class="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-white/10" data-alt="Abstract icon representing a medical box" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAelm2ujaAmt18D2wW8cOTXPSGw8lNBwuuFpd1_cuxPI68wVeEObPBh1_0v67s-HUl2Do8lyZ5K-nsOrXlOqQWr6bgl5eSh_JPaG0BZ3-sV2-66JNHOMI3VO5SdVxQKEwUQA4Fhv2QKxE1vkA_G0o3Dr4BUXueJ9WGWaIh5XR2HaDd2VdOgMwr-WCIpBzvsnZUvdxUpkf3JSGLSLnjy8WLpqkhrFpIZv2fH1V8Lrb4Nq__ZyEj7k0tQlkOhVFipUmc_pezx701izljc');"></div>
+</div>
+<!-- Card Body -->
+<div class="p-5 flex-1 flex flex-col gap-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-text-muted">Client:</span>
+<span class="text-white font-medium">Ecologists</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-text-muted">Reward:</span>
+<div class="flex gap-2 text-white font-mono font-bold">
+<span>8,000 RU</span>
+<span class="text-xs self-center text-text-muted font-sans font-normal">+ Rep</span>
+</div>
+</div>
+<div class="h-px bg-white/5 w-full my-1"></div>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 rounded text-[10px] bg-white/5 text-text-muted border border-white/10">COURIER</span>
+<span class="px-2 py-0.5 rounded text-[10px] bg-white/5 text-text-muted border border-white/10">LOW RISK</span>
+</div>
+</div>
+<!-- Card Footer / Actions -->
+<div class="p-4 bg-background-dark/50 border-t border-white/5 flex gap-2">
+<button class="flex-1 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 py-2 rounded font-medium text-sm transition-all">
+<span class="material-symbols-outlined text-[18px]">edit</span> Edit
+                                </button>
+<button class="flex-none px-3 flex items-center justify-center bg-white/5 hover:bg-accent-danger hover:text-white text-text-muted border border-white/10 py-2 rounded transition-all" title="Cancel Contract">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</article>
+<!-- CARD 4: COMPLETED (Archived) -->
+<article class="flex flex-col bg-surface-dark/60 hover:bg-surface-dark-hover border-l-4 border-l-text-muted border-y border-r border-border-dark/50 rounded-r-xl rounded-l-sm overflow-hidden shadow-sm transition-all group grayscale-[0.5] hover:grayscale-0">
+<!-- Card Header -->
+<div class="p-5 border-b border-white/5 flex justify-between items-start gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-xs font-mono text-text-muted bg-white/5 px-1.5 py-0.5 rounded border border-white/10">COMPLETED</span>
+<span class="text-xs font-mono text-text-muted">#CTR-355</span>
+</div>
+<h3 class="text-lg font-bold text-text-muted group-hover:text-white transition-colors leading-tight line-through decoration-white/30">Mutant Control: Dogs</h3>
+</div>
+<div class="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-white/10 opacity-50" data-alt="Abstract icon representing mutant paw" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDqMhyu0B8-sfbDWnBIe5rYjojoH0A8BYvw_fFdaV2gB4LL6-gTdOu0QYp1fY7YWxDz7CCr1ClzHxoMCE6lN6nBwLcLABsaOACSww78o2XWwKZe65NDYr2K0RbktQEgy5JsAF-iFTmc6Pt-VFCqCSJlpuTmOJuJs5Kvx-NuTckAX0wF7WPLye7nE2vBSeJ0NSVXbMbRUKbiCCYf90zVPHSF5v1aJJE1vXEOqjWunbvkS6G7gGp4BVacu6sXEOuNjkl-ocl-7JHkkW25');"></div>
+</div>
+<!-- Card Body -->
+<div class="p-5 flex-1 flex flex-col gap-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-text-muted">Completed By:</span>
+<span class="text-text-muted group-hover:text-white">Mercenary 'Wolf'</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-text-muted">Finished:</span>
+<span class="font-mono text-text-muted text-xs">Today, 10:42 AM</span>
+</div>
+</div>
+<!-- Card Footer / Actions -->
+<div class="p-4 bg-background-dark/50 border-t border-white/5">
+<button class="w-full flex items-center justify-center gap-2 bg-transparent hover:bg-white/5 text-text-muted hover:text-white py-2 rounded font-medium text-sm transition-all">
+<span class="material-symbols-outlined text-[18px]">history</span> View Log
+                                </button>
+</div>
+</article>
+<!-- CARD 5: FAILED (Danger) -->
+<article class="flex flex-col bg-surface-dark hover:bg-surface-dark-hover border-l-4 border-l-accent-danger border-y border-r border-border-dark rounded-r-xl rounded-l-sm overflow-hidden shadow-md hover:shadow-xl transition-all group">
+<!-- Card Header -->
+<div class="p-5 border-b border-white/5 flex justify-between items-start gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-xs font-mono text-accent-danger bg-accent-danger/10 px-1.5 py-0.5 rounded border border-accent-danger/20">FAILED</span>
+<span class="text-xs font-mono text-text-muted">#CTR-380</span>
+</div>
+<h3 class="text-lg font-bold text-white leading-tight">Escort: VIP Scientist</h3>
+</div>
+<div class="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-white/10" data-alt="Abstract icon representing a shield or person" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAwJ16u4I0PKL69u6dxS7tmaO4ufXGNaZURwXek5vll-hfwsx7wKko8PqXp7Hfn4vuMz0zJ0Qzj-SGCFiWvHvMfk5I3gJKMOXPnlnY-AWL_Vbhd-DKGyD4rIf3dRy6QbswZkbLGgGSZor8vReSCTIZGATvd3LSDjxFBC9zK6obNHgD3gKpNrWySrGPxJHb5N8pvU5UXmXRVhSMaWdh5CHDO0zhyP3RzItr6vtCN0xbrXApjZGP6fOG_dryP2JRXuBzmn0GX_BgYOoyk');"></div>
+</div>
+<!-- Card Body -->
+<div class="p-5 flex-1 flex flex-col gap-4">
+<div class="p-3 bg-accent-danger/10 border border-accent-danger/20 rounded-lg">
+<p class="text-xs text-accent-danger font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+                                        Mission Failure: VIP eliminated.
+                                    </p>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-text-muted">Unit:</span>
+<span class="text-white decoration-accent-danger line-through">Duty Platoon 4</span>
+</div>
+</div>
+<!-- Card Footer / Actions -->
+<div class="p-4 bg-background-dark/50 border-t border-white/5">
+<button class="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 py-2 rounded font-medium text-sm transition-all">
+<span class="material-symbols-outlined text-[18px]">restart_alt</span> Re-Issue Contract
+                                </button>
+</div>
+</article>
+<!-- CARD 6: PENDING APPROVAL (Standard) -->
+<article class="flex flex-col bg-surface-dark hover:bg-surface-dark-hover border-l-4 border-l-accent-warning border-y border-r border-border-dark rounded-r-xl rounded-l-sm overflow-hidden shadow-md hover:shadow-xl transition-all group">
+<!-- Card Header -->
+<div class="p-5 border-b border-white/5 flex justify-between items-start gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-xs font-mono text-accent-warning bg-accent-warning/10 px-1.5 py-0.5 rounded border border-accent-warning/20">PENDING</span>
+<span class="text-xs font-mono text-text-muted">#CTR-412</span>
+</div>
+<h3 class="text-lg font-bold text-white leading-tight">Trade: Ammo Supply</h3>
+<p class="text-sm text-text-muted mt-1">Location: <span class="text-white">Dead City</span></p>
+</div>
+<div class="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-white/10" data-alt="Abstract icon representing ammunition" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBBm_mePmDZFaisjhxyxFu2dsuLFzWMcCiX410-c-SzMXnXfjyIT9UJfF6flqrXIS_Kc41FmMrmI3LazzymbvQ7cJJnG5m5QK2Gr_q2D5nMWu4J0oWXTPlbXCaXheqBmCDMoE0Z_8fwXzsT7h2_-Gm6jR7OxdPuNoylFIAI1eQn1cfZjSzMnfx2qUjJDCam7b7vGfKEzHIAbDznzXnmLMEkD5t3A-IBdbl9ffBnFNNgeaV26snieWBK582jlhyvOPY_qF_W-YUGWZne');"></div>
+</div>
+<!-- Card Body -->
+<div class="p-5 flex-1 flex flex-col gap-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-text-muted">Requester:</span>
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-cover" data-alt="Trader avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB-v9Ogx0QYX4FwJq76i6oraWTERI3xFwZB5SkPqli3fNXngxOXMUJFgJEIkyHKIfrOpx5GAomo6n1KdeOmai5thxEF3yrjyeyuO7TKgIMTpXkWjlrHmU0ly1O0DKXBQRu2Ro0N2hNKK1GhzfbZYplhuKHhNj-YR2G4R0GBRrgJMq2AxqYtxN2KpzkUun3c1FGNtgXTnf5pwWsyudY42HWGqup-UkshKeuSeOnFs7HTP7fvF1iMSN15nzl_YyYoeG7XAejhA96TREyU');"></div>
+<span class="text-white font-medium">Trader 'Skinflint'</span>
+</div>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-text-muted">Exchange:</span>
+<span class="font-mono text-white text-xs">5.56mm for Food</span>
+</div>
+</div>
+<!-- Card Footer / Actions -->
+<div class="p-4 bg-background-dark/50 border-t border-white/5 flex gap-2">
+<button class="flex-1 flex items-center justify-center gap-2 bg-primary/10 hover:bg-primary hover:text-white text-primary border border-primary/20 py-2 rounded font-semibold text-sm transition-all">
+<span class="material-symbols-outlined text-[18px]">check</span> Confirm
+                                </button>
+<button class="flex-none px-3 flex items-center justify-center bg-white/5 hover:bg-accent-danger hover:text-white text-text-muted border border-white/10 py-2 rounded transition-all" title="Reject">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</article>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

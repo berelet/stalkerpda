@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>S.T.A.L.K.E.R. GM Terminal - Current Players</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e9cf1",
+                        "primary-dark": "#167dc2",
+                        "danger": "#ef4444",
+                        "success": "#22c55e",
+                        "warning": "#f59e0b",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101b22",
+                        "surface-dark": "#182630",
+                        "border-dark": "#233948",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem", 
+                        "lg": "0.5rem", 
+                        "xl": "0.75rem", 
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for tactical feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101b22; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #233948; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1e9cf1; 
+        }
+        
+        .tactical-border {
+            position: relative;
+        }
+        .tactical-border::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            border-bottom: 2px solid #1e9cf1;
+            border-right: 2px solid #1e9cf1;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased min-h-screen flex flex-col overflow-x-hidden text-gray-900 dark:text-white">
+<!-- Main Layout Container -->
+<div class="flex flex-col h-full grow">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 bg-[#111b22]/95 backdrop-blur-sm border-b border-border-dark px-6 py-3 shadow-lg">
+<div class="max-w-[1400px] mx-auto flex items-center justify-between">
+<div class="flex items-center gap-4 text-white">
+<div class="size-8 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">radar</span>
+</div>
+<div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-wide uppercase">S.T.A.L.K.E.R. GM Terminal</h2>
+<span class="text-xs text-primary/60 font-mono">VER 2.4.1 // CONNECTED</span>
+</div>
+</div>
+<nav class="hidden md:flex flex-1 justify-center">
+<div class="flex items-center gap-1 bg-surface-dark p-1 rounded-lg border border-border-dark">
+<a class="px-4 py-2 text-gray-400 text-sm font-medium hover:text-white rounded-md transition-colors" href="#">Dashboard</a>
+<a class="px-4 py-2 text-gray-400 text-sm font-medium hover:text-white rounded-md transition-colors" href="#">Live Map</a>
+<a class="px-4 py-2 bg-primary/20 text-primary text-sm font-bold rounded-md shadow-sm border border-primary/20" href="#">Players</a>
+<a class="px-4 py-2 text-gray-400 text-sm font-medium hover:text-white rounded-md transition-colors" href="#">Factions</a>
+<a class="px-4 py-2 text-gray-400 text-sm font-medium hover:text-white rounded-md transition-colors" href="#">Artifacts</a>
+</div>
+</nav>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end hidden sm:flex">
+<span class="text-sm font-bold text-white">Admin Commander</span>
+<span class="text-xs text-green-500 font-mono">ONLINE</span>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-primary/30" data-alt="Profile picture of the admin user, tactical gear style" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC3-wxOi8s9AZLtx3O_u2Thpyjnldba5soNgRD36yMJQsVMfiNVzVh-FtosTRGhHMlq2o6T_88Jfx51vi7UeH2MtDpNI1lUH0QRgsAHokQq85gffoqz243pypRYKCA56_Fh6L9hlsCKweDnKaLPc5NZnmdQJQO_XXAME0F1GVyPrjFZhf9UdAp97NqcHuNxYCECaRQgXNfnEoZKjs2Dw9ew4XasSak5mKBxABCfLo4yHm6WKZ7pyoPre0mSZ0oXPe6yR5fTDDrmY2Cg");'>
+</div>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<main class="flex-1 flex justify-center py-8 px-4 sm:px-6 lg:px-8">
+<div class="w-full max-w-[1400px] flex flex-col gap-6">
+<!-- Breadcrumbs -->
+<div class="flex items-center gap-2 text-sm">
+<span class="material-symbols-outlined text-gray-500 text-lg">home</span>
+<a class="text-gray-400 hover:text-primary transition-colors" href="#">Game Session #42</a>
+<span class="text-gray-600">/</span>
+<span class="text-white font-medium">Current Players</span>
+</div>
+<!-- Page Header & Actions -->
+<div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 border-b border-border-dark">
+<div class="flex flex-col gap-2">
+<h1 class="text-4xl font-black text-white tracking-tight uppercase flex items-center gap-3">
+                            Current Game Players
+                            <span class="text-sm bg-primary/20 text-primary px-2 py-1 rounded border border-primary/30 font-mono align-middle">LIVE: 142</span>
+</h1>
+<p class="text-gray-400 text-base max-w-2xl">Real-time roster monitoring. Manage player status, vital signs, and map locations.</p>
+</div>
+<button class="group flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-5 py-3 rounded-lg font-bold shadow-lg shadow-primary/20 transition-all active:scale-95">
+<span class="material-symbols-outlined text-xl">add_circle</span>
+<span>Add Player to Game</span>
+</button>
+</div>
+<!-- Filters & Search -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4 bg-surface-dark p-4 rounded-xl border border-border-dark shadow-sm">
+<!-- Search -->
+<div class="md:col-span-7 lg:col-span-5 flex flex-col gap-1.5">
+<label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Search by Callsign / ID</label>
+<div class="relative group">
+<span class="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-primary transition-colors material-symbols-outlined">search</span>
+<input class="w-full bg-[#111b22] border border-border-dark text-white text-sm rounded-lg focus:ring-1 focus:ring-primary focus:border-primary block pl-11 p-3 placeholder-gray-600 transition-all" placeholder="Enter nickname or PDA ID..." type="text"/>
+</div>
+</div>
+<!-- Faction Filter -->
+<div class="md:col-span-5 lg:col-span-3 flex flex-col gap-1.5">
+<label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Filter by Faction</label>
+<div class="relative group">
+<span class="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-primary transition-colors material-symbols-outlined">shield</span>
+<select class="w-full bg-[#111b22] border border-border-dark text-white text-sm rounded-lg focus:ring-1 focus:ring-primary focus:border-primary block pl-11 p-3 appearance-none transition-all cursor-pointer">
+<option class="bg-[#111b22]" value="">All Factions</option>
+<option class="bg-[#111b22]" value="loners">Loners</option>
+<option class="bg-[#111b22]" value="duty">Duty</option>
+<option class="bg-[#111b22]" value="freedom">Freedom</option>
+<option class="bg-[#111b22]" value="mercs">Mercenaries</option>
+<option class="bg-[#111b22]" value="monolith">Monolith</option>
+</select>
+<span class="absolute right-4 top-3.5 text-gray-500 pointer-events-none material-symbols-outlined">expand_more</span>
+</div>
+</div>
+<!-- Quick Stats (Visual only) -->
+<div class="md:col-span-12 lg:col-span-4 flex items-end justify-start lg:justify-end gap-2 pb-1">
+<div class="px-4 py-2 rounded-lg bg-[#111b22] border border-border-dark flex items-center gap-3">
+<div class="size-2 rounded-full bg-success animate-pulse"></div>
+<span class="text-sm font-medium text-gray-300">Signal: <span class="text-white font-bold">STRONG</span></span>
+</div>
+<div class="px-4 py-2 rounded-lg bg-[#111b22] border border-border-dark flex items-center gap-3">
+<span class="material-symbols-outlined text-warning text-sm">warning</span>
+<span class="text-sm font-medium text-gray-300">High Rad: <span class="text-white font-bold">12</span></span>
+</div>
+</div>
+</div>
+<!-- Main Data Table -->
+<div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden shadow-xl tactical-border">
+<div class="overflow-x-auto">
+<table class="w-full min-w-[1000px] text-left border-collapse">
+<thead>
+<tr class="bg-[#111b22] border-b border-border-dark text-xs uppercase text-gray-400">
+<th class="px-6 py-4 font-bold tracking-wider w-[250px]">Nickname</th>
+<th class="px-6 py-4 font-bold tracking-wider w-[180px]">Faction</th>
+<th class="px-6 py-4 font-bold tracking-wider w-[150px]">Status</th>
+<th class="px-6 py-4 font-bold tracking-wider w-[120px]">Lives</th>
+<th class="px-6 py-4 font-bold tracking-wider w-[200px]">Radiation</th>
+<th class="px-6 py-4 font-bold tracking-wider text-right w-[150px]">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark text-sm">
+<!-- Row 1 -->
+<tr class="group hover:bg-[#1f2f3a] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="size-10 rounded-lg bg-cover bg-center border border-gray-600" data-alt="Portrait of player Strelok, wearing gas mask" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCWq8bC_rS4PRTFK5ufLCKJ9pL3pVEMFDR5Z0aemy9f33uULSjCL_7qai3fhu2K9LtlGyUz0Ih8Kou6-pJmIShV4mlCZiqw7d1wHFUqldzpQpGwXRbYT0ckKC4hpP33iK_io9EVa06390QUHjsFn7HA8tRSc7Bgv_q4uXUlGslI_Z7i8xrppKC_yhrUQjooXNetZbo5DGQZE1c2JPlHM3_F8xnzK9AnoZZh6v_bnka-oyekzKwDkqPIZp-g8NUSshcTEZu7PLDK6q4o");'></div>
+<div class="absolute -bottom-1 -right-1 size-3 bg-success border-2 border-surface-dark rounded-full"></div>
+</div>
+<div class="flex flex-col">
+<span class="font-bold text-white text-base">Strelok</span>
+<span class="text-xs text-gray-500 font-mono">ID: A-773</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 px-2.5 py-1 rounded bg-[#2a2a2a] w-fit border border-gray-700">
+<span class="material-symbols-outlined text-yellow-500 text-sm">star</span>
+<span class="text-gray-200 font-medium">Loner</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-success/10 text-success border border-success/20">
+<span class="size-1.5 rounded-full bg-success"></span>
+                                            ALIVE
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1">
+<span class="text-white font-bold text-lg">2</span>
+<span class="text-gray-500 text-sm">/ 3</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="text-gray-400">Exposure</span>
+<span class="text-primary font-mono font-bold">15%</span>
+</div>
+<div class="w-full h-2 bg-[#111b22] rounded-full overflow-hidden border border-gray-700">
+<div class="h-full bg-primary/80 rounded-full" style="width: 15%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg text-primary hover:bg-primary/20 hover:text-white transition-colors" title="View on Live Map">
+<span class="material-symbols-outlined">location_on</span>
+</button>
+<button class="p-2 rounded-lg text-gray-500 hover:bg-danger/20 hover:text-danger transition-colors" title="Remove from Game">
+<span class="material-symbols-outlined">person_remove</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-[#1f2f3a] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="size-10 rounded-lg bg-cover bg-center border border-gray-600" data-alt="Portrait of player Wolf, tactical gear" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCBZm9ZmMeTlgsyYV_nmIxtQXUR0ksBC2uv6rh4hOsPKWEDc__49QSBV-XQLdiFV9SxZqTHi5UMVhak47FF_RdRV93iyIHfXBnQqrhacNCIEPmKb5YJGM1N7KfCZDRxXkYGmnNCqLyE-qVJz6wCY0hyvrY0_l-KDVcodKG1Q92_ICy0oDWdbMtkt9pFPiBSbYuXeRC6vhEA8fWoev_9HsuqVywAnr1DWTYatm-i3llk_WZ0zYQCGwlnzP5-xljyrNkYY_5hHPr2Uehi");'></div>
+<div class="absolute -bottom-1 -right-1 size-3 bg-warning border-2 border-surface-dark rounded-full"></div>
+</div>
+<div class="flex flex-col">
+<span class="font-bold text-white text-base">Wolf</span>
+<span class="text-xs text-gray-500 font-mono">ID: D-104</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 px-2.5 py-1 rounded bg-red-950/30 w-fit border border-red-900/50">
+<span class="material-symbols-outlined text-red-500 text-sm">security</span>
+<span class="text-red-200 font-medium">Duty</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-warning/10 text-warning border border-warning/20">
+<span class="size-1.5 rounded-full bg-warning animate-pulse"></span>
+                                            WOUNDED
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1">
+<span class="text-warning font-bold text-lg">1</span>
+<span class="text-gray-500 text-sm">/ 3</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="text-gray-400">Exposure</span>
+<span class="text-warning font-mono font-bold">45%</span>
+</div>
+<div class="w-full h-2 bg-[#111b22] rounded-full overflow-hidden border border-gray-700">
+<div class="h-full bg-gradient-to-r from-primary to-warning rounded-full" style="width: 45%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg text-primary hover:bg-primary/20 hover:text-white transition-colors">
+<span class="material-symbols-outlined">location_on</span>
+</button>
+<button class="p-2 rounded-lg text-gray-500 hover:bg-danger/20 hover:text-danger transition-colors">
+<span class="material-symbols-outlined">person_remove</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-[#1f2f3a] transition-colors bg-red-950/5">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="size-10 rounded-lg bg-cover bg-center border border-red-900/50 grayscale opacity-70" data-alt="Portrait of player Ghost, wearing hood" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDjSfByJFrhIHFgZrFu6hDGpPymS1dv5JBNhiE0ngj-bJVXbevAn8KiwwbX9tTEXJ-OHUajQ3-AeC36vPGWh88w7c1zvQmR51EwYPauDLHOwNM8tFGY63k32l8cEO_fX5pPaDLL_l8UB4KAaI3p3CJGHuIBsm-aOY1E_6C_dLgGcrIuxiXUKH0ujWTlMrBbc0LjuGsrSJwQvo8XVSOw8bFwS7L5rkuHFuebQePo6vYUxwDvF5icHAnyDlBpVs7xFem-NtzbtVGvAawq");'></div>
+<div class="absolute -bottom-1 -right-1 size-3 bg-gray-600 border-2 border-surface-dark rounded-full"></div>
+</div>
+<div class="flex flex-col opacity-70">
+<span class="font-bold text-gray-300 text-base line-through">Ghost</span>
+<span class="text-xs text-gray-600 font-mono">ID: M-009</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 opacity-70">
+<div class="flex items-center gap-2 px-2.5 py-1 rounded bg-blue-950/30 w-fit border border-blue-900/50">
+<span class="material-symbols-outlined text-blue-400 text-sm">attach_money</span>
+<span class="text-blue-200 font-medium">Mercenary</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gray-800 text-gray-400 border border-gray-700">
+<span class="size-1.5 rounded-full bg-gray-500"></span>
+                                            DEAD
+                                        </span>
+</td>
+<td class="px-6 py-4 opacity-70">
+<div class="flex items-center gap-1">
+<span class="text-danger font-bold text-lg">0</span>
+<span class="text-gray-500 text-sm">/ 3</span>
+</div>
+</td>
+<td class="px-6 py-4 opacity-70">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="text-gray-400">Exposure</span>
+<span class="text-danger font-mono font-bold">92%</span>
+</div>
+<div class="w-full h-2 bg-[#111b22] rounded-full overflow-hidden border border-gray-700">
+<div class="h-full bg-danger rounded-full" style="width: 92%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg text-gray-600 hover:bg-primary/20 hover:text-primary transition-colors cursor-not-allowed">
+<span class="material-symbols-outlined">location_on</span>
+</button>
+<button class="p-2 rounded-lg text-gray-500 hover:bg-danger/20 hover:text-danger transition-colors">
+<span class="material-symbols-outlined">person_remove</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-[#1f2f3a] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="size-10 rounded-lg bg-cover bg-center border border-gray-600" data-alt="Portrait of player Forester, bearded man" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDT9XzVX9wXA4K4U9vEVoROX-wbek_OOWdMUs6oHA_bFf5Lc0ZvttcBac4NbtGdsjALaw5yqoLnHZ_zlauJH-08fQX8N-eJBDAY-se4XuEkIQm0-4nZ0qgvthOT4szJinwX16G2d84MkGc5kygeX0mOwjbD3z0NLQckSJdCdX8F-bSN6NHQ1xW7NEkxXYNKwPzCuetWogNScTLrTIlDumZCOA5vYzTayQeHiGBFh5jtyIXS6yUzbjvjz3exJYfQEw8IbJ2hQBPlRkqD");'></div>
+<div class="absolute -bottom-1 -right-1 size-3 bg-success border-2 border-surface-dark rounded-full"></div>
+</div>
+<div class="flex flex-col">
+<span class="font-bold text-white text-base">Forester</span>
+<span class="text-xs text-gray-500 font-mono">ID: F-221</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 px-2.5 py-1 rounded bg-green-950/30 w-fit border border-green-900/50">
+<span class="material-symbols-outlined text-green-500 text-sm">spa</span>
+<span class="text-green-200 font-medium">Freedom</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-success/10 text-success border border-success/20">
+<span class="size-1.5 rounded-full bg-success"></span>
+                                            ALIVE
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1">
+<span class="text-white font-bold text-lg">3</span>
+<span class="text-gray-500 text-sm">/ 3</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="text-gray-400">Exposure</span>
+<span class="text-success font-mono font-bold">4%</span>
+</div>
+<div class="w-full h-2 bg-[#111b22] rounded-full overflow-hidden border border-gray-700">
+<div class="h-full bg-success rounded-full" style="width: 4%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg text-primary hover:bg-primary/20 hover:text-white transition-colors">
+<span class="material-symbols-outlined">location_on</span>
+</button>
+<button class="p-2 rounded-lg text-gray-500 hover:bg-danger/20 hover:text-danger transition-colors">
+<span class="material-symbols-outlined">person_remove</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="group hover:bg-[#1f2f3a] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="size-10 rounded-lg bg-cover bg-center border border-gray-600" data-alt="Portrait of player Scar, grim face" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBsQe0C2ecdxlve0Ik3TY86-Ljv-WBilRGbAN01QsbqYovcGUS1Ol6RRUfjrCfgS5LYy8u9o5_NpDMYh_aTm8el0esA01vHkHH60iumbOAUARqjAlRaYlRKNpjHG264DKUKr5sRB_HfwO3HiFW2O2epoKjMkLmjtXf9EpGZRyDjv_p3tsgF8HsJRhN8eqjObdEthFuTNKEwUYQ92T68PNRRbflxgRsy1ogD2M0KJM3pch4v6w0P7rPt5wWHviWU_YO2yKvZFBI6j8oe");'></div>
+<div class="absolute -bottom-1 -right-1 size-3 bg-success border-2 border-surface-dark rounded-full"></div>
+</div>
+<div class="flex flex-col">
+<span class="font-bold text-white text-base">Scar</span>
+<span class="text-xs text-gray-500 font-mono">ID: CS-001</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 px-2.5 py-1 rounded bg-sky-950/30 w-fit border border-sky-900/50">
+<span class="material-symbols-outlined text-sky-400 text-sm">cloud</span>
+<span class="text-sky-200 font-medium">Clear Sky</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-success/10 text-success border border-success/20">
+<span class="size-1.5 rounded-full bg-success"></span>
+                                            ALIVE
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1">
+<span class="text-white font-bold text-lg">2</span>
+<span class="text-gray-500 text-sm">/ 3</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs">
+<span class="text-gray-400">Exposure</span>
+<span class="text-warning font-mono font-bold">55%</span>
+</div>
+<div class="w-full h-2 bg-[#111b22] rounded-full overflow-hidden border border-gray-700">
+<div class="h-full bg-gradient-to-r from-primary via-warning to-danger rounded-full" style="width: 55%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-lg text-primary hover:bg-primary/20 hover:text-white transition-colors">
+<span class="material-symbols-outlined">location_on</span>
+</button>
+<button class="p-2 rounded-lg text-gray-500 hover:bg-danger/20 hover:text-danger transition-colors">
+<span class="material-symbols-outlined">person_remove</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="bg-[#111b22] border-t border-border-dark px-6 py-4 flex items-center justify-between">
+<span class="text-sm text-gray-400">Showing <span class="text-white font-bold">1-5</span> of <span class="text-white font-bold">142</span> players</span>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded-lg border border-border-dark text-gray-400 hover:bg-surface-dark hover:text-white transition-colors text-sm font-medium disabled:opacity-50" disabled="">Previous</button>
+<div class="hidden sm:flex gap-1">
+<button class="size-8 rounded-lg bg-primary/20 text-primary border border-primary/30 flex items-center justify-center text-sm font-bold">1</button>
+<button class="size-8 rounded-lg bg-surface-dark text-gray-400 hover:text-white border border-border-dark flex items-center justify-center text-sm transition-colors">2</button>
+<button class="size-8 rounded-lg bg-surface-dark text-gray-400 hover:text-white border border-border-dark flex items-center justify-center text-sm transition-colors">3</button>
+<span class="size-8 flex items-center justify-center text-gray-600">...</span>
+<button class="size-8 rounded-lg bg-surface-dark text-gray-400 hover:text-white border border-border-dark flex items-center justify-center text-sm transition-colors">29</button>
+</div>
+<button class="px-3 py-1.5 rounded-lg border border-border-dark text-gray-400 hover:bg-surface-dark hover:text-white transition-colors text-sm font-medium">Next</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>S.T.A.L.K.E.R. Artifact Spawner</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e9cf1",
+                        "primary-dark": "#0c7ec9",
+                        "secondary": "#325267",
+                        "accent-success": "#2ecc71",
+                        "accent-warning": "#f39c12",
+                        "accent-danger": "#e74c3c",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101b22",
+                        "surface-dark": "#111b22",
+                        "surface-highlight": "#233948",
+                        "border-color": "#325267",
+                        "rarity-common": "#bdc3c7",
+                        "rarity-uncommon": "#2ecc71",
+                        "rarity-rare": "#3498db",
+                        "rarity-legendary": "#f1c40f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for tactical feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111b22; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #325267; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1e9cf1; 
+        }
+        
+        .tactical-grid {
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, rgba(50, 82, 103, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(50, 82, 103, 0.1) 1px, transparent 1px);
+        }
+
+        .map-marker {
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(30, 156, 241, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(30, 156, 241, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(30, 156, 241, 0); }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display h-screen flex flex-col overflow-hidden">
+<!-- Top Navigation Bar -->
+<header class="h-16 shrink-0 border-b border-border-color bg-surface-dark px-6 flex items-center justify-between z-20 shadow-md">
+<div class="flex items-center gap-4">
+<div class="size-8 bg-primary/20 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">terminal</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-white uppercase">GM Terminal <span class="text-primary mx-2">//</span> Artifact Spawner</h1>
+</div>
+<div class="flex items-center gap-6">
+<!-- Global Spawn Control -->
+<div class="flex items-center gap-3 bg-surface-highlight/50 px-4 py-1.5 rounded-full border border-border-color">
+<span class="text-xs font-bold uppercase tracking-wider text-slate-400">Spawn Mode</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-success"></div>
+<span class="ml-2 text-xs font-bold text-accent-success peer-checked:block hidden">ACTIVE</span>
+<span class="ml-2 text-xs font-bold text-slate-400 peer-checked:hidden block">OFFLINE</span>
+</label>
+</div>
+<div class="h-8 w-[1px] bg-border-color"></div>
+<!-- User Profile -->
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-bold text-white leading-none">Admin-01</p>
+<p class="text-xs text-primary leading-none mt-1">Level 5 Access</p>
+</div>
+<div class="h-10 w-10 rounded-lg bg-surface-highlight border border-border-color bg-center bg-cover" data-alt="User avatar profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCv1wlb7I-DddYzHd2LAlltpl5loO7GkAK4pHcy8mTCBf2FaFVvATwKx3F0UlR4avUBCUZ3_0xzwSG_Q_d1DOur943KkaKAKsdDbmeXxbbbHa9Gpt81ZR3CcWJ5F5af7j-x5r1Z2HmbwmjcZ_kcldQifCWkSvg2ssAmj-2EuT_Jh6AR_ln2Pjs46PqflU8d4qKLrcy0UCQI6Jcdd0ODvTEmzgGXtBhNMy_OL_n_E0B1Kw7DIxhaCep9D2C_EehG34tuYqoNgpMQ_u9d')">
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex overflow-hidden">
+<!-- Left Sidebar: Artifact Palette -->
+<aside class="w-[400px] bg-surface-dark border-r border-border-color flex flex-col shrink-0 z-10 shadow-xl">
+<!-- Search & Filter -->
+<div class="p-4 border-b border-border-color bg-surface-dark">
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2.5 border border-border-color rounded-lg leading-5 bg-surface-highlight text-white placeholder-slate-400 focus:outline-none focus:bg-surface-highlight focus:border-primary sm:text-sm transition duration-150 ease-in-out" placeholder="Search artifacts..." type="text"/>
+</div>
+</div>
+<!-- Scrollable List -->
+<div class="flex-1 overflow-y-auto p-4 space-y-4">
+<!-- Common Category -->
+<div class="space-y-2">
+<div class="flex items-center justify-between text-rarity-common">
+<h3 class="text-xs font-bold uppercase tracking-wider">Common</h3>
+<span class="text-xs bg-surface-highlight px-2 py-0.5 rounded text-white">4 Items</span>
+</div>
+<div class="cursor-pointer group flex items-center gap-3 p-3 rounded-lg border border-border-color bg-surface-highlight/30 hover:bg-surface-highlight hover:border-primary/50 transition-all">
+<div class="h-10 w-10 rounded bg-surface-dark border border-rarity-common/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-rarity-common">water_drop</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-medium text-white group-hover:text-primary">Droplet</h4>
+<p class="text-xs text-slate-400">Rad Removal - Low</p>
+</div>
+<div class="text-xs font-mono text-slate-500">2500 RUB</div>
+</div>
+<div class="cursor-pointer group flex items-center gap-3 p-3 rounded-lg border border-border-color bg-surface-highlight/30 hover:bg-surface-highlight hover:border-primary/50 transition-all">
+<div class="h-10 w-10 rounded bg-surface-dark border border-rarity-common/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-rarity-common">flare</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-medium text-white group-hover:text-primary">Sparkler</h4>
+<p class="text-xs text-slate-400">Endurance +</p>
+</div>
+<div class="text-xs font-mono text-slate-500">1800 RUB</div>
+</div>
+</div>
+<!-- Rare Category -->
+<div class="space-y-2 pt-2">
+<div class="flex items-center justify-between text-rarity-rare">
+<h3 class="text-xs font-bold uppercase tracking-wider">Rare</h3>
+<span class="text-xs bg-surface-highlight px-2 py-0.5 rounded text-white">2 Items</span>
+</div>
+<!-- Selected Item Example -->
+<div class="cursor-pointer relative group flex items-center gap-3 p-3 rounded-lg border border-primary bg-primary/10 transition-all ring-1 ring-primary/50">
+<div class="absolute -right-1 -top-1 h-3 w-3 bg-primary rounded-full animate-pulse"></div>
+<div class="h-10 w-10 rounded bg-surface-dark border border-rarity-rare flex items-center justify-center shadow-[0_0_10px_rgba(52,152,219,0.3)]">
+<span class="material-symbols-outlined text-rarity-rare">bedtime</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-white">Moonlight</h4>
+<p class="text-xs text-primary/80">Psy-Protection ++</p>
+</div>
+<div class="text-xs font-mono text-primary font-bold">8000 RUB</div>
+</div>
+<div class="cursor-pointer group flex items-center gap-3 p-3 rounded-lg border border-border-color bg-surface-highlight/30 hover:bg-surface-highlight hover:border-primary/50 transition-all">
+<div class="h-10 w-10 rounded bg-surface-dark border border-rarity-rare/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-rarity-rare">snowing</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-medium text-white group-hover:text-primary">Crystal</h4>
+<p class="text-xs text-slate-400">Radiation Absorb</p>
+</div>
+<div class="text-xs font-mono text-slate-500">7500 RUB</div>
+</div>
+</div>
+<!-- Legendary Category -->
+<div class="space-y-2 pt-2">
+<div class="flex items-center justify-between text-rarity-legendary">
+<h3 class="text-xs font-bold uppercase tracking-wider">Legendary</h3>
+<span class="text-xs bg-surface-highlight px-2 py-0.5 rounded text-white">1 Item</span>
+</div>
+<div class="cursor-pointer group flex items-center gap-3 p-3 rounded-lg border border-border-color bg-surface-highlight/30 hover:bg-surface-highlight hover:border-primary/50 transition-all">
+<div class="h-10 w-10 rounded bg-surface-dark border border-rarity-legendary/30 flex items-center justify-center shadow-[0_0_15px_rgba(241,196,15,0.2)]">
+<span class="material-symbols-outlined text-rarity-legendary">hotel_class</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-medium text-white group-hover:text-primary">Compass</h4>
+<p class="text-xs text-slate-400">Anomaly Navigation</p>
+</div>
+<div class="text-xs font-mono text-slate-500">25000 RUB</div>
+</div>
+</div>
+</div>
+<!-- Selected Item Preview Panel -->
+<div class="p-5 border-t border-border-color bg-surface-highlight/20 backdrop-blur-sm">
+<div class="flex gap-4">
+<div class="h-16 w-16 rounded-lg bg-surface-dark border border-rarity-rare flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(52,152,219,0.2)]">
+<span class="material-symbols-outlined text-4xl text-rarity-rare">bedtime</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<h3 class="text-lg font-bold text-white truncate">Moonlight</h3>
+<span class="text-[10px] font-bold uppercase border border-rarity-rare text-rarity-rare px-1.5 py-0.5 rounded">Tier 2</span>
+</div>
+<p class="text-xs text-slate-400 mt-1 line-clamp-2">Generated by Electro anomalies. Grants significant psy-protection but emits weak radiation.</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 mt-4">
+<div class="bg-surface-dark rounded px-2 py-1.5 border border-border-color">
+<span class="text-[10px] uppercase text-slate-500 block">Base Value</span>
+<span class="text-sm font-mono font-medium text-white">8,000 RUB</span>
+</div>
+<div class="bg-surface-dark rounded px-2 py-1.5 border border-border-color">
+<span class="text-[10px] uppercase text-slate-500 block">Radiation</span>
+<div class="flex gap-0.5 mt-1">
+<div class="h-1.5 w-1.5 rounded-full bg-accent-success"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-accent-success"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-slate-700"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-slate-700"></div>
+</div>
+</div>
+</div>
+<button class="w-full mt-4 bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">add_location_alt</span>
+<span>Ready to Spawn</span>
+</button>
+</div>
+</aside>
+<!-- Right Content: Tactical Map -->
+<section class="flex-1 relative bg-[#0a1014] overflow-hidden tactical-grid group cursor-crosshair">
+<!-- Map Background Image (Simulated) -->
+<div class="absolute inset-0 opacity-40 mix-blend-overlay pointer-events-none" data-alt="Satellite map view of exclusion zone terrain" data-location="Pripyat Outskirts" style="background-image: url('https://placeholder.pics/svg/300'); background-size: cover; background-position: center;">
+</div>
+<!-- Floating Map Controls -->
+<div class="absolute top-4 right-4 flex flex-col gap-2 z-20">
+<button class="h-10 w-10 bg-surface-highlight border border-border-color text-white rounded hover:bg-surface-highlight/80 flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="h-10 w-10 bg-surface-highlight border border-border-color text-white rounded hover:bg-surface-highlight/80 flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<div class="h-4"></div>
+<button class="h-10 w-10 bg-surface-highlight border border-border-color text-primary rounded hover:bg-surface-highlight/80 flex items-center justify-center shadow-lg" title="Center on Active Zone">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+</div>
+<!-- Map Overlay Info -->
+<div class="absolute top-4 left-4 z-20 pointer-events-none">
+<div class="bg-surface-dark/90 backdrop-blur border border-border-color px-3 py-2 rounded text-xs font-mono text-primary shadow-lg">
+<p>SEC: Cordon_North</p>
+<p>COORD: 51.234, 30.412</p>
+<p>GRID: B-7</p>
+</div>
+</div>
+<!-- Context Menu (Simulated active state) -->
+<div class="absolute top-[30%] left-[60%] z-30 w-48 bg-surface-dark border border-primary/50 shadow-[0_0_20px_rgba(0,0,0,0.5)] rounded overflow-hidden hidden group-hover:block animate-fade-in">
+<div class="px-3 py-2 border-b border-border-color bg-surface-highlight/50">
+<p class="text-xs font-bold text-white uppercase">Actions: ID-892</p>
+</div>
+<button class="w-full text-left px-3 py-2 text-sm text-white hover:bg-primary hover:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">visibility</span> Reveal
+                </button>
+<button class="w-full text-left px-3 py-2 text-sm text-white hover:bg-primary hover:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">edit</span> Edit Properties
+                </button>
+<button class="w-full text-left px-3 py-2 text-sm text-accent-danger hover:bg-accent-danger hover:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">delete</span> Despawn
+                </button>
+</div>
+<!-- Map Markers -->
+<!-- Active/Visible Artifact -->
+<div class="absolute top-[45%] left-[30%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 cursor-pointer">
+<div class="map-marker h-4 w-4 rounded-full bg-primary border-2 border-white shadow-[0_0_10px_#1e9cf1]"></div>
+<span class="bg-surface-dark/80 px-1.5 rounded text-[10px] font-bold text-white whitespace-nowrap border border-border-color">Moonlight</span>
+</div>
+<!-- Hidden Artifact -->
+<div class="absolute top-[25%] left-[55%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
+<div class="h-4 w-4 rounded-full border-2 border-dashed border-white bg-transparent"></div>
+<span class="bg-surface-dark/60 px-1.5 rounded text-[10px] text-slate-300 whitespace-nowrap">Hidden (Droplet)</span>
+</div>
+<!-- Extracting Artifact (Alert State) -->
+<div class="absolute top-[60%] left-[65%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 cursor-pointer">
+<div class="relative">
+<div class="absolute inset-0 rounded-full bg-accent-warning opacity-75 animate-ping"></div>
+<div class="relative h-5 w-5 rounded-full bg-accent-warning border-2 border-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px] text-black font-bold">hand_gesture</span>
+</div>
+</div>
+<span class="bg-accent-warning text-black px-1.5 rounded text-[10px] font-bold whitespace-nowrap shadow-sm">EXTRACTING...</span>
+</div>
+<!-- Extracted/Inactive Artifact -->
+<div class="absolute top-[75%] left-[20%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 cursor-pointer opacity-50 grayscale hover:grayscale-0 transition-all">
+<div class="h-3 w-3 rounded-full bg-slate-600 border border-slate-400"></div>
+<span class="text-[10px] text-slate-400 font-mono">EXTRACTED #041</span>
+</div>
+</section>
+</main>
+<!-- Bottom Status Bar -->
+<footer class="h-10 bg-surface-highlight border-t border-border-color px-4 flex items-center justify-between text-xs font-mono text-slate-300 shrink-0 z-20">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<div class="h-2 w-2 rounded-full bg-accent-success animate-pulse"></div>
+<span class="uppercase tracking-wide">System Online</span>
+</div>
+<div class="h-4 w-[1px] bg-border-color"></div>
+<div>
+<span class="text-slate-500 mr-1">ACTIVE:</span>
+<span class="text-white font-bold">12</span>
+</div>
+<div>
+<span class="text-slate-500 mr-1">HIDDEN:</span>
+<span class="text-white font-bold">8</span>
+</div>
+<div>
+<span class="text-slate-500 mr-1">EXTRACTING:</span>
+<span class="text-accent-warning font-bold">1</span>
+</div>
+<div>
+<span class="text-slate-500 mr-1">TOTAL:</span>
+<span class="text-white font-bold">45</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-sm">wifi</span>
+<span>Signal: 98%</span>
+</div>
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span>22:45:12 UTC</span>
+</div>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>S.T.A.L.K.E.R. GM Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e9cf1",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101b22",
+                        "surface-dark": "#16202a",
+                        "surface-border": "#233948",
+                        "tactical-green": "#22c55e",
+                        "tactical-red": "#ef4444",
+                        "tactical-yellow": "#eab308"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #111b22;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #233948;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #1e9cf1;
+        }
+        
+        .map-marker {
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(30, 156, 241, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(30, 156, 241, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(30, 156, 241, 0); }
+        }
+        .artifact-glow {
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 2px #eab308); }
+            to { filter: drop-shadow(0 0 8px #eab308); }
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display overflow-hidden h-screen w-screen flex">
+<!-- LEFT SIDEBAR -->
+<aside class="w-20 lg:w-64 flex-shrink-0 flex flex-col border-r border-surface-border bg-[#111b22] transition-all z-30">
+<!-- User Profile Stub -->
+<div class="p-4 border-b border-surface-border flex items-center gap-3">
+<div class="relative flex-shrink-0">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-surface-border" data-alt="GM Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDGMJrTzmJ2wEslHjuPXSvTGPLwii0u8tI6HoYoNyoEwv8WmiGY4cSpbBWrEo6lzHcHjX6RhUO16D8oMniKGWBAzh2xNDknQb3zs7D_5u37nMQU1L8ZPJqEylyt9SrtZFZOeBuQShZhRm171K_hJhMswsRLYlVnzzGPOR0UyHJau5WP_CltUcxqBEPIT5d8pW8ywdfV3xAY_uQtJAMpOgAi7bY6_V3ZI2wINhTZ4LVZpUif1Vd-7bMRdgSFT3gFpyfqXXRbq6gYlqKc");'></div>
+<div class="absolute bottom-0 right-0 size-3 bg-tactical-green rounded-full border-2 border-[#111b22]"></div>
+</div>
+<div class="hidden lg:flex flex-col overflow-hidden">
+<h1 class="text-white text-sm font-bold leading-tight truncate">COMMANDER</h1>
+<p class="text-[#91b3ca] text-xs font-normal leading-normal truncate">Sector 4 Control</p>
+</div>
+</div>
+<!-- Navigation -->
+<nav class="flex-1 flex flex-col gap-2 p-2 overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg bg-primary/20 text-primary group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">map</span>
+<span class="hidden lg:block text-sm font-medium">Live Map</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-[#91b3ca] hover:bg-surface-border hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">backpack</span>
+<span class="hidden lg:block text-sm font-medium">Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-[#91b3ca] hover:bg-surface-border hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">group</span>
+<span class="hidden lg:block text-sm font-medium">Factions</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-[#91b3ca] hover:bg-surface-border hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">calendar_month</span>
+<span class="hidden lg:block text-sm font-medium">Events</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-[#91b3ca] hover:bg-surface-border hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">terminal</span>
+<span class="hidden lg:block text-sm font-medium">Console</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-[#91b3ca] hover:bg-surface-border hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">settings</span>
+<span class="hidden lg:block text-sm font-medium">Settings</span>
+</a>
+</nav>
+<!-- Logout -->
+<div class="p-4 border-t border-surface-border">
+<button class="flex w-full cursor-pointer items-center justify-center lg:justify-start gap-3 rounded-lg h-10 px-0 lg:px-4 text-[#91b3ca] hover:text-white hover:bg-surface-border transition-colors">
+<span class="material-symbols-outlined">logout</span>
+<span class="hidden lg:block text-sm font-bold">Logout</span>
+</button>
+</div>
+</aside>
+<!-- MAIN CONTENT -->
+<main class="flex-1 flex flex-col relative min-w-0">
+<!-- HEADER -->
+<header class="h-16 flex items-center justify-between px-6 border-b border-surface-border bg-[#111b22] z-20 shadow-md">
+<div class="flex items-center gap-4">
+<div class="text-tactical-yellow animate-pulse">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div>
+<h2 class="text-white text-lg font-bold tracking-tight">S.T.A.L.K.E.R. LIVE OPS</h2>
+<div class="flex items-center gap-2">
+<span class="block size-2 rounded-full bg-tactical-green shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+<span class="text-[#91b3ca] text-xs font-mono uppercase tracking-wider">System Normal • 45ms Latency</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="hidden md:flex items-center gap-2 h-9 px-4 rounded-md bg-surface-border hover:bg-[#2f4a5d] text-white text-xs font-bold uppercase tracking-wider transition-colors border border-transparent hover:border-white/10">
+<span class="material-symbols-outlined text-[18px]">settings_input_antenna</span>
+                    Server Config
+                </button>
+<button class="flex items-center gap-2 h-9 px-4 rounded-md bg-tactical-red hover:bg-red-600 text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-lg shadow-red-900/20">
+<span class="material-symbols-outlined text-[18px]">campaign</span>
+                    Broadcast
+                </button>
+</div>
+</header>
+<!-- MAP CONTAINER -->
+<div class="flex-1 relative bg-[#0b1015] overflow-hidden group/map">
+<!-- Simulated Map Background -->
+<div class="absolute inset-0 bg-[#0f151a] opacity-100" data-alt="Dark tactical satellite map of Pripyat area" data-location="Pripyat" style="background-image: 
+                    linear-gradient(rgba(17, 27, 34, 0.7), rgba(17, 27, 34, 0.7)),
+                    url('https://lh3.googleusercontent.com/aida-public/AB6AXuDfoYSrXFkVCX9X2iQRM2XDC1_djUyNyOueW6wX8IopLdAlHKV5WcRBxlMepBo0CDHNqksBaEVD0IJB47AFhlB9N_0W1N1YMgzX0wE-duw7aTnIeLuzDWZy4VpobgbvqebLaS34Cqpr3RCzhjqYephRnDoajPd9P4J-5JETE8a6DnhiGNOQJ-ZLTG7cjPMfFrF90pPwu0DKNOvCq3N_JLdwBFxTiCpfZD_Cp31gMIO1PKRYiYGv2ekyY4zRQ7Gt8MufGQxeA9zqXFyY'); 
+                 background-size: cover; background-position: center;">
+</div>
+<!-- Grid Overlay -->
+<div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(#233948 1px, transparent 1px), linear-gradient(90deg, #233948 1px, transparent 1px); background-size: 100px 100px; opacity: 0.1;">
+</div>
+<!-- SEARCH OVERLAY (Top Left) -->
+<div class="absolute top-4 left-4 z-10 w-80">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[#91b3ca]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2.5 border border-surface-border rounded-lg leading-5 bg-[#16202a]/90 backdrop-blur text-white placeholder-[#91b3ca] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm shadow-lg transition-all" placeholder="Search player, coordinates, or ID..." type="text"/>
+<div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+<kbd class="inline-flex items-center border border-surface-border rounded px-2 text-xs font-sans font-medium text-[#91b3ca]">⌘K</kbd>
+</div>
+</div>
+</div>
+<!-- MAP OBJECTS (Simulated) -->
+<!-- Radiation Zone (Red) -->
+<div class="absolute top-1/4 left-1/3 w-64 h-64 rounded-full bg-tactical-red/10 border border-tactical-red/30 flex items-center justify-center animate-pulse" style="transform: translate(-50%, -50%);">
+<span class="text-tactical-red/50 text-xs font-mono font-bold tracking-widest uppercase">High Radiation</span>
+</div>
+<!-- Artifact Zone (Green/Yellow) -->
+<div class="absolute bottom-1/3 right-1/4 w-48 h-48 rounded-full bg-tactical-yellow/5 border border-tactical-yellow/20 flex items-center justify-center" style="transform: translate(50%, 50%);">
+<!-- Artifact Item -->
+<div class="absolute flex flex-col items-center gap-1 cursor-pointer hover:scale-110 transition-transform">
+<div class="artifact-glow bg-tactical-yellow text-black rounded-full p-1.5 shadow-[0_0_15px_rgba(234,179,8,0.5)]">
+<span class="material-symbols-outlined text-[20px]">all_inclusive</span>
+</div>
+<span class="bg-black/80 text-white text-[10px] px-1.5 rounded font-mono">Soul</span>
+</div>
+</div>
+<!-- Player Marker: Stalker (Friendly) -->
+<div class="absolute top-[40%] left-[45%] flex flex-col items-center gap-1 cursor-pointer group z-10">
+<div class="relative">
+<div class="map-marker size-10 rounded-full border-2 border-primary bg-[#111b22] overflow-hidden relative z-10">
+<img alt="Player Avatar" class="object-cover w-full h-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfnDO0T_D-gevoMc6KfOF_WI9pqqXUal7pIBbSp6QvMlNNI-53D7ZZetP8MhQfqCeuDcfsFS7iJQAoEJcql-2na8_PW_Q4P0008S8zeuHCAEYEvLsQP-pVem9UGQeegA6ocVcbq6ONK3RRH8jE1CsevxEjQoJz9wCBdaQV2jcykjd3t9fbeA_bLpb5JEYOvG2J0jJV0IE0A3NA3_s37ONIGdyue7vwvLwm8p2FC4isxtiVimnL0emEKVjUFeet5obnHUGxVzfELEla"/>
+</div>
+<div class="absolute -bottom-1 -right-1 z-20 bg-[#111b22] rounded-full p-0.5">
+<span class="block size-3 bg-tactical-green rounded-full border-2 border-[#111b22]"></span>
+</div>
+</div>
+<div class="flex flex-col items-center bg-[#111b22]/90 backdrop-blur px-2 py-1 rounded border border-surface-border shadow-lg">
+<span class="text-white text-xs font-bold leading-none">Strelok</span>
+<div class="w-full h-1 bg-gray-700 rounded-full mt-1 overflow-hidden">
+<div class="bg-tactical-green h-full w-[80%]"></div>
+</div>
+</div>
+</div>
+<!-- Player Marker: Bandit (Enemy) -->
+<div class="absolute top-[35%] left-[55%] flex flex-col items-center gap-1 cursor-pointer group z-10 opacity-80 hover:opacity-100">
+<div class="relative">
+<div class="size-8 rounded-full border-2 border-tactical-red bg-[#111b22] overflow-hidden relative z-10">
+<img alt="Bandit Avatar" class="object-cover w-full h-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBq-xelCR4xmvFXgRZUKw6TnN39h8iAXZ-K6rYJj34gb9x2622OFQTl-f54Ckm8lF9IMgDXk7dTGnFWDAUVL7eGHs5IQHVkpxpaVhmgSbAYbp63vt3EvwdCp_NrmhIEFMqk6jUEXNHA9e-ue3SzJwXiGQyuvDM2jgt80TIVTZFK5J5QVSPo3SEu3p1F4JX3hgulcCbYppRdI9E-8B0QOY3tPsFG-Gc2Z8EFerrgugobbsinva2ZsURAnsFfnzemGCbjCLwnLOCzHvIu"/>
+</div>
+</div>
+<span class="text-tactical-red text-[10px] font-bold bg-black/80 px-1.5 rounded">BANDIT_04</span>
+</div>
+<!-- BOTTOM ACTION BAR (Floating HUD) -->
+<div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 w-full max-w-2xl px-4">
+<div class="flex items-center justify-between bg-[#16202a]/90 backdrop-blur border border-surface-border rounded-xl shadow-2xl p-2 gap-2">
+<div class="flex items-center gap-1 border-r border-surface-border pr-2 mr-2">
+<button class="flex flex-col items-center justify-center size-14 rounded-lg hover:bg-surface-border text-[#91b3ca] hover:text-white transition-all group">
+<span class="material-symbols-outlined text-2xl mb-1 group-hover:-translate-y-0.5 transition-transform">science</span>
+<span class="text-[10px] font-medium uppercase">Spawn Art</span>
+</button>
+<button class="flex flex-col items-center justify-center size-14 rounded-lg hover:bg-surface-border text-[#91b3ca] hover:text-white transition-all group">
+<span class="material-symbols-outlined text-2xl mb-1 group-hover:-translate-y-0.5 transition-transform">radar</span>
+<span class="text-[10px] font-medium uppercase">Add Zone</span>
+</button>
+<button class="flex flex-col items-center justify-center size-14 rounded-lg hover:bg-surface-border text-[#91b3ca] hover:text-white transition-all group">
+<span class="material-symbols-outlined text-2xl mb-1 group-hover:-translate-y-0.5 transition-transform">pest_control</span>
+<span class="text-[10px] font-medium uppercase">Spawn NPC</span>
+</button>
+</div>
+<div class="flex items-center gap-2 flex-1">
+<input class="w-full bg-[#0b1015] border-none rounded-lg h-10 px-3 text-sm text-white focus:ring-1 focus:ring-primary" placeholder="Quick Message to All..." type="text"/>
+<button class="size-10 flex-shrink-0 bg-primary hover:bg-blue-600 text-white rounded-lg flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</div>
+<!-- ZOOM CONTROLS (Bottom Right) -->
+<div class="absolute bottom-6 right-6 z-10 flex flex-col gap-2">
+<button class="size-10 bg-[#16202a]/90 backdrop-blur border border-surface-border text-white rounded-lg flex items-center justify-center hover:bg-surface-border shadow-lg">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+<div class="flex flex-col rounded-lg border border-surface-border bg-[#16202a]/90 backdrop-blur overflow-hidden shadow-lg">
+<button class="size-10 text-white flex items-center justify-center hover:bg-surface-border border-b border-surface-border">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="size-10 text-white flex items-center justify-center hover:bg-surface-border">
+<span class="material-symbols-outlined">remove</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- RIGHT SIDEBAR (Stats & Info) -->
+<aside class="w-80 flex-shrink-0 flex flex-col border-l border-surface-border bg-[#111b22] z-30">
+<!-- Stats Overview -->
+<div class="p-4 border-b border-surface-border">
+<h3 class="text-[#91b3ca] text-xs font-bold uppercase tracking-widest mb-4">Operations Status</h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-surface-border/50 p-3 rounded-lg border border-surface-border">
+<p class="text-[#91b3ca] text-xs mb-1">Total Players</p>
+<p class="text-white text-2xl font-bold">42</p>
+</div>
+<div class="bg-surface-border/50 p-3 rounded-lg border border-surface-border">
+<p class="text-[#91b3ca] text-xs mb-1">Active Zones</p>
+<p class="text-white text-2xl font-bold">8</p>
+</div>
+</div>
+<!-- Faction Breakdown Bar -->
+<div class="mt-4 flex h-2 w-full rounded-full overflow-hidden bg-surface-border">
+<div class="h-full bg-tactical-green" style="width: 45%" title="Stalkers"></div>
+<div class="h-full bg-tactical-red" style="width: 35%" title="Bandits"></div>
+<div class="h-full bg-blue-500" style="width: 20%" title="Monolith"></div>
+</div>
+<div class="flex justify-between text-[10px] text-[#91b3ca] mt-1 font-mono">
+<span>Stalkers: 20</span>
+<span>Bandits: 15</span>
+<span>Mono: 7</span>
+</div>
+</div>
+<!-- Scrollable Lists -->
+<div class="flex-1 overflow-y-auto custom-scrollbar">
+<!-- Active Artifacts -->
+<div class="p-4">
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-white text-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-tactical-yellow text-sm">diamond</span>
+                        Active Artifacts
+                    </h3>
+<span class="text-[#91b3ca] text-xs bg-surface-border px-1.5 py-0.5 rounded">3</span>
+</div>
+<div class="flex flex-col gap-2">
+<!-- Item -->
+<div class="group flex items-center justify-between p-3 rounded-lg bg-[#16202a] border border-surface-border hover:border-primary/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-tactical-yellow/10 flex items-center justify-center text-tactical-yellow">
+<span class="material-symbols-outlined text-lg">all_inclusive</span>
+</div>
+<div>
+<p class="text-white text-sm font-medium">Jellyfish</p>
+<p class="text-[#91b3ca] text-xs">Sector B • 14m left</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-[#91b3ca] group-hover:text-white text-lg">chevron_right</span>
+</div>
+<!-- Item -->
+<div class="group flex items-center justify-between p-3 rounded-lg bg-[#16202a] border border-surface-border hover:border-primary/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-tactical-red/10 flex items-center justify-center text-tactical-red">
+<span class="material-symbols-outlined text-lg">hotel_class</span>
+</div>
+<div>
+<p class="text-white text-sm font-medium">Soul</p>
+<p class="text-[#91b3ca] text-xs">Sector A • 5m left</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-[#91b3ca] group-hover:text-white text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Active Contracts/Events -->
+<div class="p-4 border-t border-surface-border">
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-white text-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">assignment</span>
+                        Active Contracts
+                    </h3>
+</div>
+<div class="space-y-3">
+<div class="relative pl-4 border-l-2 border-primary">
+<h4 class="text-white text-sm font-medium">Retrieve the Drive</h4>
+<p class="text-[#91b3ca] text-xs mt-0.5">Assigned: Mercenaries</p>
+<div class="mt-2 flex items-center gap-2">
+<span class="px-1.5 py-0.5 rounded bg-primary/20 text-primary text-[10px] font-bold uppercase">In Progress</span>
+</div>
+</div>
+<div class="relative pl-4 border-l-2 border-surface-border">
+<h4 class="text-white text-sm font-medium">Clear the Depot</h4>
+<p class="text-[#91b3ca] text-xs mt-0.5">Open Contract</p>
+<div class="mt-2 flex items-center gap-2">
+<span class="px-1.5 py-0.5 rounded bg-surface-border text-[#91b3ca] text-[10px] font-bold uppercase">Pending</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Info -->
+<div class="p-3 border-t border-surface-border bg-[#0b1015]">
+<p class="text-[10px] text-[#91b3ca] text-center font-mono">PDA NET v4.2.0 • SECURE CONNECTION</p>
+</div>
+</aside>
+</body></html>

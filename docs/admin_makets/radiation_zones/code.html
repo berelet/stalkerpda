@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Radiation Zones - GM Command</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .font-display { font-family: 'Inter', sans-serif; }
+        /* Tactical Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101b22; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #325267;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1e9cf1;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e9cf1",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101b22",
+                        "surface": "#162028",
+                        "border-color": "#233948"
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden h-screen flex select-none">
+<!-- Global Side Navigation -->
+<aside class="w-20 lg:w-64 bg-background-dark border-r border-border-color flex flex-col shrink-0 transition-all duration-300 z-30">
+<!-- Brand -->
+<div class="h-16 flex items-center justify-center lg:justify-start px-0 lg:px-6 border-b border-border-color">
+<div class="size-8 bg-primary/20 rounded flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">dangerous</span>
+</div>
+<div class="hidden lg:block ml-3">
+<h1 class="font-bold text-sm tracking-wide uppercase text-white">GM Admin</h1>
+<p class="text-[10px] text-primary/60 font-mono">V.2.4.0 BETA</p>
+</div>
+</div>
+<!-- Menu -->
+<nav class="flex-1 py-6 px-3 space-y-2 overflow-y-auto">
+<a class="group flex items-center gap-3 px-3 py-2.5 text-slate-400 hover:text-white hover:bg-surface rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:text-primary transition-colors">dashboard</span>
+<span class="hidden lg:block font-medium text-sm">Dashboard</span>
+</a>
+<a class="group flex items-center gap-3 px-3 py-2.5 text-slate-400 hover:text-white hover:bg-surface rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:text-primary transition-colors">map</span>
+<span class="hidden lg:block font-medium text-sm">Tactical Map</span>
+</a>
+<a class="group flex items-center gap-3 px-3 py-2.5 text-slate-400 hover:text-white hover:bg-surface rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:text-primary transition-colors">groups</span>
+<span class="hidden lg:block font-medium text-sm">Players</span>
+</a>
+<!-- Active State -->
+<a class="group flex items-center gap-3 px-3 py-2.5 bg-primary/10 text-white border border-primary/20 rounded-lg shadow-[0_0_15px_rgba(30,156,241,0.1)] relative overflow-hidden" href="#">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<span class="material-symbols-outlined text-[24px] text-primary fill-1">warning</span>
+<span class="hidden lg:block font-medium text-sm">Radiation Zones</span>
+</a>
+<a class="group flex items-center gap-3 px-3 py-2.5 text-slate-400 hover:text-white hover:bg-surface rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[24px] group-hover:text-primary transition-colors">settings</span>
+<span class="hidden lg:block font-medium text-sm">Settings</span>
+</a>
+</nav>
+<!-- User -->
+<div class="p-4 border-t border-border-color">
+<div class="flex items-center gap-3 justify-center lg:justify-start">
+<div class="size-9 rounded-lg bg-slate-700 bg-cover bg-center border border-slate-600 shadow-inner" data-alt="Game Master Avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDzrvvfd2EPwmtbz0cMex7syZrqtXoUkWSKUhDuXEGjVgCBW57aMLs_xWoKI3hvTNl1L2L9dUNmmv_wh_GZkog6ORR1Ez3btosjSTdWaVjnvR_kbVAM1IjCcQIFL6cG8s-O2gwhYbk9eg6R_jXa7LfrmuQI6AF-6KqZdxXEdFrj3cZq_AQoW-UK9OabrUNe9FdNxXUUZs-4TLuHs91n7JlDLV0ubT_67W9mkkhHTQPuTyx8DIDXcFzRJahCQVewpanCyUnfy7IZFIRA');"></div>
+<div class="hidden lg:flex flex-col">
+<span class="text-sm font-bold text-slate-200">Stalker_Admin</span>
+<span class="text-[10px] text-emerald-500 font-mono uppercase tracking-wider">Online</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Workspace -->
+<main class="flex-1 flex flex-col min-w-0 bg-surface relative">
+<!-- Top Header Bar -->
+<header class="h-16 border-b border-border-color bg-background-dark flex items-center justify-between px-6 shrink-0 z-20 shadow-md">
+<div class="flex items-center gap-4">
+<div class="flex flex-col">
+<h2 class="text-lg font-bold text-white tracking-tight">Radiation Zones</h2>
+<span class="text-[10px] text-slate-500 font-mono uppercase tracking-widest">Sector Management</span>
+</div>
+<div class="h-6 w-px bg-border-color mx-2 hidden sm:block"></div>
+<div class="hidden sm:flex items-center gap-2 px-2 py-1 bg-surface rounded border border-border-color">
+<span class="size-2 bg-emerald-500 rounded-full animate-pulse"></span>
+<span class="text-xs font-mono text-emerald-400">SYNC ACTIVE</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<!-- Draw Mode Toggle -->
+<div class="flex items-center gap-3 bg-surface pl-4 pr-1.5 py-1.5 rounded-full border border-border-color group hover:border-slate-500 transition-colors">
+<span class="text-xs font-bold uppercase tracking-wide text-slate-400 group-hover:text-slate-200 transition-colors">Draw Mode</span>
+<label class="relative flex h-[24px] w-[44px] cursor-pointer items-center rounded-full border-none bg-background-dark p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-300 shadow-inner">
+<div class="h-full aspect-square rounded-full bg-white shadow-sm transition-all"></div>
+<input class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+<!-- Add Zone Button -->
+<button class="flex items-center gap-2 bg-primary hover:bg-blue-400 text-white text-sm font-bold px-4 py-2 rounded shadow-[0_4px_14px_0_rgba(30,156,241,0.39)] hover:shadow-[0_6px_20px_rgba(30,156,241,0.23)] transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+<span>New Zone</span>
+</button>
+</div>
+</header>
+<!-- Split View Content -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Left Panel: Zone List -->
+<div class="w-full max-w-[420px] flex flex-col border-r border-border-color bg-background-dark z-10 shadow-2xl">
+<!-- Toolbar -->
+<div class="p-4 border-b border-border-color grid gap-3">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-500 text-[18px]">search</span>
+<input class="w-full bg-surface border border-border-color rounded focus:rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all font-mono" placeholder="Search by name or ID..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-1.5 px-3 text-xs font-medium text-slate-300 bg-surface hover:bg-border-color border border-border-color rounded transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]">filter_list</span> Filter
+                        </button>
+<button class="flex-1 py-1.5 px-3 text-xs font-medium text-slate-300 bg-surface hover:bg-border-color border border-border-color rounded transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]">sort</span> Sort
+                        </button>
+</div>
+</div>
+<!-- Zone Cards List -->
+<div class="flex-1 overflow-y-auto p-4 space-y-3 pb-20">
+<!-- Card 1: High Threat -->
+<div class="group relative p-4 rounded bg-surface border-l-4 border-l-red-500 border-y border-r border-border-color hover:border-r-red-500/50 hover:border-y-red-500/30 transition-all cursor-pointer">
+<div class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+<button class="p-1.5 text-slate-400 hover:text-primary hover:bg-white/5 rounded"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+<button class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-white/5 rounded"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-white text-base">Red Forest Outskirts</h3>
+</div>
+<div class="mt-2 flex items-center gap-3">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30 uppercase">High Threat</span>
+<span class="text-xs text-slate-500 font-mono">ID: ZN-049</span>
+</div>
+<div class="mt-4 pt-3 border-t border-white/5 grid grid-cols-2 gap-4">
+<div>
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Radius</p>
+<div class="flex items-baseline gap-1">
+<span class="text-lg font-mono text-slate-200">150</span>
+<span class="text-xs text-slate-500">meters</span>
+</div>
+</div>
+<div>
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Activity</p>
+<div class="flex items-center gap-2">
+<span class="text-lg font-mono text-red-400 font-bold">3</span>
+<span class="material-symbols-outlined text-[16px] text-red-500 animate-pulse">person</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: Medium Threat -->
+<div class="group relative p-4 rounded bg-surface border-l-4 border-l-orange-500 border-y border-r border-border-color hover:border-r-orange-500/50 hover:border-y-orange-500/30 transition-all cursor-pointer">
+<div class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+<button class="p-1.5 text-slate-400 hover:text-primary hover:bg-white/5 rounded"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+<button class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-white/5 rounded"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-white text-base">Swamp Sector 4</h3>
+</div>
+<div class="mt-2 flex items-center gap-3">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 uppercase">Medium Threat</span>
+<span class="text-xs text-slate-500 font-mono">ID: ZN-052</span>
+</div>
+<div class="mt-4 pt-3 border-t border-white/5 grid grid-cols-2 gap-4">
+<div>
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Radius</p>
+<div class="flex items-baseline gap-1">
+<span class="text-lg font-mono text-slate-200">80</span>
+<span class="text-xs text-slate-500">meters</span>
+</div>
+</div>
+<div>
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Activity</p>
+<div class="flex items-center gap-2">
+<span class="text-lg font-mono text-slate-400 font-bold">0</span>
+<span class="material-symbols-outlined text-[16px] text-slate-600">person</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3: Low Threat -->
+<div class="group relative p-4 rounded bg-surface border-l-4 border-l-yellow-500 border-y border-r border-border-color hover:border-r-yellow-500/50 hover:border-y-yellow-500/30 transition-all cursor-pointer">
+<div class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+<button class="p-1.5 text-slate-400 hover:text-primary hover:bg-white/5 rounded"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+<button class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-white/5 rounded"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-white text-base">Old Church</h3>
+</div>
+<div class="mt-2 flex items-center gap-3">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 uppercase">Low Threat</span>
+<span class="text-xs text-slate-500 font-mono">ID: ZN-011</span>
+</div>
+<div class="mt-4 pt-3 border-t border-white/5 grid grid-cols-2 gap-4">
+<div>
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Radius</p>
+<div class="flex items-baseline gap-1">
+<span class="text-lg font-mono text-slate-200">45</span>
+<span class="text-xs text-slate-500">meters</span>
+</div>
+</div>
+<div>
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Activity</p>
+<div class="flex items-center gap-2">
+<span class="text-lg font-mono text-slate-200 font-bold">1</span>
+<span class="material-symbols-outlined text-[16px] text-yellow-500">person</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4: Medium Threat -->
+<div class="group relative p-4 rounded bg-surface border-l-4 border-l-orange-500 border-y border-r border-border-color hover:border-r-orange-500/50 hover:border-y-orange-500/30 transition-all cursor-pointer">
+<div class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+<button class="p-1.5 text-slate-400 hover:text-primary hover:bg-white/5 rounded"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+<button class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-white/5 rounded"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-white text-base">Checkpoint Charlie</h3>
+</div>
+<div class="mt-2 flex items-center gap-3">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 uppercase">Medium Threat</span>
+<span class="text-xs text-slate-500 font-mono">ID: ZN-088</span>
+</div>
+<div class="mt-4 pt-3 border-t border-white/5 grid grid-cols-2 gap-4">
+<div>
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Radius</p>
+<div class="flex items-baseline gap-1">
+<span class="text-lg font-mono text-slate-200">60</span>
+<span class="text-xs text-slate-500">meters</span>
+</div>
+</div>
+<div>
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Activity</p>
+<div class="flex items-center gap-2">
+<span class="text-lg font-mono text-slate-400 font-bold">0</span>
+<span class="material-symbols-outlined text-[16px] text-slate-600">person</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Panel: Map Interaction -->
+<div class="flex-1 relative bg-black overflow-hidden select-none cursor-crosshair group/map">
+<!-- Map Layer -->
+<div class="absolute inset-0 bg-cover bg-center grayscale contrast-125 brightness-75 scale-110" data-alt="Dark satellite map texture of terrain with roads and forests" data-location="Pripyat Sector" style="background-image: url('https://placeholder.pics/svg/300');"></div>
+<!-- Tactical Grid Overlay -->
+<div class="absolute inset-0 bg-[linear-gradient(rgba(30,156,241,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(30,156,241,0.05)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none"></div>
+<!-- Zone Overlays (Absolute Positioning simulated) -->
+<!-- Zone: Red Forest -->
+<div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-red-500/10 border border-red-500/60 shadow-[0_0_50px_rgba(239,68,68,0.2)] flex items-center justify-center group/zone cursor-pointer hover:bg-red-500/20 transition-colors">
+<div class="size-2 bg-red-500 rounded-full shadow-[0_0_10px_red] animate-ping absolute"></div>
+<div class="size-2 bg-red-500 rounded-full"></div>
+<!-- Tooltip -->
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-surface/90 text-red-100 text-xs px-3 py-2 rounded border border-red-500/30 backdrop-blur whitespace-nowrap opacity-0 group-hover/zone:opacity-100 transition-all transform translate-y-2 group-hover/zone:translate-y-0 pointer-events-none flex flex-col items-center">
+<span class="font-bold">RED FOREST OUTSKIRTS</span>
+<span class="text-[10px] text-red-400">HIGH RADIATION • 150m</span>
+<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-surface/90 border-r border-b border-red-500/30 rotate-45"></div>
+</div>
+</div>
+<!-- Zone: Swamp -->
+<div class="absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full bg-orange-500/10 border border-orange-500/60 shadow-[0_0_30px_rgba(249,115,22,0.15)] flex items-center justify-center group/zone cursor-pointer hover:bg-orange-500/20 transition-colors">
+<div class="size-1.5 bg-orange-500 rounded-full"></div>
+<!-- Tooltip -->
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-surface/90 text-orange-100 text-xs px-3 py-2 rounded border border-orange-500/30 backdrop-blur whitespace-nowrap opacity-0 group-hover/zone:opacity-100 transition-all transform translate-y-2 group-hover/zone:translate-y-0 pointer-events-none flex flex-col items-center">
+<span class="font-bold">SWAMP SECTOR 4</span>
+<span class="text-[10px] text-orange-400">MED RADIATION • 80m</span>
+<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-surface/90 border-r border-b border-orange-500/30 rotate-45"></div>
+</div>
+</div>
+<!-- Zone: Church -->
+<div class="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-yellow-500/10 border border-yellow-500/60 shadow-[0_0_20px_rgba(234,179,8,0.15)] flex items-center justify-center group/zone cursor-pointer hover:bg-yellow-500/20 transition-colors">
+<div class="size-1.5 bg-yellow-500 rounded-full"></div>
+<!-- Tooltip -->
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-surface/90 text-yellow-100 text-xs px-3 py-2 rounded border border-yellow-500/30 backdrop-blur whitespace-nowrap opacity-0 group-hover/zone:opacity-100 transition-all transform translate-y-2 group-hover/zone:translate-y-0 pointer-events-none flex flex-col items-center">
+<span class="font-bold">OLD CHURCH</span>
+<span class="text-[10px] text-yellow-400">LOW RADIATION • 45m</span>
+<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-surface/90 border-r border-b border-yellow-500/30 rotate-45"></div>
+</div>
+</div>
+<!-- Map UI Controls -->
+<div class="absolute top-4 right-4 flex flex-col gap-2">
+<div class="px-3 py-1 bg-surface/80 backdrop-blur rounded border border-border-color text-[10px] font-mono text-primary flex flex-col items-end">
+<span>LAT: 51.3892 N</span>
+<span>LNG: 30.0991 E</span>
+</div>
+</div>
+<div class="absolute bottom-24 right-4 flex flex-col gap-2">
+<button class="size-10 bg-surface/90 hover:bg-border-color backdrop-blur border border-border-color rounded-lg flex items-center justify-center text-white transition-colors shadow-lg">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="size-10 bg-surface/90 hover:bg-border-color backdrop-blur border border-border-color rounded-lg flex items-center justify-center text-white transition-colors shadow-lg">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<div class="h-2"></div>
+<button class="size-10 bg-surface/90 hover:bg-primary hover:border-primary backdrop-blur border border-border-color rounded-lg flex items-center justify-center text-white transition-colors shadow-lg group">
+<span class="material-symbols-outlined group-hover:animate-spin">my_location</span>
+</button>
+</div>
+<!-- Bottom Alert Banner -->
+<div class="absolute bottom-0 left-0 right-0 p-4">
+<div class="max-w-3xl mx-auto bg-surface/95 border-l-4 border-l-red-500 border border-border-color backdrop-blur-md rounded-r-lg shadow-[0_-4px_20px_rgba(0,0,0,0.5)] flex items-center justify-between p-4 animate-[pulse_3s_ease-in-out_infinite]">
+<div class="flex items-center gap-4">
+<div class="p-2 bg-red-500/10 rounded-full text-red-500 border border-red-500/20">
+<span class="material-symbols-outlined">notification_important</span>
+</div>
+<div>
+<h4 class="text-red-400 font-bold text-sm uppercase tracking-wider">Safety Alert</h4>
+<p class="text-slate-300 text-sm">3 Players detected within <span class="text-white font-bold">Red Forest Outskirts</span> (High Radiation) for &gt; 5 mins.</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 bg-transparent hover:bg-white/5 text-slate-300 text-xs font-bold uppercase rounded border border-transparent hover:border-slate-600 transition-colors">Dismiss</button>
+<button class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold uppercase rounded shadow-lg transition-colors">Locate Players</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

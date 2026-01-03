@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Player Details - GM Panel</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#1e9cf1",
+              "background-light": "#f5f7f8",
+              "background-dark": "#101b22",
+              "surface-dark": "#162028",
+              "border-tactical": "#233948",
+              "text-secondary": "#91b3ca",
+              "stalker-green": "#4ade80",
+              "stalker-yellow": "#facc15",
+              "stalker-red": "#f87171",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"],
+              "mono": ["JetBrains Mono", "Courier New", "monospace"],
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+            boxShadow: {
+                "glow": "0 0 10px rgba(30, 156, 241, 0.2)",
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        /* Custom Scrollbar for tactical feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101b22; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #233948; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1e9cf1; 
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display min-h-screen flex items-center justify-center p-4 lg:p-10 relative overflow-hidden">
+<!-- Background Pattern (Subtle Map Grid) -->
+<div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#325267 1px, transparent 1px); background-size: 24px 24px;"></div>
+<!-- Main Panel Container -->
+<aside class="w-full max-w-[480px] bg-[#111b22] border border-border-tactical rounded-xl shadow-2xl flex flex-col h-[85vh] md:h-auto max-h-[900px] relative z-10 overflow-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between px-6 py-4 border-b border-border-tactical bg-[#141f27]">
+<div class="flex items-center gap-3 text-white">
+<button class="hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h2 class="text-lg font-bold tracking-wide uppercase">Player Details</h2>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-primary/20 text-primary border border-primary/30">Admin Mode</span>
+<button class="text-text-secondary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-xl">more_vert</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+<!-- Profile Header -->
+<div class="p-6 pb-4">
+<div class="flex gap-5 items-start">
+<div class="relative group cursor-pointer shrink-0">
+<div class="w-24 h-24 rounded-lg bg-cover bg-center border-2 border-border-tactical shadow-lg" data-alt="Gritty portrait of a male soldier in tactical gear looking serious" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBiyS7UIRVIx6WyD50Ya_ovf9pFdpITVc32ONLA9bxdoPt6GTt8sEA9CBtc_28iOjZQ0NpwSNA8ChbkkOLx_4Qa6NCffrr_uIHQKGviTCi6E-WxAPaVjmgICFCJqdSUy_muYyicSTpn2jfDAbpEsjqzXCtsyKYAK52aUKC7CmD-gZfv9powCz5xi88EapOcUGL8y-KGIiCAG51vU2BYeu_ZWt4uEol8QJbwPgaUDBbWiaa5qc5fd7nz-EdLmJbp15ji1uZtUEw7ZJm4');">
+</div>
+<div class="absolute -bottom-2 -right-2 bg-background-dark rounded-full p-1 border border-border-tactical">
+<span class="material-symbols-outlined text-primary text-sm p-1 bg-primary/20 rounded-full">badge</span>
+</div>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<h1 class="text-2xl font-bold leading-tight tracking-tight text-white truncate">Strelok</h1>
+<span class="material-symbols-outlined text-text-secondary text-lg cursor-pointer hover:text-white">edit</span>
+</div>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#323232] border border-[#444] text-xs font-medium text-amber-400">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                Loner
+                            </span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-950/50 border border-emerald-800/50 text-xs font-medium text-emerald-400 animate-pulse">
+<span class="material-symbols-outlined text-[14px]">ecg_heart</span>
+                                Alive
+                            </span>
+</div>
+<p class="mt-3 text-xs font-mono text-text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">fingerprint</span>
+                            ID: #8392-ALPHA
+                        </p>
+</div>
+</div>
+</div>
+<!-- Action Buttons Toolbar -->
+<div class="px-6 pb-6 flex gap-3">
+<button class="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-blue-500 text-white font-medium py-2.5 px-4 rounded-lg transition-all shadow-glow group">
+<span class="material-symbols-outlined group-hover:animate-bounce">bolt</span>
+<span>Actions Menu</span>
+<span class="material-symbols-outlined text-sm ml-1">expand_more</span>
+</button>
+<button class="p-2.5 rounded-lg bg-surface-dark border border-border-tactical text-text-secondary hover:text-white hover:border-primary/50 hover:bg-primary/10 transition-all" title="Send Message">
+<span class="material-symbols-outlined">mail</span>
+</button>
+<button class="p-2.5 rounded-lg bg-surface-dark border border-border-tactical text-text-secondary hover:text-white hover:border-primary/50 hover:bg-primary/10 transition-all" title="Locate on Map">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+</div>
+<!-- Stats Grid -->
+<div class="px-6 grid grid-cols-2 gap-3 mb-6">
+<!-- Health -->
+<div class="bg-surface-dark border border-border-tactical p-3 rounded-lg flex flex-col justify-between relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-transparent to-red-500/10 rounded-bl-3xl"></div>
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs uppercase font-semibold text-text-secondary tracking-wider">Health</span>
+<span class="material-symbols-outlined text-red-400 text-lg">favorite</span>
+</div>
+<div class="flex items-end gap-1">
+<span class="text-2xl font-bold font-mono text-white">100</span>
+<span class="text-sm font-mono text-text-secondary mb-1">%</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full bg-gray-700 h-1.5 mt-2 rounded-full overflow-hidden">
+<div class="bg-red-500 h-full rounded-full" style="width: 100%"></div>
+</div>
+</div>
+<!-- Radiation -->
+<div class="bg-surface-dark border border-yellow-900/30 p-3 rounded-lg flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-transparent to-yellow-500/10 rounded-bl-3xl"></div>
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs uppercase font-semibold text-text-secondary tracking-wider">Radiation</span>
+<span class="material-symbols-outlined text-yellow-500 text-lg animate-pulse">emergency</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-end gap-1">
+<span class="text-2xl font-bold font-mono text-yellow-100">25</span>
+<span class="text-sm font-mono text-text-secondary mb-1">%</span>
+</div>
+<span class="text-[10px] text-yellow-500 font-bold uppercase mt-1">Warning Lvl 1</span>
+</div>
+</div>
+<!-- Balance -->
+<div class="bg-surface-dark border border-border-tactical p-3 rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs uppercase font-semibold text-text-secondary tracking-wider">Balance</span>
+<span class="material-symbols-outlined text-emerald-400 text-lg">payments</span>
+</div>
+<div class="flex items-end gap-1">
+<span class="text-2xl font-bold font-mono text-white">5,400</span>
+<span class="text-sm font-mono text-text-secondary mb-1">₽</span>
+</div>
+</div>
+<!-- Reputation -->
+<div class="bg-surface-dark border border-border-tactical p-3 rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs uppercase font-semibold text-text-secondary tracking-wider">Reputation</span>
+<span class="material-symbols-outlined text-primary text-lg">stars</span>
+</div>
+<div class="flex items-end gap-1">
+<span class="text-2xl font-bold font-mono text-white">+150</span>
+<span class="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded ml-auto">Good</span>
+</div>
+</div>
+</div>
+<!-- Accordions -->
+<div class="px-6 pb-6 flex flex-col gap-3">
+<!-- Inventory -->
+<details class="group bg-surface-dark border border-border-tactical rounded-lg open:border-primary/30 transition-all duration-300" open="">
+<summary class="flex items-center justify-between p-3 cursor-pointer select-none">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-text-secondary">backpack</span>
+<h3 class="text-sm font-medium text-white uppercase tracking-wider">Inventory</h3>
+</div>
+<span class="material-symbols-outlined text-text-secondary group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="px-3 pb-3 pt-0">
+<div class="h-px w-full bg-border-tactical mb-3"></div>
+<ul class="flex flex-col gap-2">
+<li class="flex items-center justify-between p-2 rounded bg-background-dark border border-border-tactical/50">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-gray-800 bg-cover bg-center" data-alt="Gold sphere artifact" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAgEcTi841Y5uDnkPE-ZXRdru4O2JCiCmlEzKHMgeq842TzrsTuTPHhPi57r5Ed2wf-PftO6u_R5Y-EbIFUwPy3AV7RdZnMHyly8nSg2ocVPisIDrgCJozTrOH8dNSF7NSA4evU-QP3H-PFhNPRNBDLlB4nDA9l6bmaBb3hKf3CwBSP24KKOTqPt0EUYv4pHd8o0ZB0fN37Pmc-PfuBUeKq7Rfgs8kRONh1sZC5w4mO6DUwUvUG3pBouCO0jRR_I6Y9wCCOHUD8C4OG');"></div>
+<div class="flex flex-col">
+<span class="text-sm text-white font-medium">Goldfish</span>
+<span class="text-[10px] text-amber-500 uppercase">Artifact • Rare</span>
+</div>
+</div>
+<span class="text-xs font-mono text-text-secondary">x1</span>
+</li>
+<li class="flex items-center justify-between p-2 rounded bg-background-dark border border-border-tactical/50">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-gray-800 bg-cover bg-center" data-alt="Assault Rifle silhouette" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBTW10CbWAZhz68JOKtMHRVArse0Y6SYFMCrDHns2jnnGOZBR2K1GRIz_28-Y4boM5Vedstu3YoIUpQdREsr-ADaCu0HX1TsHQ6EiwKG-p9NTcOkTu8w4sxVG4-fkmKpHyqaI4MoqDx9m10690hcFzPkGdP2o2RrR1cFoqS_La8Aul6Jrfd6avA1LU-cJqtnAaMKjAgFIKnxqKIw5ksry-7Oh-c1JceMVCXGRj_rdWxPjx-f9UxuHeOPJNGtqAXoupSJB_KczsJTbU4');"></div>
+<div class="flex flex-col">
+<span class="text-sm text-white font-medium">AK-74</span>
+<span class="text-[10px] text-text-secondary uppercase">Weapon • 75% Cond</span>
+</div>
+</div>
+<span class="text-xs font-mono text-text-secondary">x1</span>
+</li>
+<li class="flex items-center justify-between p-2 rounded bg-background-dark border border-border-tactical/50">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-gray-800 bg-cover bg-center" data-alt="Red medical kit box" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDafSVUarSBHHvVkXpyRVBpedSaHy7_2-SoDP1bW0C8w93d4B2cFSMM_h12ehJfqVUkeO-oVZyj3e-vv06yfC3W2Ew1NP3xHoIF_fsBmbfC8ClSzSYOX4y_Ju1nlVJRsP4t6jPBDy5h_vuD9OnI8FJqf2QYAqhzHOP9m0BioylqykTH0HUTk1YJddUjjzcmMGxOLeXfEUvG7tPCz6bMLs6x0k10f_YYeX3zZppKBQORvHhI8COW34VaOiEYJjTPYYM09OVPqAd418Zf');"></div>
+<div class="flex flex-col">
+<span class="text-sm text-white font-medium">Medkit</span>
+<span class="text-[10px] text-text-secondary uppercase">Consumable</span>
+</div>
+</div>
+<span class="text-xs font-mono text-text-secondary">x3</span>
+</li>
+</ul>
+</div>
+</details>
+<!-- Statistics -->
+<details class="group bg-surface-dark border border-border-tactical rounded-lg open:border-primary/30 transition-all duration-300">
+<summary class="flex items-center justify-between p-3 cursor-pointer select-none">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-text-secondary">bar_chart</span>
+<h3 class="text-sm font-medium text-white uppercase tracking-wider">Statistics</h3>
+</div>
+<span class="material-symbols-outlined text-text-secondary group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="px-3 pb-3 pt-0">
+<div class="h-px w-full bg-border-tactical mb-3"></div>
+<div class="grid grid-cols-2 gap-2">
+<div class="p-2 bg-background-dark rounded border border-border-tactical/50">
+<span class="text-[10px] text-text-secondary uppercase block mb-1">Kills</span>
+<span class="text-lg font-mono font-bold text-white">12</span>
+</div>
+<div class="p-2 bg-background-dark rounded border border-border-tactical/50">
+<span class="text-[10px] text-text-secondary uppercase block mb-1">Deaths</span>
+<span class="text-lg font-mono font-bold text-white">3</span>
+</div>
+<div class="p-2 bg-background-dark rounded border border-border-tactical/50">
+<span class="text-[10px] text-text-secondary uppercase block mb-1">Contracts</span>
+<span class="text-lg font-mono font-bold text-white">5</span>
+</div>
+<div class="p-2 bg-background-dark rounded border border-border-tactical/50">
+<span class="text-[10px] text-text-secondary uppercase block mb-1">Playtime</span>
+<span class="text-lg font-mono font-bold text-white">4h 12m</span>
+</div>
+</div>
+</div>
+</details>
+</div>
+</div>
+<!-- Sticky Footer -->
+<footer class="bg-[#0b1216] p-4 border-t border-border-tactical">
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="text-[10px] text-text-secondary uppercase tracking-widest font-bold">Signal Status:</span>
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="text-[10px] text-emerald-500 font-mono uppercase">Online</span>
+</div>
+</div>
+<div class="flex items-center justify-between mt-1 text-xs font-mono text-gray-400">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">schedule</span> 14:02:55</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">near_me</span> 52.34, 31.22</span>
+</div>
+</div>
+</footer>
+</aside>
+</body></html>
