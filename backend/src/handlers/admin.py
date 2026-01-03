@@ -302,10 +302,10 @@ def get_spawned_artifacts_handler(event, context):
             with conn.cursor() as cursor:
                 cursor.execute(
                     """SELECT a.id, a.type_id, a.latitude, a.longitude, a.state, 
-                    a.created_at, a.expires_at, at.name as type_name
+                    a.spawned_at, a.expires_at, at.name as type_name
                     FROM artifacts a
                     JOIN artifact_types at ON a.type_id = at.id
-                    ORDER BY a.created_at DESC"""
+                    ORDER BY a.spawned_at DESC"""
                 )
                 artifacts = cursor.fetchall()
         
@@ -318,6 +318,19 @@ def get_spawned_artifacts_handler(event, context):
             'body': json.dumps({
                 'artifacts': [
                     {
+                        'id': a['id'],
+                        'typeId': a['type_id'],
+                        'typeName': a['type_name'],
+                        'latitude': float(a['latitude']),
+                        'longitude': float(a['longitude']),
+                        'state': a['state'],
+                        'spawnedAt': a['spawned_at'].isoformat() if a['spawned_at'] else None,
+                        'expiresAt': a['expires_at'].isoformat() if a['expires_at'] else None
+                    }
+                    for a in artifacts
+                ]
+            })
+        }
                         'id': a['id'],
                         'typeId': a['type_id'],
                         'typeName': a['type_name'],
