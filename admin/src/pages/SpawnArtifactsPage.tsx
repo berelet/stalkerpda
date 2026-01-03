@@ -36,6 +36,7 @@ export default function SpawnArtifactsPage() {
   const [loading, setLoading] = useState(true)
   
   // Spawn form state
+  const [editingArtifactId, setEditingArtifactId] = useState<string | null>(null)
   const [selectedType, setSelectedType] = useState('')
   const [latitude, setLatitude] = useState(59.3293)
   const [longitude, setLongitude] = useState(18.0686)
@@ -104,19 +105,29 @@ export default function SpawnArtifactsPage() {
         expiresAt = new Date(exactDateTime).toISOString()
       }
       
-      await api.post('/api/admin/artifacts/spawn', {
-        typeId: selectedType,
-        latitude: typeof latitude === 'number' ? latitude : parseFloat(String(latitude)),
-        longitude: typeof longitude === 'number' ? longitude : parseFloat(String(longitude)),
-        expiresAt
-      })
-
-      console.log('Artifact spawned successfully, reloading list...')
+      if (editingArtifactId) {
+        // Update existing artifact
+        await api.delete(`/api/admin/artifacts/${editingArtifactId}`)
+        await api.post('/api/admin/artifacts/spawn', {
+          typeId: selectedType,
+          latitude: typeof latitude === 'number' ? latitude : parseFloat(String(latitude)),
+          longitude: typeof longitude === 'number' ? longitude : parseFloat(String(longitude)),
+          expiresAt
+        })
+        console.log('Artifact updated successfully')
+      } else {
+        // Create new artifact
+        await api.post('/api/admin/artifacts/spawn', {
+          typeId: selectedType,
+          latitude: typeof latitude === 'number' ? latitude : parseFloat(String(latitude)),
+          longitude: typeof longitude === 'number' ? longitude : parseFloat(String(longitude)),
+          expiresAt
+        })
+        console.log('Artifact spawned successfully')
+      }
       
       // Reset form
-      setSelectedType('')
-      setDurationHours('24')
-      setExactDateTime('')
+      handleAddNew()
       
       // Reload spawned artifacts
       await loadData()
@@ -147,11 +158,53 @@ export default function SpawnArtifactsPage() {
     return null
   }
 
+  const handleEditArtifact = (artifact: SpawnedArtifact) => {
+    setEditingArtifactId(artifact.id)
+    setSelectedType(artifact.typeId)
+    setLatitude(artifact.latitude)
+    setLongitude(artifact.longitude)
+    setMarkerPosition([artifact.latitude, artifact.longitude])
+    setMapKey(prev => prev + 1)
+    
+    // Set expiration time
+    if (artifact.expiresAt) {
+      const expiresDate = new Date(artifact.expiresAt)
+      const now = new Date()
+      const hoursLeft = Math.ceil((expiresDate.getTime() - now.getTime()) / (1000 * 60 * 60))
+      
+      if (hoursLeft > 0 && hoursLeft <= 168) {
+        setDurationType('hours')
+        setDurationHours(String(hoursLeft))
+      } else {
+        setDurationType('exact')
+        // Format for datetime-local input (YYYY-MM-DDTHH:mm)
+        const localDateTime = new Date(expiresDate.getTime() - expiresDate.getTimezoneOffset() * 60000)
+          .toISOString()
+          .slice(0, 16)
+        setExactDateTime(localDateTime)
+      }
+    }
+    
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleAddNew = () => {
+    setEditingArtifactId(null)
+    setSelectedType('')
+    setDurationHours('24')
+    setExactDateTime('')
+    setDurationType('hours')
+  }
+
   const handleRemoveArtifact = async (artifactId: string) => {
     if (!confirm('Remove this artifact from the map?')) return
     
     try {
       await api.delete(`/api/admin/artifacts/${artifactId}`)
+      if (editingArtifactId === artifactId) {
+        handleAddNew()
+      }
       loadData()
     } catch (error) {
       console.error('Failed to remove artifact:', error)
@@ -185,7 +238,21 @@ export default function SpawnArtifactsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Spawn Form */}
           <div className="bg-[#18242e] rounded-xl border border-[#233948] p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Spawn New Artifact</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">
+                {editingArtifactId ? 'Edit Artifact' : 'Spawn New Artifact'}
+              </h2>
+              {editingArtifactId && (
+                <button
+                  type="button"
+                  onClick={handleAddNew}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1e9cf1] hover:bg-[#157abd] text-white text-sm font-medium transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">add</span>
+                  Add New
+                </button>
+              )}
+            </div>
             
             <form onSubmit={handleSpawn} className="space-y-4">
               {/* Artifact Type - Visual Grid */}
@@ -327,8 +394,13 @@ export default function SpawnArtifactsPage() {
                 disabled={spawning || !selectedType || !latitude || !longitude}
                 className="w-full flex items-center justify-center gap-2 bg-[#1e9cf1] hover:bg-[#157abd] text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-[0_4px_14px_0_rgba(30,156,241,0.39)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span className="material-symbols-outlined text-[20px]">add_location</span>
-                {spawning ? 'Spawning...' : 'Spawn Artifact'}
+                <span className="material-symbols-outlined text-[20px]">
+                  {editingArtifactId ? 'save' : 'add_location'}
+                </span>
+                {spawning 
+                  ? (editingArtifactId ? 'Updating...' : 'Spawning...') 
+                  : (editingArtifactId ? 'Update Artifact' : 'Spawn Artifact')
+                }
               </button>
             </form>
           </div>
@@ -352,14 +424,20 @@ export default function SpawnArtifactsPage() {
                   {spawnedArtifacts.map((artifact) => (
                     <div
                       key={artifact.id}
-                      className={`p-4 hover:bg-white/[0.02] transition-colors ${
+                      onClick={() => handleEditArtifact(artifact)}
+                      className={`p-4 hover:bg-white/[0.02] transition-colors cursor-pointer ${
                         isExpired(artifact.expiresAt) ? 'opacity-50' : ''
-                      }`}
+                      } ${editingArtifactId === artifact.id ? 'bg-[#1e9cf1]/10 border-l-2 border-[#1e9cf1]' : ''}`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-white font-medium">{artifact.typeName}</span>
+                            {editingArtifactId === artifact.id && (
+                              <span className="text-xs px-2 py-0.5 rounded bg-[#1e9cf1]/20 text-[#1e9cf1] border border-[#1e9cf1]/30">
+                                Editing
+                              </span>
+                            )}
                             {isExpired(artifact.expiresAt) && (
                               <span className="text-xs px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
                                 Expired
