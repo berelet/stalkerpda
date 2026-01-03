@@ -4,6 +4,7 @@ interface CreateArtifactModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (data: ArtifactFormData) => void
+  isUploading?: boolean
 }
 
 interface ArtifactFormData {
@@ -15,7 +16,7 @@ interface ArtifactFormData {
   image?: File
 }
 
-export default function CreateArtifactModal({ isOpen, onClose, onSubmit }: CreateArtifactModalProps) {
+export default function CreateArtifactModal({ isOpen, onClose, onSubmit, isUploading = false }: CreateArtifactModalProps) {
   const [formData, setFormData] = useState<ArtifactFormData>({
     name: '',
     rarity: 'rare',
@@ -148,10 +149,19 @@ export default function CreateArtifactModal({ isOpen, onClose, onSubmit }: Creat
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-[#233948]">
-            <button type="button" onClick={onClose} className="flex-1 h-12 rounded-lg bg-[#233948] hover:bg-[#2c4659] text-white font-medium transition-colors">Cancel</button>
-            <button type="submit" className="flex-1 h-12 rounded-lg bg-primary hover:bg-[#1680c7] text-white font-bold transition-colors flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined">add_circle</span>
-              Create Artifact
+            <button type="button" onClick={onClose} disabled={isUploading} className="flex-1 h-12 rounded-lg bg-[#233948] hover:bg-[#2c4659] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition-colors">Cancel</button>
+            <button type="submit" disabled={isUploading} className="flex-1 h-12 rounded-lg bg-primary hover:bg-[#1680c7] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold transition-colors flex items-center justify-center gap-2">
+              {isUploading ? (
+                <>
+                  <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined">add_circle</span>
+                  Create Artifact
+                </>
+              )}
             </button>
           </div>
         </form>

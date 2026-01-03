@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import CreateArtifactModal from '../components/CreateArtifactModal'
+import { uploadService } from '../services/upload'
 
 interface ArtifactFormData {
   name: string
@@ -12,10 +13,27 @@ interface ArtifactFormData {
 
 export default function ArtifactsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
 
-  const handleCreateArtifact = (data: ArtifactFormData) => {
-    console.log('Creating artifact:', data)
-    // TODO: API call to create artifact
+  const handleCreateArtifact = async (data: ArtifactFormData) => {
+    try {
+      setIsUploading(true)
+      
+      let imageUrl = ''
+      if (data.image) {
+        // Upload image to S3
+        imageUrl = await uploadService.uploadArtifactImage(data.image)
+      }
+
+      // TODO: Create artifact with imageUrl
+      console.log('Creating artifact:', { ...data, imageUrl })
+      
+    } catch (error) {
+      console.error('Error creating artifact:', error)
+      alert('Failed to create artifact')
+    } finally {
+      setIsUploading(false)
+    }
   }
 
   return (
@@ -42,6 +60,7 @@ export default function ArtifactsPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateArtifact}
+        isUploading={isUploading}
       />
     </div>
   )
