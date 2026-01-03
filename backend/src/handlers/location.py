@@ -6,6 +6,46 @@ from src.middleware.auth import require_auth
 from src.utils.geo import haversine_distance, point_in_circle
 from src.config import config
 
+# Global cache for active artifacts (Lambda container reuse)
+_artifacts_cache = {
+    'data': None,
+    'version': None,
+    'ttl': 900  # 15 minutes
+}
+
+def get_active_artifacts(cursor):
+    """Get active artifacts with version-based cache"""
+    # Get current cache version from DB
+    cursor.execute("SELECT version FROM cache_versions WHERE cache_key = 'artifacts'")
+    result = cursor.fetchone()
+    current_version = result['version'] if result else 0
+    
+    # Check if cache is valid
+    if (_artifacts_cache['data'] is not None and 
+        _artifacts_cache['version'] == current_version):
+        return _artifacts_cache['data']
+    
+    # Query database
+    cursor.execute("""
+        SELECT a.id, a.type_id, at.name, at.description, at.rarity, at.base_value,
+               at.bonus_lives, at.radiation_resist, at.other_effects, at.image_url,
+               a.latitude, a.longitude, a.state, a.spawned_at, a.expires_at
+        FROM artifacts a
+        JOIN artifact_types at ON a.type_id = at.id
+        WHERE a.state IN ('hidden', 'visible')
+          AND a.owner_id IS NULL
+          AND a.spawned_at <= NOW()
+          AND (a.expires_at IS NULL OR a.expires_at > NOW())
+    """)
+    
+    artifacts = cursor.fetchall()
+    
+    # Update cache
+    _artifacts_cache['data'] = artifacts
+    _artifacts_cache['version'] = current_version
+    
+    return artifacts
+
 @require_auth
 def update_handler(event, context):
     """POST /api/location - Update player location"""
@@ -90,13 +130,7 @@ def update_handler(event, context):
                         })
                 
                 # Find nearby artifacts (within detection radius)
-                cursor.execute(
-                    """SELECT a.id, at.name, a.latitude, a.longitude
-                    FROM artifacts a
-                    JOIN artifact_types at ON a.type_id = at.id
-                    WHERE a.state IN ('hidden', 'visible') AND a.owner_id IS NULL"""
-                )
-                artifacts = cursor.fetchall()
+                artifacts = get_active_artifacts(cursor)
                 
                 nearby_artifacts = []
                 for art in artifacts:
@@ -105,19 +139,36 @@ def update_handler(event, context):
                         float(art['latitude']), float(art['longitude'])
                     )
                     if distance <= config.ARTIFACT_DETECTION_RADIUS:
+                        # Build effects object
+                        effects = {}
+                        if art['bonus_lives']:
+                            effects['bonusLives'] = art['bonus_lives']
+                        if art['radiation_resist']:
+                            effects['radiationResist'] = art['radiation_resist']
+                        if art['other_effects']:
+                            effects['other'] = art['other_effects']
+                        
                         nearby_artifacts.append({
                             'id': art['id'],
+                            'typeId': art['type_id'],
                             'name': art['name'],
-                            'distance': round(distance, 1),
+                            'description': art['description'] or '',
+                            'rarity': art['rarity'],
+                            'value': int(art['base_value']),
+                            'imageUrl': art['image_url'] or '',
+                            'effects': effects,
                             'latitude': float(art['latitude']),
-                            'longitude': float(art['longitude'])
+                            'longitude': float(art['longitude']),
+                            'distance': round(distance, 1),
+                            'canPickup': distance <= 2.0
                         })
                         
                         # Update artifact state to visible
-                        cursor.execute(
-                            "UPDATE artifacts SET state = 'visible' WHERE id = %s",
-                            (art['id'],)
-                        )
+                        if art['state'] == 'hidden':
+                            cursor.execute(
+                                "UPDATE artifacts SET state = 'visible' WHERE id = %s",
+                                (art['id'],)
+                            )
         
         response = {
             'success': True,

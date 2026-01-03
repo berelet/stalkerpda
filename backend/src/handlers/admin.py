@@ -1,5 +1,6 @@
 import json
 import uuid
+from datetime import datetime
 from src.database import get_db
 from src.middleware.auth import require_gm
 
@@ -128,6 +129,9 @@ def spawn_artifact_handler(event, context):
                     (type_id,)
                 )
                 artifact_type = cursor.fetchone()
+                
+                # Invalidate artifacts cache
+                cursor.execute("UPDATE cache_versions SET version = version + 1 WHERE cache_key = 'artifacts'")
         
         return {
             'statusCode': 201,
@@ -303,12 +307,45 @@ def get_spawned_artifacts_handler(event, context):
             with conn.cursor() as cursor:
                 cursor.execute(
                     """SELECT a.id, a.type_id, a.latitude, a.longitude, a.state, 
-                    a.spawned_at, a.expires_at, at.name as type_name
+                    a.spawned_at, a.expires_at, a.extracted_at, a.owner_id,
+                    at.name as type_name, p.nickname as collected_by
                     FROM artifacts a
                     JOIN artifact_types at ON a.type_id = at.id
+                    LEFT JOIN players p ON a.owner_id = p.id
                     ORDER BY a.spawned_at DESC"""
                 )
                 artifacts = cursor.fetchall()
+        
+        result_artifacts = []
+        now = datetime.utcnow()
+        
+        for a in artifacts:
+            # Determine status
+            if a['state'] == 'extracted':
+                status = 'Collected'
+            elif a['state'] == 'lost':
+                status = 'Lost'
+            elif a['expires_at'] and a['expires_at'] < now:
+                status = 'Expired'
+            elif a['spawned_at'] > now:
+                status = 'Scheduled'
+            else:
+                status = 'Active'
+            
+            result_artifacts.append({
+                'id': a['id'],
+                'typeId': a['type_id'],
+                'typeName': a['type_name'],
+                'latitude': float(a['latitude']),
+                'longitude': float(a['longitude']),
+                'state': a['state'],
+                'status': status,
+                'collectedBy': a['collected_by'],
+                'collectedByPlayerId': a['owner_id'],
+                'spawnedAt': a['spawned_at'].isoformat() + 'Z' if a['spawned_at'] else None,
+                'expiresAt': a['expires_at'].isoformat() + 'Z' if a['expires_at'] else None,
+                'extractedAt': a['extracted_at'].isoformat() + 'Z' if a['extracted_at'] else None
+            })
         
         return {
             'statusCode': 200,
@@ -318,24 +355,13 @@ def get_spawned_artifacts_handler(event, context):
                 'Access-Control-Allow-Headers': 'Content-Type,Authorization',
                 'Access-Control-Allow-Methods': 'GET,OPTIONS'
             },
-            'body': json.dumps({
-                'artifacts': [
-                    {
-                        'id': a['id'],
-                        'typeId': a['type_id'],
-                        'typeName': a['type_name'],
-                        'latitude': float(a['latitude']),
-                        'longitude': float(a['longitude']),
-                        'state': a['state'],
-                        'spawnedAt': a['spawned_at'].isoformat() + 'Z' if a['spawned_at'] else None,
-                        'expiresAt': a['expires_at'].isoformat() + 'Z' if a['expires_at'] else None
-                    }
-                    for a in artifacts
-                ]
-            })
+            'body': json.dumps({'artifacts': result_artifacts})
         }
     
     except Exception as e:
+        print(f"Get spawned artifacts error: {e}")
+        import traceback
+        traceback.print_exc()
         return {
             'statusCode': 500,
             'headers': {
@@ -375,6 +401,156 @@ def delete_artifact_handler(event, context):
         }
     
     except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
+        }
+
+
+@require_gm
+def reset_artifact_to_map_handler(event, context):
+    """POST /api/admin/artifacts/{id}/reset - Return artifact to map (player keeps copy)"""
+    try:
+        artifact_id = event['pathParameters']['id']
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                # Check if artifact exists and is extracted
+                cursor.execute(
+                    "SELECT state, owner_id FROM artifacts WHERE id = %s",
+                    (artifact_id,)
+                )
+                artifact = cursor.fetchone()
+                
+                if not artifact:
+                    return {
+                        'statusCode': 404,
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Artifact not found'}})
+                    }
+                
+                if artifact['state'] != 'extracted':
+                    return {
+                        'statusCode': 400,
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'Artifact not collected'}})
+                    }
+                
+                # Reset to map (keep owner_id - player keeps copy)
+                cursor.execute(
+                    """UPDATE artifacts 
+                    SET state = 'hidden', extracting_by = NULL, extraction_started_at = NULL
+                    WHERE id = %s""",
+                    (artifact_id,)
+                )
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                'Access-Control-Allow-Methods': 'POST,OPTIONS'
+            },
+            'body': json.dumps({
+                'success': True,
+                'message': 'Artifact returned to map (player keeps copy in inventory)'
+            })
+        }
+    
+    except Exception as e:
+        print(f"Reset artifact error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
+        }
+
+@require_gm
+def remove_and_reset_artifact_handler(event, context):
+    """POST /api/admin/artifacts/{id}/remove-and-reset - Remove from inventory and return to map"""
+    try:
+        artifact_id = event['pathParameters']['id']
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                # Get artifact info
+                cursor.execute(
+                    "SELECT type_id, state, owner_id FROM artifacts WHERE id = %s",
+                    (artifact_id,)
+                )
+                artifact = cursor.fetchone()
+                
+                if not artifact:
+                    return {
+                        'statusCode': 404,
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Artifact not found'}})
+                    }
+                
+                if artifact['state'] != 'extracted' or not artifact['owner_id']:
+                    return {
+                        'statusCode': 400,
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'Artifact not in player inventory'}})
+                    }
+                
+                # Remove from player inventory
+                cursor.execute(
+                    """DELETE FROM player_inventory 
+                    WHERE player_id = %s AND item_type = 'artifact' AND item_id = %s
+                    LIMIT 1""",
+                    (artifact['owner_id'], artifact['type_id'])
+                )
+                
+                # Reset artifact to map
+                cursor.execute(
+                    """UPDATE artifacts 
+                    SET state = 'hidden', owner_id = NULL, extracting_by = NULL, 
+                        extraction_started_at = NULL, extracted_at = NULL
+                    WHERE id = %s""",
+                    (artifact_id,)
+                )
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                'Access-Control-Allow-Methods': 'POST,OPTIONS'
+            },
+            'body': json.dumps({
+                'success': True,
+                'message': 'Artifact removed from player inventory and returned to map'
+            })
+        }
+    
+    except Exception as e:
+        print(f"Remove and reset artifact error: {e}")
+        import traceback
+        traceback.print_exc()
         return {
             'statusCode': 500,
             'headers': {

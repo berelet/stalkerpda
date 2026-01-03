@@ -643,7 +643,7 @@ aws s3api put-bucket-policy --bucket BUCKET_NAME --policy '{
 - Database has 18 tables with seed data (8 artifacts, 9 equipment types)
 - Frontend is a React SPA with PDA-style UI (English interface)
 - All API endpoints working and validated via automated tests
-- **Currency:** No specific currency symbol used - just numbers (Zone economy)
+- **Currency:** Virtual in-game currency displayed as 💰 (money bag emoji) with thousand separators (e.g., 💰 5,000)
 - **Auth:** JWT stored in cookies (pda_token, pda_player_id, pda_nickname) with 7-day expiration
 - **CORS:** Fully configured on Lambda responses (Access-Control-Allow-Origin: *)
 - **Translation:** Google Translate widget (EN/RU/UK/EL) in bottom-right corner

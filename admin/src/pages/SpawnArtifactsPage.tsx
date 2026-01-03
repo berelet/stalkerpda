@@ -26,8 +26,12 @@ interface SpawnedArtifact {
   latitude: number
   longitude: number
   state: string
+  status: string
+  collectedBy?: string
+  collectedByPlayerId?: string
   spawnedAt: string
   expiresAt?: string
+  extractedAt?: string
 }
 
 export default function SpawnArtifactsPage() {
@@ -200,6 +204,45 @@ export default function SpawnArtifactsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const handleResetToMap = async (artifactId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!confirm('Return artifact to map? Player will keep copy in inventory.')) return
+
+    try {
+      await api.post(`/api/admin/artifacts/${artifactId}/reset`)
+      await loadData()
+    } catch (error) {
+      console.error('Failed to reset artifact:', error)
+      alert('Failed to reset artifact')
+    }
+  }
+
+  const handleRemoveAndReset = async (artifactId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!confirm('Remove from player inventory AND return to map?')) return
+
+    try {
+      await api.post(`/api/admin/artifacts/${artifactId}/remove-and-reset`)
+      await loadData()
+    } catch (error) {
+      console.error('Failed to remove and reset artifact:', error)
+      alert('Failed to remove and reset artifact')
+    }
+  }
+
+  const handleDeleteArtifact = async (artifactId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!confirm('Delete artifact spawn completely?')) return
+
+    try {
+      await api.delete(`/api/admin/artifacts/${artifactId}`)
+      await loadData()
+    } catch (error) {
+      console.error('Failed to delete artifact:', error)
+      alert('Failed to delete artifact')
+    }
+  }
+
   const handleAddNew = () => {
     setEditingArtifactId(null)
     setSelectedType('')
@@ -207,20 +250,6 @@ export default function SpawnArtifactsPage() {
     setStartDateTime('')
     setEndDateTime('')
     setDurationType('hours')
-  }
-
-  const handleRemoveArtifact = async (artifactId: string) => {
-    if (!confirm('Remove this artifact from the map?')) return
-    
-    try {
-      await api.delete(`/api/admin/artifacts/${artifactId}`)
-      if (editingArtifactId === artifactId) {
-        handleAddNew()
-      }
-      loadData()
-    } catch (error) {
-      console.error('Failed to remove artifact:', error)
-    }
   }
 
   const formatDate = (dateString: string) => {
@@ -491,7 +520,12 @@ export default function SpawnArtifactsPage() {
                             )}
                             {artifact.state === 'extracted' && (
                               <span className="text-xs px-2 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">
-                                Collected
+                                Collected{artifact.collectedBy ? ` by ${artifact.collectedBy}` : ''}
+                              </span>
+                            )}
+                            {artifact.state === 'lost' && (
+                              <span className="text-xs px-2 py-0.5 rounded bg-gray-500/10 text-gray-400 border border-gray-500/20">
+                                Lost
                               </span>
                             )}
                           </div>
@@ -503,13 +537,33 @@ export default function SpawnArtifactsPage() {
                             )}
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleRemoveArtifact(artifact.id)}
-                          className="p-2 rounded-lg text-[#91b3ca] hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                          title="Remove"
-                        >
-                          <span className="material-symbols-outlined text-[20px]">delete</span>
-                        </button>
+                        <div className="flex gap-1">
+                          {artifact.state === 'extracted' && (
+                            <>
+                              <button
+                                onClick={(e) => handleResetToMap(artifact.id, e)}
+                                className="p-2 rounded-lg text-[#91b3ca] hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                                title="Reset to Map (player keeps copy)"
+                              >
+                                <span className="material-symbols-outlined text-[18px]">refresh</span>
+                              </button>
+                              <button
+                                onClick={(e) => handleRemoveAndReset(artifact.id, e)}
+                                className="p-2 rounded-lg text-[#91b3ca] hover:text-yellow-400 hover:bg-yellow-500/10 transition-colors"
+                                title="Remove from inventory & reset"
+                              >
+                                <span className="material-symbols-outlined text-[18px]">undo</span>
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={(e) => handleDeleteArtifact(artifact.id, e)}
+                            className="p-2 rounded-lg text-[#91b3ca] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            title="Delete spawn"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">delete</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

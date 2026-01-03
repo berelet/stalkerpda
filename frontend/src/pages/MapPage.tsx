@@ -42,7 +42,7 @@ export default function MapPage() {
   }, [])
 
   // Send location to server every 15 seconds (always, even in GM mode)
-  useLocationTracking(
+  const { nearbyArtifacts } = useLocationTracking(
     latitude && longitude ? { latitude, longitude, accuracy } : null,
     true
   )
@@ -155,6 +155,7 @@ export default function MapPage() {
                 latitude={latitude} 
                 longitude={longitude} 
                 accuracy={accuracy || undefined}
+                nearbyArtifacts={nearbyArtifacts}
               />
             )}
           </>

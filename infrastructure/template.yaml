@@ -380,24 +380,87 @@ Resources:
       Handler: src.handlers.artifacts.handler
       CodeUri: ../backend/
       Events:
-        ScanArtifacts:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /api/artifacts/scan
-            Method: POST
-        ExtractArtifact:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /api/artifacts/{id}/extract
-            Method: POST
         GetArtifacts:
           Type: Api
           Properties:
             RestApiId: !Ref RestApi
             Path: /api/artifacts
             Method: GET
+
+  # Lambda - Artifact Extraction Start
+  ArtifactExtractStartFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-artifact-extract-start-${Environment}
+      Handler: src.handlers.artifacts.start_extraction_handler
+      CodeUri: ../backend/
+      Events:
+        StartExtraction:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/artifacts/extract/start
+            Method: POST
+
+  # Lambda - Artifact Extraction Complete
+  ArtifactExtractCompleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-artifact-extract-complete-${Environment}
+      Handler: src.handlers.artifacts.complete_extraction_handler
+      CodeUri: ../backend/
+      Events:
+        CompleteExtraction:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/artifacts/extract/complete
+            Method: POST
+
+  # Lambda - Artifact Extraction Cancel
+  ArtifactExtractCancelFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-artifact-extract-cancel-${Environment}
+      Handler: src.handlers.artifacts.cancel_extraction_handler
+      CodeUri: ../backend/
+      Events:
+        CancelExtraction:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/artifacts/extract/cancel
+            Method: POST
+
+  # Lambda - Artifact Drop
+  ArtifactDropFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-artifact-drop-${Environment}
+      Handler: src.handlers.artifacts.drop_handler
+      CodeUri: ../backend/
+      Events:
+        DropArtifact:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/artifacts/drop
+            Method: POST
+
+  # Lambda - Artifact Sell
+  ArtifactSellFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-artifact-sell-${Environment}
+      Handler: src.handlers.artifacts.sell_handler
+      CodeUri: ../backend/
+      Events:
+        SellArtifact:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/artifacts/sell
+            Method: POST
 
   # Lambda - Contracts
   ContractsFunction:
@@ -602,6 +665,36 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /api/admin/artifacts/{id}
             Method: DELETE
+
+  # Admin Reset Artifact to Map
+  AdminResetArtifactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-reset-artifact-${Environment}
+      Handler: src.handlers.admin.reset_artifact_to_map_handler
+      CodeUri: ../backend/
+      Events:
+        ResetArtifact:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/artifacts/{id}/reset
+            Method: POST
+
+  # Admin Remove and Reset Artifact
+  AdminRemoveAndResetArtifactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-remove-reset-artifact-${Environment}
+      Handler: src.handlers.admin.remove_and_reset_artifact_handler
+      CodeUri: ../backend/
+      Events:
+        RemoveAndResetArtifact:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/artifacts/{id}/remove-and-reset
+            Method: POST
 
   # Admin Player Update Function
   AdminPlayerUpdateFunction:

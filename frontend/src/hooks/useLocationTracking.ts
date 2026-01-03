@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api } from '../services/api'
 
 interface LocationData {
@@ -7,8 +7,38 @@ interface LocationData {
   accuracy: number | null
 }
 
+export interface NearbyArtifact {
+  id: string
+  typeId: string
+  name: string
+  description: string
+  rarity: 'common' | 'uncommon' | 'rare' | 'legendary'
+  value: number
+  imageUrl: string
+  effects: {
+    bonusLives?: number
+    radiationResist?: number
+  }
+  latitude: number
+  longitude: number
+  distance: number
+  canPickup: boolean
+}
+
+interface LocationResponse {
+  success: boolean
+  nearbyArtifacts: NearbyArtifact[]
+  currentZones: {
+    radiationZones: any[]
+    controlPoints: any[]
+  }
+}
+
 export const useLocationTracking = (location: LocationData | null, enabled = true) => {
   const intervalRef = useRef<number>()
+  const [nearbyArtifacts, setNearbyArtifacts] = useState<NearbyArtifact[]>([])
+  const [radiationZones, setRadiationZones] = useState<any[]>([])
+  const [controlPoints, setControlPoints] = useState<any[]>([])
 
   useEffect(() => {
     if (!enabled || !location?.latitude || !location?.longitude) {
@@ -17,11 +47,15 @@ export const useLocationTracking = (location: LocationData | null, enabled = tru
 
     const sendLocation = async () => {
       try {
-        await api.post('/api/location', {
+        const { data } = await api.post<LocationResponse>('/api/location', {
           latitude: location.latitude,
           longitude: location.longitude,
           accuracy: location.accuracy
         })
+        
+        setNearbyArtifacts(data.nearbyArtifacts || [])
+        setRadiationZones(data.currentZones?.radiationZones || [])
+        setControlPoints(data.currentZones?.controlPoints || [])
       } catch (error) {
         console.error('Failed to send location:', error)
       }
@@ -39,4 +73,6 @@ export const useLocationTracking = (location: LocationData | null, enabled = tru
       }
     }
   }, [location?.latitude, location?.longitude, location?.accuracy, enabled])
+
+  return { nearbyArtifacts, radiationZones, controlPoints }
 }
