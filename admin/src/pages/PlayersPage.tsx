@@ -9,6 +9,8 @@ interface Player {
   status: string
   lives: number
   radiation: number
+  isGm?: boolean
+  isBartender?: boolean
   location?: {
     latitude: number
     longitude: number
@@ -16,6 +18,12 @@ interface Player {
   }
   createdAt: string
   lastOnline?: string
+}
+
+interface EditPlayerData {
+  faction: string
+  isGm: boolean
+  isBartender: boolean
 }
 
 const FACTION_COLORS: Record<string, string> = {
@@ -27,11 +35,22 @@ const FACTION_COLORS: Record<string, string> = {
   military: 'border-gray-500/20 bg-gray-500/10 text-gray-500',
 }
 
+const FACTIONS = [
+  { value: 'stalker', label: 'Loner' },
+  { value: 'duty', label: 'Duty' },
+  { value: 'freedom', label: 'Freedom' },
+  { value: 'ecologist', label: 'Ecologist' },
+  { value: 'bandit', label: 'Bandit' },
+  { value: 'military', label: 'Military' },
+]
+
 export default function PlayersPage() {
   const [players, setPlayers] = useState<Player[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'alive' | 'dead'>('all')
+  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null)
+  const [editData, setEditData] = useState<EditPlayerData>({ faction: '', isGm: false, isBartender: false })
 
   useEffect(() => {
     loadPlayers()
@@ -56,6 +75,36 @@ export default function PlayersPage() {
       setPlayers(players.map(p => p.id === playerId ? { ...p, status: newStatus } : p))
     } catch (error) {
       console.error('Failed to update player status:', error)
+    }
+  }
+
+  const openEditModal = (player: Player) => {
+    setEditingPlayer(player)
+    setEditData({
+      faction: player.faction,
+      isGm: player.isGm || false,
+      isBartender: player.isBartender || false,
+    })
+  }
+
+  const closeEditModal = () => {
+    setEditingPlayer(null)
+    setEditData({ faction: '', isGm: false, isBartender: false })
+  }
+
+  const savePlayerChanges = async () => {
+    if (!editingPlayer) return
+    
+    try {
+      await api.put(`/api/admin/players/${editingPlayer.id}`, editData)
+      setPlayers(players.map(p => 
+        p.id === editingPlayer.id 
+          ? { ...p, faction: editData.faction, isGm: editData.isGm, isBartender: editData.isBartender }
+          : p
+      ))
+      closeEditModal()
+    } catch (error) {
+      console.error('Failed to update player:', error)
     }
   }
 
@@ -210,6 +259,13 @@ export default function PlayersPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                           <button
+                            onClick={() => openEditModal(player)}
+                            className="p-2 rounded-lg text-[#91b3ca] hover:text-white hover:bg-[#233948] transition-colors"
+                            title="Edit Player"
+                          >
+                            <span className="material-symbols-outlined text-[20px]">edit</span>
+                          </button>
+                          <button
                             onClick={() => togglePlayerStatus(player.id, player.status)}
                             className={`p-2 rounded-lg transition-colors ${
                               player.status === 'alive'
@@ -242,6 +298,99 @@ export default function PlayersPage() {
           )}
         </div>
       </div>
+
+      {/* Edit Player Modal */}
+      {editingPlayer && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#18242e] border border-[#233948] rounded-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">Edit Player</h2>
+              <button
+                onClick={closeEditModal}
+                className="text-[#91b3ca] hover:text-white transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Player Info */}
+              <div className="bg-[#101b22] border border-[#233948] rounded-lg p-4">
+                <div className="text-sm text-[#91b3ca]">Player</div>
+                <div className="text-white font-medium">{editingPlayer.nickname}</div>
+                <div className="text-xs text-[#91b3ca] font-mono">{editingPlayer.email}</div>
+              </div>
+
+              {/* Faction Select */}
+              <div>
+                <label className="block text-sm font-medium text-[#91b3ca] mb-2">
+                  Faction
+                </label>
+                <select
+                  value={editData.faction}
+                  onChange={(e) => setEditData({ ...editData, faction: e.target.value })}
+                  className="w-full bg-[#101b22] border border-[#233948] text-white px-4 py-2.5 rounded-lg focus:outline-none focus:border-[#1e9cf1] focus:ring-1 focus:ring-[#1e9cf1]"
+                >
+                  {FACTIONS.map((faction) => (
+                    <option key={faction.value} value={faction.value}>
+                      {faction.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Roles */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-[#91b3ca]">
+                  Roles
+                </label>
+                
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editData.isGm}
+                    onChange={(e) => setEditData({ ...editData, isGm: e.target.checked })}
+                    className="w-5 h-5 rounded border-[#233948] bg-[#101b22] text-[#1e9cf1] focus:ring-[#1e9cf1] focus:ring-offset-0"
+                  />
+                  <div>
+                    <div className="text-white font-medium">Game Master</div>
+                    <div className="text-xs text-[#91b3ca]">Full admin access to GM panel</div>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editData.isBartender}
+                    onChange={(e) => setEditData({ ...editData, isBartender: e.target.checked })}
+                    className="w-5 h-5 rounded border-[#233948] bg-[#101b22] text-[#1e9cf1] focus:ring-[#1e9cf1] focus:ring-offset-0"
+                  />
+                  <div>
+                    <div className="text-white font-medium">Bartender</div>
+                    <div className="text-xs text-[#91b3ca]">Can manage contracts and trading</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={closeEditModal}
+                className="flex-1 px-4 py-2.5 rounded-lg border border-[#233948] text-[#91b3ca] hover:text-white hover:bg-[#233948] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={savePlayerChanges}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-[#1e9cf1] hover:bg-[#157abd] text-white font-medium transition-colors"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
