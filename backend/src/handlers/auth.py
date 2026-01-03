@@ -17,10 +17,13 @@ def login_handler(event, context):
         
         with get_db() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(
-                    "SELECT id, nickname, email, password_hash, faction FROM players WHERE email = %s",
-                    (email,)
-                )
+                cursor.execute("""
+                    SELECT p.id, p.nickname, p.email, p.password_hash, p.faction, 
+                           COALESCE(pr.is_gm, 0) as is_gm
+                    FROM players p
+                    LEFT JOIN player_roles pr ON p.id = pr.player_id
+                    WHERE p.email = %s
+                """, (email,))
                 player = cursor.fetchone()
         
         if not player or not verify_password(password, player['password_hash']):
@@ -33,6 +36,7 @@ def login_handler(event, context):
             'nickname': player['nickname'],
             'email': player['email'],
             'faction': player['faction'],
+            'is_gm': bool(player['is_gm']),
             'token': token
         }
         

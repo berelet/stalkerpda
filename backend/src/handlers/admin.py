@@ -5,16 +5,16 @@ from src.middleware.auth import require_gm
 
 @require_gm
 def handler(event, context):
-    """GET /api/admin/players - Get all players for GM map"""
+    """GET /api/admin/players - Get all players for GM"""
     try:
         with get_db() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    """SELECT p.id, p.nickname, p.faction, p.status, p.current_lives, p.current_radiation,
-                    pl.latitude, pl.longitude, pl.updated_at
+                    """SELECT p.id, p.nickname, p.email, p.faction, p.status, p.current_lives, p.current_radiation,
+                    p.created_at, pl.latitude, pl.longitude, pl.updated_at
                     FROM players p
                     LEFT JOIN player_locations pl ON p.id = pl.player_id
-                    WHERE p.status = 'alive'"""
+                    ORDER BY pl.updated_at DESC, p.created_at DESC"""
                 )
                 players = cursor.fetchall()
         
@@ -31,15 +31,17 @@ def handler(event, context):
                     {
                         'id': p['id'],
                         'nickname': p['nickname'],
+                        'email': p['email'],
                         'faction': p['faction'],
                         'status': p['status'],
                         'lives': p['current_lives'],
                         'radiation': p['current_radiation'],
+                        'createdAt': p['created_at'].isoformat() if p['created_at'] else None,
                         'location': {
                             'latitude': float(p['latitude']) if p['latitude'] else None,
                             'longitude': float(p['longitude']) if p['longitude'] else None,
                             'updatedAt': p['updated_at'].isoformat() if p['updated_at'] else None
-                        }
+                        } if p['latitude'] else None
                     }
                     for p in players
                 ]
@@ -203,5 +205,64 @@ def create_control_point_handler(event, context):
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
+        }
+
+@require_gm
+def update_player_handler(event, context):
+    """PUT /api/admin/players/{id} - Update player status"""
+    try:
+        player_id = event['pathParameters']['id']
+        body = json.loads(event.get('body', '{}'))
+        status = body.get('status')
+        
+        if status not in ['alive', 'dead']:
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'error': {'code': 'INVALID_STATUS', 'message': 'Status must be alive or dead'}})
+            }
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE players SET status = %s WHERE id = %s",
+                    (status, player_id)
+                )
+                
+                if cursor.rowcount == 0:
+                    return {
+                        'statusCode': 404,
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        'body': json.dumps({'error': {'code': 'PLAYER_NOT_FOUND', 'message': 'Player not found'}})
+                    }
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                'Access-Control-Allow-Methods': 'PUT,OPTIONS'
+            },
+            'body': json.dumps({
+                'id': player_id,
+                'status': status
+            })
+        }
+    
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }

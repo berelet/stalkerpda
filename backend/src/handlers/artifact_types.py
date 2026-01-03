@@ -21,7 +21,10 @@ def handler(event, context):
 def create_artifact_type(event, context):
     """POST /api/admin/artifact-types - Create artifact type"""
     try:
+        print(f"[CREATE ARTIFACT] Event: {json.dumps(event)}")
+        
         body = json.loads(event.get('body', '{}'))
+        print(f"[CREATE ARTIFACT] Body: {body}")
         
         name = body.get('name')
         rarity = body.get('rarity', 'common')
@@ -30,14 +33,20 @@ def create_artifact_type(event, context):
         radiation_resist = body.get('radiationResist', 0)
         image_url = body.get('imageUrl', '')
         
+        print(f"[CREATE ARTIFACT] Parsed: name={name}, rarity={rarity}, value={value}")
+        
         if not name:
+            print("[CREATE ARTIFACT] ERROR: Name is required")
             return error_response('Artifact name is required', 400)
         
         artifact_id = str(uuid.uuid4())
-        player_id = event.get('requestContext', {}).get('authorizer', {}).get('playerId')
+        # Get player_id from middleware (set by @require_gm)
+        player_id = event.get('player', {}).get('player_id')
+        print(f"[CREATE ARTIFACT] artifact_id={artifact_id}, player_id={player_id}")
         
         with get_db() as conn:
             with conn.cursor() as cursor:
+                print(f"[CREATE ARTIFACT] Executing INSERT query...")
                 cursor.execute(
                     """INSERT INTO artifact_types 
                     (id, name, rarity, base_value, bonus_lives, radiation_resist, image_url, created_by)
@@ -45,8 +54,9 @@ def create_artifact_type(event, context):
                     (artifact_id, name, rarity, value, bonus_lives, radiation_resist, image_url, player_id)
                 )
                 conn.commit()
+                print(f"[CREATE ARTIFACT] INSERT successful, rows affected: {cursor.rowcount}")
         
-        return success_response({
+        response = {
             'id': artifact_id,
             'name': name,
             'rarity': rarity,
@@ -54,10 +64,14 @@ def create_artifact_type(event, context):
             'bonusLives': bonus_lives,
             'radiationResist': radiation_resist,
             'imageUrl': image_url
-        }, 201)
+        }
+        print(f"[CREATE ARTIFACT] Success response: {response}")
+        return success_response(response, 201)
         
     except Exception as e:
-        print(f"Error creating artifact type: {str(e)}")
+        print(f"[CREATE ARTIFACT] ERROR: {type(e).__name__}: {str(e)}")
+        import traceback
+        print(f"[CREATE ARTIFACT] Traceback: {traceback.format_exc()}")
         return error_response(str(e), 500)
 
 def list_artifact_types(event, context):

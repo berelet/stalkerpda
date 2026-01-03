@@ -505,23 +505,44 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /api/admin/broadcast
             Method: POST
+        GetPlayers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/players
+            Method: GET
 
-  # Upload Function (Presigned URLs)
+  # Admin Player Update Function
+  AdminPlayerUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-player-update-${Environment}
+      Handler: src.handlers.admin.update_player_handler
+      CodeUri: ../backend/
+      Events:
+        UpdatePlayer:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/players/{id}
+            Method: PUT
+
+  # Upload Function (Direct upload through Lambda)
   UploadFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-upload-${Environment}
-      Handler: src.handlers.upload.get_upload_url_handler
+      Handler: src.handlers.upload.upload_handler
       CodeUri: ../backend/
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref ArtifactImagesBucket
       Events:
-        GetUploadUrl:
+        Upload:
           Type: Api
           Properties:
             RestApiId: !Ref RestApi
-            Path: /api/admin/upload-url
+            Path: /api/admin/upload
             Method: POST
 
   # Artifact Types Function

@@ -113,7 +113,7 @@ export default function ArtifactsPage() {
 
       {loading ? (
         <div className="bg-[#16202a] border border-[#233948] rounded-lg p-12 flex items-center justify-center">
-          <span className="material-symbols-outlined text-primary text-4xl animate-spin">progress_activity</span>
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : artifacts.length === 0 ? (
         <div className="bg-[#16202a] border border-[#233948] rounded-lg p-12 text-center">

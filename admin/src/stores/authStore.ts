@@ -14,7 +14,6 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       login: async (email: string, password: string) => {
-        // TODO: Implement actual login
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -24,6 +23,12 @@ export const useAuthStore = create<AuthState>()(
         if (!response.ok) throw new Error('Login failed')
         
         const data = await response.json()
+        
+        // Check if user is GM
+        if (!data.is_gm) {
+          throw new Error('Not a GM')
+        }
+        
         set({ token: data.token, isAuthenticated: true })
       },
       logout: () => {
