@@ -399,11 +399,22 @@ RDS instance is publicly accessible (AllowedIP=0.0.0.0/0) for development. Restr
 - Login endpoint returns `is_gm` boolean in response
 - Frontend checks `data.is_gm` and rejects non-GM users
 
+**Player Status Management:**
+- Players can be set to `status = 'dead'` to disable their account
+- Inactive players (status='dead') cannot login to PDA or GM admin
+- Login returns `403 ACCOUNT_INACTIVE` error for disabled accounts
+- Use Players page in admin panel to toggle player status
+
 **Grant GM Access:**
 ```sql
 INSERT INTO player_roles (player_id, is_gm) 
 VALUES ('player-uuid-here', 1) 
 ON DUPLICATE KEY UPDATE is_gm = 1;
+```
+
+**Disable Player Account:**
+```sql
+UPDATE players SET status = 'dead' WHERE id = 'player-uuid-here';
 ```
 
 ### Image Upload System
