@@ -105,20 +105,21 @@ def history_handler(event, context):
 
 @require_gm
 def spawn_artifact_handler(event, context):
-    """POST /api/admin/artifacts/spawn - Spawn artifact"""
+    """POST /api/admin/artifacts/spawn - Spawn artifact with expiration"""
     try:
         body = json.loads(event.get('body', '{}'))
         type_id = body.get('typeId')
         lat = body.get('latitude')
         lng = body.get('longitude')
+        expires_at = body.get('expiresAt')  # ISO datetime string
         
         with get_db() as conn:
             with conn.cursor() as cursor:
                 artifact_id = str(uuid.uuid4())
                 cursor.execute(
-                    """INSERT INTO artifacts (id, type_id, latitude, longitude, state)
-                    VALUES (%s, %s, %s, %s, 'hidden')""",
-                    (artifact_id, type_id, lat, lng)
+                    """INSERT INTO artifacts (id, type_id, latitude, longitude, state, expires_at)
+                    VALUES (%s, %s, %s, %s, 'hidden', %s)""",
+                    (artifact_id, type_id, lat, lng, expires_at)
                 )
                 
                 cursor.execute(
@@ -129,11 +130,15 @@ def spawn_artifact_handler(event, context):
         
         return {
             'statusCode': 201,
-            'headers': {'Content-Type': 'application/json'},
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
             'body': json.dumps({
                 'id': artifact_id,
-                'name': artifact_type['name'],
-                'location': {'latitude': lat, 'longitude': lng}
+                'name': artifact_type['name'] if artifact_type else 'Unknown',
+                'location': {'latitude': lat, 'longitude': lng},
+                'expiresAt': expires_at
             })
         }
     
@@ -276,6 +281,94 @@ def update_player_handler(event, context):
                 'id': player_id,
                 'updated': True
             })
+        }
+    
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
+        }
+
+
+@require_gm
+def get_spawned_artifacts_handler(event, context):
+    """GET /api/admin/artifacts/spawned - Get all spawned artifacts"""
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """SELECT a.id, a.type_id, a.latitude, a.longitude, a.state, 
+                    a.created_at, a.expires_at, at.name as type_name
+                    FROM artifacts a
+                    JOIN artifact_types at ON a.type_id = at.id
+                    ORDER BY a.created_at DESC"""
+                )
+                artifacts = cursor.fetchall()
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({
+                'artifacts': [
+                    {
+                        'id': a['id'],
+                        'typeId': a['type_id'],
+                        'typeName': a['type_name'],
+                        'latitude': float(a['latitude']),
+                        'longitude': float(a['longitude']),
+                        'state': a['state'],
+                        'spawnedAt': a['created_at'].isoformat() if a['created_at'] else None,
+                        'expiresAt': a['expires_at'].isoformat() if a['expires_at'] else None
+                    }
+                    for a in artifacts
+                ]
+            })
+        }
+    
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
+        }
+
+@require_gm
+def delete_artifact_handler(event, context):
+    """DELETE /api/admin/artifacts/{id} - Remove artifact from map"""
+    try:
+        artifact_id = event['pathParameters']['id']
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM artifacts WHERE id = %s", (artifact_id,))
+                
+                if cursor.rowcount == 0:
+                    return {
+                        'statusCode': 404,
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Artifact not found'}})
+                    }
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'success': True})
         }
     
     except Exception as e:

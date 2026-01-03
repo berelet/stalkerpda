@@ -512,6 +512,36 @@ Resources:
             Path: /api/admin/players
             Method: GET
 
+  # Admin Get Spawned Artifacts Function
+  AdminGetSpawnedArtifactsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-get-spawned-artifacts-${Environment}
+      Handler: src.handlers.admin.get_spawned_artifacts_handler
+      CodeUri: ../backend/
+      Events:
+        GetSpawnedArtifacts:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/artifacts/spawned
+            Method: GET
+
+  # Admin Delete Artifact Function
+  AdminDeleteArtifactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-delete-artifact-${Environment}
+      Handler: src.handlers.admin.delete_artifact_handler
+      CodeUri: ../backend/
+      Events:
+        DeleteArtifact:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/artifacts/{id}
+            Method: DELETE
+
   # Admin Player Update Function
   AdminPlayerUpdateFunction:
     Type: AWS::Serverless::Function

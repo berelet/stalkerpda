@@ -19,7 +19,8 @@ export default function Layout({ children }: LayoutProps) {
   const menuItems = [
     { path: '/', icon: 'dashboard', label: 'Dashboard' },
     { path: '/players', icon: 'group', label: 'Players' },
-    { path: '/artifacts', icon: 'auto_awesome', label: 'Artifacts' },
+    { path: '/artifacts', icon: 'auto_awesome', label: 'Artifact Library' },
+    { path: '/spawn-artifacts', icon: 'add_location', label: 'Spawn Artifacts' },
     { path: '/zones', icon: 'location_on', label: 'Zones' },
     { path: '/contracts', icon: 'description', label: 'Contracts' },
   ]
