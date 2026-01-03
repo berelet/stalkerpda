@@ -313,7 +313,9 @@ def get_spawned_artifacts_handler(event, context):
             'statusCode': 200,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                'Access-Control-Allow-Methods': 'GET,OPTIONS'
             },
             'body': json.dumps({
                 'artifacts': [
@@ -325,19 +327,6 @@ def get_spawned_artifacts_handler(event, context):
                         'longitude': float(a['longitude']),
                         'state': a['state'],
                         'spawnedAt': a['spawned_at'].isoformat() if a['spawned_at'] else None,
-                        'expiresAt': a['expires_at'].isoformat() if a['expires_at'] else None
-                    }
-                    for a in artifacts
-                ]
-            })
-        }
-                        'id': a['id'],
-                        'typeId': a['type_id'],
-                        'typeName': a['type_name'],
-                        'latitude': float(a['latitude']),
-                        'longitude': float(a['longitude']),
-                        'state': a['state'],
-                        'spawnedAt': a['created_at'].isoformat() if a['created_at'] else None,
                         'expiresAt': a['expires_at'].isoformat() if a['expires_at'] else None
                     }
                     for a in artifacts
