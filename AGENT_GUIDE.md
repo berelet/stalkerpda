@@ -420,6 +420,59 @@ return {
 - ✅ Function is deployed (`sam build && sam deploy`)
 - ✅ CloudFront cache invalidated if using CloudFront
 
+### Timezone Handling
+
+**⚠️ CRITICAL: All timestamps MUST include UTC indicator**
+
+**Database:**
+- MySQL timezone: `UTC`
+- All TIMESTAMP columns store UTC time
+- Python datetime objects from MySQL are naive (no timezone info)
+
+**Backend (Python):**
+```python
+# ✅ CORRECT - Add 'Z' suffix to indicate UTC
+'timestamp': datetime_obj.isoformat() + 'Z' if datetime_obj else None
+
+# ❌ WRONG - JavaScript will interpret as local time
+'timestamp': datetime_obj.isoformat() if datetime_obj else None
+```
+
+**Frontend (JavaScript):**
+```javascript
+// ✅ CORRECT - With 'Z' suffix, Date parses as UTC
+new Date('2026-01-03T09:07:53Z')  // Converts to local: 11:07 in Kyiv (UTC+2)
+
+// ❌ WRONG - Without 'Z', Date parses as local time
+new Date('2026-01-03T09:07:53')   // Treats as 09:07 local time (incorrect)
+```
+
+**Creating timestamps:**
+```javascript
+// For duration (hours from now)
+const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
+
+// For exact datetime (from datetime-local input)
+const expiresAt = new Date(exactDateTime).toISOString()  // Converts local to UTC
+```
+
+**Displaying timestamps:**
+```javascript
+// Automatically converts UTC to user's local time
+new Date(utcTimestamp).toLocaleString('en-GB', {
+  year: 'numeric',
+  month: '2-digit', 
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit'
+})
+```
+
+**Common Issues:**
+- Missing 'Z' suffix → 2-hour offset in Kyiv timezone
+- Using `getTimezoneOffset()` → unnecessary, Date handles it automatically
+- Comparing UTC and local times → always use `.getTime()` (milliseconds since epoch)
+
 ### Database Access
 RDS instance is publicly accessible (AllowedIP=0.0.0.0/0) for development. Restrict this in production.
 
