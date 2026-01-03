@@ -18,7 +18,7 @@ def login_handler(event, context):
         with get_db() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""
-                    SELECT p.id, p.nickname, p.email, p.password_hash, p.faction, 
+                    SELECT p.id, p.nickname, p.email, p.password_hash, p.faction, p.status,
                            COALESCE(pr.is_gm, 0) as is_gm
                     FROM players p
                     LEFT JOIN player_roles pr ON p.id = pr.player_id
@@ -28,6 +28,10 @@ def login_handler(event, context):
         
         if not player or not verify_password(password, player['password_hash']):
             return error_response('Invalid credentials', 401, 'UNAUTHORIZED')
+        
+        # Check if player is inactive (dead status = banned/disabled)
+        if player['status'] == 'dead':
+            return error_response('Account is inactive. Contact administrator.', 403, 'ACCOUNT_INACTIVE')
         
         token = create_jwt_token(player['id'])
         
