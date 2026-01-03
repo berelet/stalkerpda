@@ -199,11 +199,14 @@ export default function PlayersPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-[#151f28] border-b border-[#233948]">
-                    <th className="px-6 py-4 text-xs font-bold text-[#91b3ca] uppercase tracking-wider w-[35%]">
+                    <th className="px-6 py-4 text-xs font-bold text-[#91b3ca] uppercase tracking-wider w-[30%]">
                       Nickname / ID
                     </th>
                     <th className="px-6 py-4 text-xs font-bold text-[#91b3ca] uppercase tracking-wider">
                       Faction
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-[#91b3ca] uppercase tracking-wider">
+                      Roles
                     </th>
                     <th className="px-6 py-4 text-xs font-bold text-[#91b3ca] uppercase tracking-wider">
                       Status
@@ -238,6 +241,23 @@ export default function PlayersPage() {
                         }`}>
                           {player.faction}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {player.isGm && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded border border-purple-500/20 bg-purple-500/10 text-purple-400 text-xs font-medium">
+                              GM
+                            </span>
+                          )}
+                          {player.isBartender && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded border border-amber-500/20 bg-amber-500/10 text-amber-400 text-xs font-medium">
+                              Bartender
+                            </span>
+                          )}
+                          {!player.isGm && !player.isBartender && (
+                            <span className="text-[#91b3ca] text-xs">—</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
