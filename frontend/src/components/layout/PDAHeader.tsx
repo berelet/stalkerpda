@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import { api } from '../../services/api'
 
@@ -39,8 +40,17 @@ export default function PDAHeader() {
         <div className="text-pda-highlight font-pixel text-lg">
           PDA v3.0
         </div>
-        <div className="text-pda-text">
-          {nickname || 'STALKER'}
+        <div className="flex items-center gap-2">
+          <Link 
+            to="/wiki" 
+            className="text-2xl text-pda-text hover:text-pda-highlight transition-colors p-1"
+            title="Game Wiki"
+          >
+            📖
+          </Link>
+          <div className="text-pda-text">
+            {nickname || 'STALKER'}
+          </div>
         </div>
       </div>
       

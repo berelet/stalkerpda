@@ -7,6 +7,7 @@ import MapPage from './pages/MapPage'
 import InventoryPage from './pages/InventoryPage'
 import ContractsPage from './pages/ContractsPage'
 import ProfilePage from './pages/ProfilePage'
+import WikiPage from './pages/WikiPage'
 
 function App() {
   const { token, initAuth } = useAuthStore()
@@ -24,6 +25,7 @@ function App() {
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="contracts" element={<ContractsPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="wiki" element={<WikiPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
