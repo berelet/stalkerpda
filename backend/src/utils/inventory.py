@@ -72,7 +72,9 @@ def get_equipped_items(player_id: str, conn) -> Dict:
             at.rarity,
             at.base_value,
             at.bonus_lives,
-            at.radiation_resist
+            at.radiation_resist,
+            at.image_url,
+            at.description
         FROM player_inventory pi
         JOIN artifact_types at ON pi.item_id = at.id
         WHERE pi.player_id = %s AND pi.item_type = 'artifact' AND pi.slot_type = 'artifact'
@@ -119,6 +121,8 @@ def get_equipped_items(player_id: str, conn) -> Dict:
             'rarity': artifact['rarity'],
             'itemType': 'artifact',
             'value': float(artifact['base_value']),
+            'imageUrl': artifact['image_url'],
+            'description': artifact['description'],
             'effects': {
                 'bonusLives': artifact['bonus_lives'],
                 'radiationResist': artifact['radiation_resist']

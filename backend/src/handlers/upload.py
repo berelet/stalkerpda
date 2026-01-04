@@ -54,12 +54,13 @@ def upload_handler(event, context):
         # Generate unique key (always use .jpg after resize)
         s3_key = f"artifacts/{uuid4()}.jpg"
         
-        # Upload to S3
+        # Upload to S3 with cache headers
         s3_client.put_object(
             Bucket=BUCKET,
             Key=s3_key,
             Body=resized_bytes,
-            ContentType='image/jpeg'
+            ContentType='image/jpeg',
+            CacheControl='public, max-age=31536000, immutable'  # 1 year cache
         )
         
         # Public URL for the image
