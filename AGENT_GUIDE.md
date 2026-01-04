@@ -4,6 +4,7 @@
 
 **Before working on this project, you MUST read:**
 - `specs/game-mechanics/FINAL-SPEC.md` - Complete game mechanics specification
+- `specs/inventory-system-spec.md` - **NEW** Inventory system v2.0 specification (2026-01-03)
 
 This document contains all game rules, formulas, and mechanics that must be followed.
 
@@ -151,6 +152,7 @@ stalkerpda/
    - ✅ Database schema designed - 18 tables (specs/database/schema.md)
    - ✅ API endpoints specified - 50+ endpoints (specs/api/endpoints.md)
    - ✅ Frontend UI/UX designed - 8 screens (specs/frontend/ui-spec.md)
+   - ✅ **Inventory system v2.0** - Equipment slots + backpack (specs/inventory-system-spec.md) **NEW 2026-01-03**
 
 2. **Infrastructure (100%)**
    - ✅ AWS deployed and working
@@ -166,6 +168,7 @@ stalkerpda/
    - ✅ Seed data loaded:
      - 8 artifact types (Moonlight, Flash, Droplet, Fireball, Gravi, Crystal, Battery, Mica)
      - 9 equipment types (3 armors, 3 rings, 3 anti-rads)
+   - ⏳ **Inventory v2.0 migration pending** (003_inventory_system_v2.sql) **NEW**
 
 4. **Backend (100%)**
    - ✅ Configuration system (src/config.py)
@@ -183,6 +186,7 @@ stalkerpda/
      - zones.py (list, capture, complete, cancel) ✅
      - admin.py (players map, history, spawn artifacts, create zones) ✅
      - websocket.py (connect, disconnect, message) ✅
+   - ⏳ **Inventory handler pending** (inventory.py with 6 endpoints) **NEW**
 
 5. **Testing (100%)**
    - ✅ Smoke test suite (tests/smoke-test.sh)
@@ -190,7 +194,7 @@ stalkerpda/
    - ✅ All 8 tests passing
    - ✅ Automated testing via `make test` and `make smoke-test`
 
-6. **Frontend (60%)**
+6. **Frontend (60% → 70%)**
    - ✅ React 18 + TypeScript + Vite setup
    - ✅ TailwindCSS with PDA theme (CRT effects, scanlines)
    - ✅ Unified Layout (Header with stats, Footer navigation)
@@ -202,7 +206,9 @@ stalkerpda/
    - ✅ Artifact detection on map (15m radius)
    - ✅ Artifact modal with details (image, description, effects)
    - ✅ Artifact extraction with 30s hold button (2m radius)
-   - ✅ Inventory page with artifacts list
+   - ✅ **Inventory page v2.0** - Equipment slots + backpack ⭐ **NEW 2026-01-04**
+   - ✅ **Context menu** - Click item for actions ⭐ **NEW**
+   - ✅ **Item details modal** - Photo, description, stats ⭐ **NEW**
    - ✅ Contracts page with contracts list
    - ✅ Profile page with full stats and QR code
    - ✅ Deployed to CloudFront
@@ -666,8 +672,94 @@ aws s3api put-bucket-policy --bucket BUCKET_NAME --policy '{
 
 All detailed specifications are in `specs/` directory:
 - **Game Mechanics:** `specs/game-mechanics/FINAL-SPEC.md`
+- **Inventory System v2.0:** `specs/inventory-system-spec.md` ⭐ **NEW 2026-01-03**
 - **Database Schema:** `specs/database/schema.md`
 - **API Endpoints:** `specs/api/endpoints.md`
 - **Frontend UI:** `specs/frontend/ui-spec.md`
 
 Refer to these specs when implementing features.
+
+---
+
+## Inventory System v2.0 (NEW)
+
+**Status:** Specification complete, implementation pending  
+**Full spec:** `specs/inventory-system-spec.md`  
+**Changes:** `specs/inventory-system-CHANGES.md`
+
+### Key Features
+
+**Equipment Slots (4 total):**
+- 1x Armor (wounds protection)
+- 2x Rings (radiation resistance) - **reduced from 3**
+- 1x Artifact (special bonuses) - **NEW slot**
+
+**Backpack:**
+- 50 item capacity (equipment slots NOT counted)
+- Total: 54 items max (4 equipped + 50 backpack)
+
+**Lives System:**
+- Bonus lives from artifacts can resurrect from 0 lives
+- Unequipping can kill player (lives can go negative)
+- Players with 0 lives can still equip/unequip items
+
+**Death & Looting:**
+- All items: 1-10% loss on death (changed from 1-20% equipment, 100% artifacts)
+- All items lootable (equipped + backpack)
+
+**Operations:**
+- Click item → context menu (Details, Equip/Unequip, Use, Drop, Sell)
+- Details modal shows photo, description, stats
+- Consumables use from backpack (no equipping)
+- Sell only from backpack (must unequip first)
+
+### Database Migration
+
+**File:** `database/migrations/003_inventory_system_v2.sql`
+
+**Changes:**
+```sql
+-- player_equipment table
+- equipped: BOOLEAN                    ❌ REMOVED
++ slot_type: ENUM(...)                 ✅ ADDED
++ slot_position: INT                   ✅ ADDED
+
+-- artifacts table
++ slot_type: ENUM('backpack','artifact') ✅ ADDED
+
+-- players table
++ backpack_capacity: INT DEFAULT 50    ✅ ADDED
+```
+
+**Run migration:**
+```bash
+mysql -h pda-zone-db-dev.ctwu68aqagdj.eu-north-1.rds.amazonaws.com \
+      -u pda_admin -p"$DB_PASSWORD" pda_zone \
+      < database/migrations/003_inventory_system_v2.sql
+```
+
+### API Endpoints (NEW)
+
+```
+GET  /api/inventory              - Get full inventory
+POST /api/inventory/equip        - Equip item from backpack
+POST /api/inventory/unequip      - Unequip item to backpack
+POST /api/inventory/use          - Use consumable
+POST /api/inventory/drop         - Drop item (permanent)
+POST /api/inventory/sell         - Sell item from backpack
+```
+
+### Implementation Priority
+
+1. **Database migration** (003_inventory_system_v2.sql)
+2. **Backend handler** (src/handlers/inventory.py)
+3. **Update death/looting logic** (1-10% loss for all items)
+4. **Frontend UI** (inventory screen with slots + backpack)
+5. **Testing** (equip/unequip, lives, capacity limits)
+
+### Breaking Changes
+
+- Ring slots reduced from 3 to 2
+- Artifacts in backpack are inactive (only equipped artifact gives bonuses)
+- Must unequip items before selling
+- Death item loss changed to 1-10% for all items

@@ -8,44 +8,76 @@ Complete artifact system: detection on map (15m radius), pickup with button hold
 
 ## Database Schema
 
-### artifacts table
+### artifact_types table
+```sql
+CREATE TABLE artifact_types (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    rarity ENUM('common', 'uncommon', 'rare', 'legendary') NOT NULL,
+    base_value DECIMAL(10, 2) NOT NULL,
+    bonus_lives INT DEFAULT 0,
+    radiation_resist INT DEFAULT 0,
+    other_effects JSON,
+    image_url VARCHAR(500),
+    description TEXT,
+    created_by VARCHAR(36),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
+### artifacts table (spawns on map)
 ```sql
 CREATE TABLE artifacts (
     id VARCHAR(36) PRIMARY KEY,
-    type_id VARCHAR(36) NOT NULL,
+    type_id VARCHAR(36) NOT NULL,  -- Reference to artifact_types
     state ENUM('hidden', 'visible', 'extracting', 'extracted', 'lost') DEFAULT 'hidden',
     
     -- Location
     latitude DECIMAL(10, 8) NOT NULL,
     longitude DECIMAL(11, 8) NOT NULL,
     
-    -- Ownership
-    owner_id VARCHAR(36),
+    -- Extraction tracking
+    owner_id VARCHAR(36),  -- Player who picked it up (for tracking)
     extracting_by VARCHAR(36),
     extraction_started_at TIMESTAMP NULL,
     
     -- Timestamps
-    spawned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- When artifact becomes active
-    expires_at TIMESTAMP NULL,                        -- When artifact becomes inactive (NULL = permanent)
+    spawned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NULL,  -- When spawn becomes inactive (NULL = permanent)
     extracted_at TIMESTAMP NULL,
     
-    -- Indexes
+    FOREIGN KEY (type_id) REFERENCES artifact_types(id),
     INDEX idx_state (state),
     INDEX idx_owner (owner_id),
     INDEX idx_extracting (extracting_by),
     INDEX idx_location (latitude, longitude),
-    INDEX idx_active_artifacts (state, spawned_at, expires_at)  -- NEW: Composite index for active artifacts query
+    INDEX idx_active_artifacts (state, spawned_at, expires_at)
 );
 ```
 
-### Required Index Migration
-
+### player_inventory table (player's collected items)
 ```sql
--- Add composite index for active artifacts query optimization
-ALTER TABLE artifacts 
-ADD INDEX idx_active_artifacts (state, spawned_at, expires_at);
+CREATE TABLE player_inventory (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    player_id VARCHAR(36) NOT NULL,
+    item_type ENUM('artifact', 'equipment', 'consumable') NOT NULL,
+    item_id VARCHAR(36) NOT NULL,  -- Reference to artifact_types.id or equipment_types.id
+    quantity INT DEFAULT 1,
+    acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+    INDEX idx_player (player_id),
+    INDEX idx_item_type (player_id, item_type),
+    UNIQUE KEY unique_player_item (player_id, item_type, item_id)  -- Prevent duplicates, use quantity
+);
 ```
+
+**Key Points:**
+- `artifact_types` = artifact definitions (Moonlight, Flash, etc.)
+- `artifacts` = spawns on map (coordinates, state, expiration)
+- `player_inventory` = player's collected items (references to types, with quantity)
+- Artifacts can stack in inventory (quantity field)
+- Spawns are separate from inventory (one spawn can be picked by one player)
 
 ---
 
@@ -244,22 +276,32 @@ extracted → hidden (admin "Reset to Map" action)
 4. `owner_id IS NULL` (not picked up by another player meanwhile)
 
 **Action:**
-1. Set `state = 'extracted'`
-2. Set `owner_id = player_id`
-3. Set `extracted_at = NOW()`
-4. Clear `extracting_by = NULL`
-5. Create record in `player_inventory`:
+1. Mark spawn as extracted:
+   ```sql
+   UPDATE artifacts 
+   SET state = 'extracted', owner_id = player_id, extracted_at = NOW(),
+       extracting_by = NULL, extraction_started_at = NULL
+   WHERE id = artifact_id AND owner_id IS NULL
+   ```
+2. Add to player inventory (creates reference to artifact type):
    ```sql
    INSERT INTO player_inventory (player_id, item_type, item_id, quantity)
    VALUES (player_id, 'artifact', artifact_type_id, 1)
+   ON DUPLICATE KEY UPDATE quantity = quantity + 1
    ```
-6. Update player stats:
+3. Update player stats:
    ```sql
    UPDATE players 
    SET total_artifacts_found = total_artifacts_found + 1,
        reputation = reputation + 5
    WHERE id = player_id
    ```
+
+**Important:**
+- Spawn record stays in `artifacts` table with `state='extracted'` (for tracking/admin)
+- Player gets reference in `player_inventory` (not a copy of spawn)
+- Multiple pickups of same artifact type will increment `quantity`
+- Spawn is no longer available on map (state='extracted')
 
 **Response:**
 ```json
@@ -291,17 +333,25 @@ extracted → hidden (admin "Reset to Map" action)
 **Request:**
 ```json
 {
-  "artifactId": "artifact-uuid"
+  "artifactId": "artifact-type-id"  // ID from player_inventory (artifact_types.id)
 }
 ```
 
 **Validation:**
-1. Artifact in player inventory (owner_id = player_id)
+1. Artifact in player inventory (player_inventory.item_id = artifactId)
 
 **Action:**
-1. Set `state = 'lost'`
-2. Clear `owner_id = NULL`
-3. Delete from `player_inventory`
+1. Decrease quantity or remove from inventory:
+   ```sql
+   UPDATE player_inventory 
+   SET quantity = quantity - 1 
+   WHERE player_id = player_id AND item_type = 'artifact' AND item_id = artifact_type_id
+   ```
+2. If quantity reaches 0, delete record:
+   ```sql
+   DELETE FROM player_inventory 
+   WHERE player_id = player_id AND item_type = 'artifact' AND item_id = artifact_type_id AND quantity <= 0
+   ```
 
 **Response:**
 ```json
@@ -310,7 +360,7 @@ extracted → hidden (admin "Reset to Map" action)
 }
 ```
 
-**Note:** Dropped artifact does NOT return to map, it's permanently lost.
+**Note:** Dropped artifact does NOT return to map, it's permanently lost from game.
 
 ### 6. Sell Artifact Handler
 
@@ -319,12 +369,12 @@ extracted → hidden (admin "Reset to Map" action)
 **Request:**
 ```json
 {
-  "artifactId": "artifact-uuid"
+  "artifactId": "artifact-type-id"  // ID from player_inventory (artifact_types.id)
 }
 ```
 
 **Validation:**
-1. Artifact in player inventory (owner_id = player_id)
+1. Artifact in player inventory (player_inventory.item_id = artifactId)
 2. Player at bartender location (optional - geolocation check)
 
 **Action:**
@@ -335,9 +385,17 @@ extracted → hidden (admin "Reset to Map" action)
    final_price = base_value * reputation_modifier
    ```
 2. Add money to player
-3. Set `state = 'lost'`
-4. Clear `owner_id = NULL`
-5. Delete from `player_inventory`
+3. Decrease quantity or remove from inventory:
+   ```sql
+   UPDATE player_inventory 
+   SET quantity = quantity - 1 
+   WHERE player_id = player_id AND item_type = 'artifact' AND item_id = artifact_type_id
+   ```
+4. If quantity reaches 0, delete record:
+   ```sql
+   DELETE FROM player_inventory 
+   WHERE player_id = player_id AND item_type = 'artifact' AND item_id = artifact_type_id AND quantity <= 0
+   ```
 
 **Response:**
 ```json
@@ -348,7 +406,7 @@ extracted → hidden (admin "Reset to Map" action)
 }
 ```
 
-**Note:** Sold artifact is permanently lost (state='lost').
+**Note:** Sold artifact is permanently removed from inventory (quantity decreased).
 
 ---
 

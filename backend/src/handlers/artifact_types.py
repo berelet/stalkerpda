@@ -15,6 +15,8 @@ def handler(event, context):
         return list_artifact_types(event, context)
     elif method == 'PUT':
         return update_artifact_type(event, context)
+    elif method == 'DELETE':
+        return delete_artifact_type(event, context)
     else:
         return error_response('Method not allowed', 405)
 
@@ -148,6 +150,59 @@ def update_artifact_type(event, context):
             'radiationResist': radiation_resist,
             'imageUrl': image_url
         })
+        
+    except Exception as e:
+        print(f"Error updating artifact type: {str(e)}")
+        return error_response(str(e), 500)
+
+def delete_artifact_type(event, context):
+    """DELETE /api/admin/artifact-types/{id} - Delete artifact type"""
+    try:
+        artifact_id = event.get('pathParameters', {}).get('id')
+        if not artifact_id:
+            return error_response('Artifact ID is required', 400)
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                # Check if artifact type is used in player inventories
+                cursor.execute(
+                    """SELECT COUNT(*) as count FROM player_inventory 
+                    WHERE item_type = 'artifact' AND item_id = %s""",
+                    (artifact_id,)
+                )
+                count = cursor.fetchone()['count']
+                
+                if count > 0:
+                    return error_response(
+                        f'Cannot delete: {count} players have this artifact in inventory', 
+                        400
+                    )
+                
+                # Check if used in spawned artifacts
+                cursor.execute(
+                    """SELECT COUNT(*) as count FROM artifacts WHERE type_id = %s""",
+                    (artifact_id,)
+                )
+                count = cursor.fetchone()['count']
+                
+                if count > 0:
+                    return error_response(
+                        f'Cannot delete: {count} artifacts of this type are spawned on map', 
+                        400
+                    )
+                
+                # Delete artifact type
+                cursor.execute("DELETE FROM artifact_types WHERE id = %s", (artifact_id,))
+                conn.commit()
+                
+                if cursor.rowcount == 0:
+                    return error_response('Artifact not found', 404)
+        
+        return success_response({'message': 'Artifact type deleted'})
+        
+    except Exception as e:
+        print(f"Error deleting artifact type: {str(e)}")
+        return error_response(str(e), 500)
         
     except Exception as e:
         print(f"Error updating artifact type: {str(e)}")

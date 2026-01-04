@@ -462,6 +462,104 @@ Resources:
             Path: /api/artifacts/sell
             Method: POST
 
+  # ============================================
+  # INVENTORY SYSTEM v2.0
+  # ============================================
+
+  # Lambda - Get Inventory
+  GetInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-inventory-get-${Environment}
+      Handler: src.handlers.inventory.get_inventory_handler
+      CodeUri: ../backend/
+      Events:
+        GetInventory:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/inventory
+            Method: GET
+
+  # Lambda - Equip Item
+  EquipItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-inventory-equip-${Environment}
+      Handler: src.handlers.inventory.equip_item_handler
+      CodeUri: ../backend/
+      Events:
+        EquipItem:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/inventory/equip
+            Method: POST
+
+  # Lambda - Unequip Item
+  UnequipItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-inventory-unequip-${Environment}
+      Handler: src.handlers.inventory.unequip_item_handler
+      CodeUri: ../backend/
+      Events:
+        UnequipItem:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/inventory/unequip
+            Method: POST
+
+  # Lambda - Use Consumable
+  UseConsumableFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-inventory-use-${Environment}
+      Handler: src.handlers.inventory.use_consumable_handler
+      CodeUri: ../backend/
+      Events:
+        UseConsumable:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/inventory/use
+            Method: POST
+
+  # Lambda - Drop Item
+  DropItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-inventory-drop-${Environment}
+      Handler: src.handlers.inventory.drop_item_handler
+      CodeUri: ../backend/
+      Events:
+        DropItem:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/inventory/drop
+            Method: POST
+
+  # Lambda - Sell Item
+  SellItemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-inventory-sell-${Environment}
+      Handler: src.handlers.inventory.sell_item_handler
+      CodeUri: ../backend/
+      Events:
+        SellItem:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/inventory/sell
+            Method: POST
+
+  # ============================================
+  # END INVENTORY SYSTEM
+  # ============================================
+
   # Lambda - Contracts
   ContractsFunction:
     Type: AWS::Serverless::Function
@@ -755,6 +853,12 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /api/admin/artifact-types/{id}
             Method: PUT
+        DeleteArtifactType:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/artifact-types/{id}
+            Method: DELETE
 
   # WebSocket API
   WebSocketApi:

@@ -90,6 +90,21 @@ export default function ArtifactsPage() {
     setIsModalOpen(true)
   }
 
+  const handleDelete = async (artifact: ArtifactType) => {
+    if (!confirm(`Delete artifact "${artifact.name}"? This cannot be undone.`)) {
+      return
+    }
+
+    try {
+      await api.delete(`/api/admin/artifact-types/${artifact.id}`)
+      alert('Artifact deleted!')
+      loadArtifacts()
+    } catch (error: any) {
+      console.error('Error deleting artifact:', error)
+      alert(error.response?.data?.error || 'Failed to delete artifact')
+    }
+  }
+
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setEditingArtifact(undefined)
@@ -167,13 +182,21 @@ export default function ArtifactsPage() {
                   )}
                 </div>
 
-                <button
-                  onClick={() => handleEdit(artifact)}
-                  className="w-full h-9 rounded-lg bg-[#233948] hover:bg-primary/20 border border-primary/30 hover:border-primary text-primary font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-sm">edit</span>
-                  Edit
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(artifact)}
+                    className="flex-1 h-9 rounded-lg bg-[#233948] hover:bg-primary/20 border border-primary/30 hover:border-primary text-primary font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">edit</span>
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(artifact)}
+                    className="h-9 px-3 rounded-lg bg-[#233948] hover:bg-red-500/20 border border-red-500/30 hover:border-red-500 text-red-500 font-medium transition-colors flex items-center justify-center"
+                  >
+                    <span className="material-symbols-outlined text-sm">delete</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}

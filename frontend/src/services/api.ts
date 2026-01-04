@@ -28,3 +28,18 @@ api.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+// Inventory API
+export const inventoryApi = {
+  getInventory: () => api.get('/api/inventory'),
+  equipItem: (itemId: string, itemType: 'equipment' | 'artifact') => 
+    api.post('/api/inventory/equip', { itemId, itemType }),
+  unequipItem: (itemId: string, itemType: 'equipment' | 'artifact') => 
+    api.post('/api/inventory/unequip', { itemId, itemType }),
+  useConsumable: (itemId: string) => 
+    api.post('/api/inventory/use', { itemId }),
+  dropItem: (itemId: string, itemType: 'equipment' | 'artifact') => 
+    api.post('/api/inventory/drop', { itemId, itemType }),
+  sellItem: (itemId: string, itemType: 'equipment' | 'artifact') => 
+    api.post('/api/inventory/sell', { itemId, itemType }),
+}

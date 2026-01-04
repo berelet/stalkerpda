@@ -363,7 +363,7 @@ def complete_extraction_handler(event, context):
                         'body': json.dumps({'error': {'code': 'TOO_FAR', 'message': f'You moved too far ({distance:.1f}m, need ≤5m)'}})
                     }
                 
-                # Complete extraction
+                # Mark map artifact as extracted (no longer available for pickup)
                 cursor.execute(
                     """UPDATE artifacts 
                     SET state = 'extracted', owner_id = %s, extracted_at = %s,
@@ -382,11 +382,10 @@ def complete_extraction_handler(event, context):
                         'body': json.dumps({'error': {'code': 'ALREADY_TAKEN', 'message': 'Artifact was picked up by another player'}})
                     }
                 
-                # Add to player inventory
+                # Add to player_inventory (each artifact as separate record)
                 cursor.execute(
-                    """INSERT INTO player_inventory (player_id, item_type, item_id, quantity)
-                    VALUES (%s, 'artifact', %s, 1)
-                    ON DUPLICATE KEY UPDATE quantity = quantity + 1""",
+                    """INSERT INTO player_inventory (player_id, item_type, item_id, slot_type, quantity)
+                    VALUES (%s, 'artifact', %s, 'backpack', 1)""",
                     (player_id, artifact['type_id'])
                 )
                 

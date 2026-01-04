@@ -2,3 +2,4 @@ pyjwt
 pymysql
 geopy
 boto3
+Pillow
