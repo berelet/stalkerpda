@@ -3,6 +3,8 @@ import { useEffect } from 'react'
 import { useAuthStore } from './stores/authStore'
 import PDALayout from './components/layout/PDALayout'
 import LoginPage from './pages/LoginPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import MapPage from './pages/MapPage'
 import InventoryPage from './pages/InventoryPage'
 import ContractsPage from './pages/ContractsPage'
@@ -20,6 +22,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={!token ? <LoginPage /> : <Navigate to="/" />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/" element={token ? <PDALayout /> : <Navigate to="/login" />}>
           <Route index element={<MapPage />} />
           <Route path="inventory" element={<InventoryPage />} />

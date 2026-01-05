@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>S.T.A.L.K.E.R. PDA - Reset Password</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec1a", 
+                        "primary-dim": "#0a5c0d",
+                        "alert": "#c4a000",
+                        "danger": "#8b0000",
+                        "pda-body": "#2e3026",
+                        "pda-dark": "#181a14",
+                        "screen-bg": "#081008",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem", 
+                        "lg": "0.5rem", 
+                        "xl": "0.75rem", 
+                        "2xl": "1rem",
+                        "3xl": "1.5rem"
+                    },
+                    boxShadow: {
+                        'glow': '0 0 10px rgba(19, 236, 26, 0.3), 0 0 20px rgba(19, 236, 26, 0.1)',
+                        'glow-text': '0 0 5px rgba(19, 236, 26, 0.6)',
+                        'glow-alert': '0 0 5px rgba(196, 160, 0, 0.6)',
+                        'glow-danger': '0 0 8px rgba(139, 0, 0, 0.6)',
+                    },
+                    animation: {
+                        'flicker': 'flicker 3s infinite',
+                        'scanline': 'scanline 8s linear infinite',
+                    },
+                    keyframes: {
+                        flicker: {
+                            '0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100%': { opacity: '0.99' },
+                            '20%, 21.999%, 63%, 63.999%, 65%, 69.999%': { opacity: '0.85' },
+                        },
+                        scanline: {
+                            '0%': { backgroundPosition: '0 0' },
+                            '100%': { backgroundPosition: '0 100%' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+<style>/* CRT Scanline Effect */
+.scanlines {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.2));
+    background-size: 100% 4px;
+    pointer-events: none
+    }
+/* Subtle Screen Vignette */
+.vignette {
+    background: radial-gradient(circle, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.6) 100%);
+    pointer-events: none
+    }
+/* Tactical Grunge/Noise (simulated with CSS pattern) */
+.grunge-bg {
+    background-color: #2e3026;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuCmGu17zRZbE0mL2EsWU-4W86DZF6X3IHYdYZsw8OKTGXyYVihkTbulh6p7vMlQ9MQf2odhDvr86brHxiVG74KWN-Rb0zFMQMbESkTJ6LbqPEE9Zp7KZxciGDcdGpl9EQ8JI6wbVc3crMqQieMyUKZRC05PONHI5-0YJnBQ2UURdc0Fdo0ND5WwdYnhRpkM3tHci8NGwFNJv0csHn5IMd8AZa4QuCLz4o61tLn6U1Kz9AkVBgv9WiWQBq9nfFoBsx1-jpGs8ZtNrHQG)
+    }
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px
+    }
+::-webkit-scrollbar-track {
+    background: #081008
+    }
+::-webkit-scrollbar-thumb {
+    background: #13ec1a;
+    border-radius: 4px
+    }
+.text-glow {
+    text-shadow: 0 0 4px rgba(19, 236, 26, 0.7)
+    }
+.text-glow-alert {
+    text-shadow: 0 0 4px rgba(196, 160, 0, 0.7)
+    }
+.text-glow-danger {
+    text-shadow: 0 0 4px rgba(139, 0, 0, 0.7)
+    }
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #0c1f0c inset !important;
+    -webkit-text-fill-color: #13ec1a !important;
+    caret-color: #13ec1a
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-stone-900 min-h-screen flex items-center justify-center p-0 sm:p-4 overflow-hidden font-display select-none">
+<!-- PDA Device Chassis -->
+<div class="relative w-full h-screen sm:h-[850px] sm:max-w-[440px] grunge-bg sm:rounded-3xl sm:border-[8px] sm:border-pda-dark shadow-2xl flex flex-col overflow-hidden ring-1 ring-white/5">
+<!-- Physical Device Top (Decoration) -->
+<div class="hidden sm:flex h-12 bg-pda-dark w-full items-center justify-between px-6 border-b border-white/5 relative z-20">
+<div class="flex gap-2">
+<div class="w-2 h-2 rounded-full bg-red-900/50"></div>
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse shadow-glow"></div>
+</div>
+<div class="text-[10px] text-stone-500 font-bold tracking-widest">S.T.A.L.K.E.R. PDA v3.0</div>
+<div class="w-8 h-1 bg-stone-700 rounded-full"></div>
+</div>
+<!-- The Screen Container -->
+<div class="relative flex-1 bg-screen-bg overflow-hidden flex flex-col w-full h-full">
+<!-- CRT Effects Overlay -->
+<div class="absolute inset-0 z-50 pointer-events-none scanlines opacity-30 mix-blend-overlay"></div>
+<div class="absolute inset-0 z-50 pointer-events-none vignette"></div>
+<div class="absolute inset-0 z-40 pointer-events-none bg-primary opacity-[0.02] mix-blend-overlay animate-flicker"></div>
+<!-- Content Scroll Area -->
+<div class="relative z-10 flex flex-col h-full w-full overflow-y-auto pb-8">
+<!-- MetaText: Status Bar -->
+<div class="flex justify-between items-center px-4 pt-3 pb-2 border-b border-primary/20 bg-primary/5">
+<p class="text-primary/70 text-xs font-medium tracking-widest font-mono">NET_VER: 1.0.4 [OFFLINE MODE]</p>
+<span class="material-symbols-outlined text-alert text-base animate-pulse">wifi_off</span>
+</div>
+<!-- HeadlineText: Title -->
+<div class="px-5 pt-8 pb-4 text-center">
+<div class="inline-flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-primary/10 border border-primary/30 shadow-glow">
+<span class="material-symbols-outlined text-primary text-3xl">lock_reset</span>
+</div>
+<h2 class="text-primary text-2xl tracking-widest font-bold leading-tight uppercase text-glow animate-flicker">
+                        &gt; SYSTEM RECOVERY // RESET_PWD
+                    </h2>
+</div>
+<!-- BodyText: Instruction -->
+<div class="px-6 pb-6 text-center">
+<p class="text-primary/80 text-sm font-normal leading-relaxed font-mono">
+                        SECURITY OVERRIDE DETECTED.<br/>
+                        Input new security key to re-establish network link functionality.
+                    </p>
+</div>
+<!-- Form Container -->
+<div class="w-full px-5 flex flex-col gap-5">
+<!-- TextField: New Password -->
+<div class="flex flex-col gap-1 group">
+<label class="text-primary text-xs font-bold tracking-wider pl-1 uppercase flex items-center gap-2">
+<span class="w-1 h-1 bg-primary rounded-full"></span>
+                            ENTER_NEW_CODE
+                        </label>
+<div class="relative flex items-center">
+<input class="w-full bg-[#0c1f0c] border-2 border-primary/40 focus:border-primary text-primary placeholder:text-primary/30 h-14 px-4 rounded-lg outline-none ring-0 focus:ring-0 focus:shadow-glow transition-all duration-200 font-mono tracking-widest text-lg" placeholder="_ _ _ _ _ _" type="password" value=""/>
+<div class="absolute right-4 text-primary/50 pointer-events-none">
+<span class="material-symbols-outlined text-sm">key</span>
+</div>
+</div>
+</div>
+<!-- TextField: Confirm Password -->
+<div class="flex flex-col gap-1 group">
+<label class="text-primary text-xs font-bold tracking-wider pl-1 uppercase flex items-center gap-2">
+<span class="w-1 h-1 bg-primary rounded-full"></span>
+                            CONFIRM_CODE
+                        </label>
+<div class="relative flex items-center">
+<input class="w-full bg-[#0c1f0c] border-2 border-primary/40 focus:border-primary text-primary placeholder:text-primary/30 h-14 px-4 rounded-lg outline-none ring-0 focus:ring-0 focus:shadow-glow transition-all duration-200 font-mono tracking-widest text-lg" placeholder="_ _ _ _ _ _" type="password" value=""/>
+<div class="absolute right-4 text-primary/50 pointer-events-none">
+<span class="material-symbols-outlined text-sm">lock</span>
+</div>
+</div>
+</div>
+<!-- Error Validation Mockup -->
+<!-- Usually hidden, displayed here for design requirement -->
+<div class="w-full bg-danger/10 border border-danger/40 p-3 rounded flex items-start gap-3 mt-2 animate-pulse">
+<span class="material-symbols-outlined text-danger text-lg mt-0.5">warning</span>
+<div class="flex flex-col">
+<span class="text-danger text-xs font-bold tracking-wider uppercase text-glow-danger">&gt;&gt; ERR: CHECKSUM INVALID</span>
+<span class="text-danger/80 text-[10px] font-mono">Passwords do not match local hash.</span>
+</div>
+</div>
+<!-- Action Button -->
+<button class="group relative w-full h-14 mt-4 bg-primary/10 hover:bg-primary/20 active:bg-primary/30 border border-primary text-primary font-bold uppercase tracking-[0.2em] rounded transition-all duration-200 flex items-center justify-center overflow-hidden shadow-glow">
+<!-- Button Scanline -->
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+<span class="relative z-10 flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">terminal</span>
+                            INITIALIZE PATCH
+                        </span>
+<!-- Corner accents -->
+<div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-primary"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-primary"></div>
+</button>
+<!-- Success Message (Mockup - Hidden by default in logic but shown as alternative state if needed, keeping error visible for now as per prompt) -->
+<!-- 
+                    <div class="w-full bg-primary/20 border border-primary p-4 rounded flex flex-col items-center justify-center gap-2 mt-4 text-center">
+                        <span class="material-symbols-outlined text-primary text-2xl">check_circle</span>
+                        <span class="text-primary text-sm font-bold tracking-wider uppercase">PROTOCOL UPDATED</span>
+                    </div> 
+                    -->
+</div>
+<!-- Footer Status -->
+<div class="mt-auto pt-12 px-4 flex flex-col items-center gap-2 opacity-60">
+<div class="w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+<div class="flex justify-between w-full max-w-[280px]">
+<span class="text-[10px] text-primary font-mono">MEM: 64KB OK</span>
+<span class="text-[10px] text-primary font-mono">ZONE.NET // LOST</span>
+</div>
+<p class="text-[9px] text-primary/40 uppercase tracking-widest pb-4">S.T.A.L.K.E.R. PDA OS v3.0 // 2024</p>
+</div>
+</div>
+<!-- Bottom UI Decos (On Screen) -->
+<div class="absolute bottom-2 left-2 z-20">
+<span class="text-[10px] text-primary/30 font-mono rotate-90 origin-bottom-left block">SYS_RDY</span>
+</div>
+<div class="absolute bottom-2 right-2 z-20">
+<span class="text-[10px] text-alert/50 font-mono block">PWR_LOW</span>
+</div>
+</div>
+<!-- Physical Device Bottom (Decoration) -->
+<div class="hidden sm:flex h-16 bg-pda-dark w-full items-center justify-center border-t border-white/5 relative z-20 shadow-inner">
+<div class="w-16 h-16 rounded-full border-2 border-stone-700 bg-stone-800 flex items-center justify-center shadow-lg relative -top-3">
+<div class="w-12 h-12 rounded-full border border-stone-600 bg-stone-900 shadow-inner"></div>
+</div>
+<div class="absolute right-6 flex gap-2">
+<div class="w-8 h-2 bg-stone-800 rounded-sm border border-stone-700"></div>
+<div class="w-8 h-2 bg-stone-800 rounded-sm border border-stone-700"></div>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { api } from '../services/api'
 
@@ -126,6 +127,17 @@ export default function LoginPage() {
             >
               {loading ? 'CONNECTING...' : (isRegister ? 'REGISTER' : 'LOGIN')}
             </button>
+
+            {!isRegister && (
+              <div className="text-center">
+                <Link
+                  to="/forgot-password"
+                  className="text-pda-text hover:text-pda-highlight text-sm transition-colors"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+            )}
 
             <button
               type="button"

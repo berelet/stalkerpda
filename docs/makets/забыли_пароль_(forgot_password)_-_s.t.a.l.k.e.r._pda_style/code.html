@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PDA Recovery Mode</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec1a",
+                        "primary-dim": "#0e8a12",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102211",
+                        "screen-black": "#050a05",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    animation: {
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'flicker': 'flicker 4s infinite',
+                    },
+                    keyframes: {
+                        flicker: {
+                            '0%, 100%': { opacity: '0.97' },
+                            '50%': { opacity: '0.94' },
+                            '52%': { opacity: '0.98' },
+                            '54%': { opacity: '0.94' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* CRT Scanline Effect */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        /* Text Glow Effect simulating phosphor bleed */
+        .text-glow {
+            text-shadow: 0 0 5px rgba(19, 236, 26, 0.5);
+        }
+        
+        /* Stronger glow for headers */
+        .text-glow-strong {
+            text-shadow: 0 0 8px rgba(19, 236, 26, 0.8), 0 0 15px rgba(19, 236, 26, 0.3);
+        }
+
+        /* Box glow */
+        .box-glow {
+            box-shadow: 0 0 15px rgba(19, 236, 26, 0.15);
+        }
+
+        /* Custom Scrollbar for Webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #102211; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #13ec1a; 
+            border-radius: 4px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display flex flex-col items-center justify-center p-0 sm:p-4 overflow-hidden">
+<!-- Device Frame Wrapper (Visual wrapper to simulate PDA on desktop, fills screen on mobile) -->
+<div class="relative w-full h-[100dvh] sm:h-auto sm:max-w-[480px] sm:aspect-[9/19] sm:max-h-[900px] bg-[#1a1a1a] sm:rounded-[2rem] sm:border-[8px] sm:border-[#2a2a2a] shadow-2xl overflow-hidden flex flex-col group/design-root" data-alt="Dark worn industrial metal texture representing the PDA casing device frame" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBfGvbB2DwI7el7w6AKRB-akhfoiVR1tnr9lRa_5V0Z0TbCaiEVZVgt8ox4DazDv10D3zY5faJKZ7J7ijUfoUkWluKO1Ga4qvo7iWRFPOtnDoDFLUU_pmlC5eM6Pu3OmxHluLCFlykzQccIuQDO_V00a9G3CLbZbXa3-pY0IcguH9-TeIuRsNT-4WVTfkRfN4gFGRtkSd8A6IH1DiXzlf_9sxOKs30fhKHDsniguinRlB-5PTBfK5M-X19eTOf80U0Pd5OTQyeEqIn0'); background-size: cover; background-blend-mode: multiply;">
+<!-- Screen Inner Container -->
+<div class="relative flex-1 flex flex-col bg-background-dark/95 m-[2px] sm:m-2 sm:rounded-[1.5rem] overflow-hidden border-2 border-[#334433] shadow-[inset_0_0_40px_rgba(0,0,0,0.8)] animate-flicker">
+<!-- CRT Overlay Effects -->
+<div class="absolute inset-0 z-10 scanlines opacity-40 pointer-events-none"></div>
+<div class="absolute inset-0 z-10 bg-[radial-gradient(circle_at_center,transparent_60%,rgba(0,10,0,0.4)_100%)] pointer-events-none"></div>
+<!-- Top App Bar / System Header -->
+<div class="relative z-20 flex items-center bg-[#112211]/90 p-4 pb-2 justify-between border-b border-primary/30 backdrop-blur-sm">
+<button class="text-primary hover:text-white transition-colors flex size-10 shrink-0 items-center justify-center active:scale-95">
+<span class="material-symbols-outlined text-glow">arrow_back_ios_new</span>
+</button>
+<div class="flex flex-col items-end">
+<h2 class="text-primary text-sm font-bold leading-tight tracking-[0.1em] text-glow">&gt; SYS_RECOVERY</h2>
+<span class="text-[10px] text-primary/60 tracking-widest font-mono">V.2.0.4_BETA</span>
+</div>
+</div>
+<!-- Scrollable Content Area -->
+<div class="relative z-20 flex-1 overflow-y-auto flex flex-col items-center pt-8 px-6 pb-6">
+<!-- Icon Graphic -->
+<div class="mb-6 relative">
+<div class="w-20 h-20 border border-primary/40 flex items-center justify-center rounded-lg bg-primary/5 box-glow relative overflow-hidden">
+<!-- Scanning line animation within icon -->
+<div class="absolute top-0 left-0 w-full h-[2px] bg-primary/50 animate-[ping_2s_linear_infinite] shadow-[0_0_10px_#13ec1a]"></div>
+<span class="material-symbols-outlined text-5xl text-primary text-glow">lock_open</span>
+</div>
+<div class="absolute -bottom-3 -right-3 bg-black border border-primary px-1.5 py-0.5">
+<span class="text-[10px] font-bold text-primary font-mono tracking-wider">ERR_403</span>
+</div>
+</div>
+<!-- Headline -->
+<h2 class="text-white tracking-widest text-2xl font-bold leading-tight px-4 text-center pb-2 uppercase text-glow-strong">
+                    :: IDENTITY_LOSS ::
+                </h2>
+<!-- Decorative Separator -->
+<div class="flex items-center gap-2 w-full max-w-[200px] mb-6 opacity-70">
+<div class="h-[1px] bg-primary/50 flex-1"></div>
+<div class="text-primary/50 text-[10px] tracking-[0.2em] font-mono">RESTORE</div>
+<div class="h-[1px] bg-primary/50 flex-1"></div>
+</div>
+<!-- Body Text -->
+<p class="text-primary/80 text-sm font-normal leading-relaxed pb-8 text-center max-w-[280px] font-mono">
+                    // CRITICAL FAILURE.<br/>
+                    Enter registered comms frequency to re-establish neural link.
+                </p>
+<!-- Form Section -->
+<div class="w-full max-w-sm space-y-6">
+<!-- Text Field -->
+<div class="flex flex-col gap-2 group">
+<div class="flex justify-between items-baseline px-1">
+<label class="text-primary text-xs font-bold tracking-widest uppercase">Target Frequency</label>
+<span class="text-primary/40 text-[10px] font-mono animate-pulse">[ AWAITING_INPUT ]</span>
+</div>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-primary/50 material-symbols-outlined text-lg">alternate_email</span>
+<input class="form-input flex w-full rounded-md text-white focus:outline-0 focus:ring-1 focus:ring-primary border-2 border-[#326734] bg-[#051005] focus:border-primary h-14 placeholder:text-[#326734] pl-12 pr-4 text-base font-mono tracking-wide transition-all shadow-inner uppercase" placeholder="STALKER@PDA.NET" type="email" value=""/>
+<!-- Corner Accents -->
+<div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-primary pointer-events-none"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-primary pointer-events-none"></div>
+</div>
+</div>
+<!-- Action Button -->
+<button class="relative w-full cursor-pointer group overflow-hidden rounded-md h-14 bg-primary hover:bg-[#32ff39] active:bg-[#0eb814] transition-all duration-200 mt-4 shadow-[0_0_20px_rgba(19,236,26,0.3)]">
+<!-- Button Content -->
+<div class="relative z-10 flex items-center justify-center gap-3 h-full px-5 text-background-dark font-bold text-lg tracking-[0.1em] uppercase">
+<span class="material-symbols-outlined animate-pulse-fast">wifi_tethering</span>
+<span>[ TRANSMIT ]</span>
+</div>
+<!-- Button Scanline/Grid Texture -->
+<div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNCIgaGVpZ2h0PSI0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xIDFoMXYxSDF6IiBmaWxsPSIjMDAwMDAwIiBmaWxsLW9wYWNpdHk9IjAuMSIvPjwvc3ZnPg==')] opacity-30 pointer-events-none"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
+</button>
+<!-- Feedback Text Area (Static for design) -->
+<div class="h-8 flex items-center justify-center">
+<p class="text-primary/50 text-xs font-mono text-center opacity-0 group-focus-within:opacity-100 transition-opacity">
+                            &gt; CHANNEL_OPEN <span class="animate-pulse">_</span>
+</p>
+</div>
+</div>
+</div>
+<!-- Footer / Status Bar -->
+<div class="relative z-20 bg-[#0d1a0d] border-t-2 border-[#326734] p-3 flex justify-between items-center text-[10px] font-mono text-primary/60 uppercase">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">satellite_alt</span>
+<span>SIGNAL: WEAK</span>
+</div>
+<div class="flex items-center gap-4">
+<span>RAD: 1.2 mSv</span>
+<span class="text-primary font-bold">BAT: 34%</span>
+</div>
+</div>
+</div>
+<!-- Physical Device Chin (Visual only, visible on desktop/large screens due to container sizing) -->
+<div class="hidden sm:flex h-16 w-full items-center justify-center gap-8 bg-[#1a1a1a] border-t border-[#333] px-8">
+<div class="h-10 w-10 rounded-full bg-[#111] border border-[#333] shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] flex items-center justify-center">
+<div class="w-4 h-4 bg-[#222] rounded-full"></div>
+</div>
+<div class="h-3 w-20 rounded-full bg-[#111] border border-[#333] shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]"></div>
+<div class="h-10 w-10 rounded-full bg-[#111] border border-[#333] shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] flex items-center justify-center">
+<div class="w-4 h-1 bg-[#222] rounded-full"></div>
+<div class="w-1 h-4 bg-[#222] rounded-full -ml-4"></div>
+</div>
+</div>
+</div>
+<!-- Decorative Background Overlay for the whole page -->
+<div class="fixed inset-0 pointer-events-none opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMTcyMjExIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMwMDAiLz4KPC9zdmc+')] z-[-1]"></div>
+</body></html>

@@ -11,11 +11,14 @@ def verify_password(password: str, hashed: str) -> bool:
     """Verify password against hash"""
     return hash_password(password) == hashed
 
-def create_jwt_token(player_id: str) -> str:
+def create_jwt_token(player_id: str, expires_hours: int = None) -> str:
     """Create JWT token for player"""
+    if expires_hours is None:
+        expires_hours = config.JWT_EXPIRATION_HOURS
+    
     payload = {
         'player_id': player_id,
-        'exp': datetime.utcnow() + timedelta(hours=config.JWT_EXPIRATION_HOURS),
+        'exp': datetime.utcnow() + timedelta(hours=expires_hours),
         'iat': datetime.utcnow()
     }
     return jwt.encode(payload, config.JWT_SECRET, algorithm=config.JWT_ALGORITHM)

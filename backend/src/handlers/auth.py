@@ -170,3 +170,149 @@ def me_handler(event, context):
     except Exception as e:
         print(f"Me error: {e}")
         return error_response(str(e), 500, 'INTERNAL_ERROR')
+
+def forgot_password_handler(event, context):
+    """POST /api/auth/forgot-password"""
+    import hashlib
+    from datetime import datetime, timedelta
+    from src.utils.email import send_password_reset_email
+    
+    try:
+        body = json.loads(event.get('body', '{}'))
+        email = body.get('email', '').strip().lower()
+        
+        if not email:
+            return error_response('Email required', 400, 'BAD_REQUEST')
+        
+        # Get IP for rate limiting
+        ip = event.get('requestContext', {}).get('identity', {}).get('sourceIp', 'unknown')
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                # Check rate limit
+                rate_key = f"forgot_password#{ip}"
+                cursor.execute("SELECT last_request FROM rate_limits WHERE id = %s", (rate_key,))
+                rate_result = cursor.fetchone()
+                
+                if rate_result:
+                    last_request = rate_result['last_request']
+                    if datetime.utcnow() - last_request < timedelta(minutes=5):
+                        return error_response('Too many requests. Try again in 5 minutes.', 429, 'TOO_MANY_REQUESTS')
+                
+                # Update rate limit
+                cursor.execute(
+                    "INSERT INTO rate_limits (id, last_request) VALUES (%s, NOW()) "
+                    "ON DUPLICATE KEY UPDATE last_request = NOW()",
+                    (rate_key,)
+                )
+                
+                # Look up player
+                cursor.execute("SELECT id, email FROM players WHERE email = %s", (email,))
+                player = cursor.fetchone()
+                
+                if player:
+                    # Generate token
+                    token = create_jwt_token(player['id'], expires_hours=1)
+                    token_hash = hashlib.sha256(token.encode()).hexdigest()
+                    expires_at = datetime.utcnow() + timedelta(hours=1)
+                    
+                    # Store token
+                    token_id = str(uuid.uuid4())
+                    cursor.execute(
+                        """INSERT INTO password_reset_tokens 
+                        (id, player_id, token_hash, expires_at) 
+                        VALUES (%s, %s, %s, %s)""",
+                        (token_id, player['id'], token_hash, expires_at)
+                    )
+                    
+                    # Send email
+                    frontend_url = config.FRONTEND_URL
+                    reset_link = f"{frontend_url}/reset-password?token={token}"
+                    expiry_time = expires_at.strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    try:
+                        send_password_reset_email(player['email'], reset_link, expiry_time)
+                        print(f"Password reset email sent to {player['email']}")
+                    except Exception as email_error:
+                        print(f"Failed to send email: {email_error}")
+                        import traceback
+                        traceback.print_exc()
+        
+        # Always return success (security: don't leak email existence)
+        return success_response({
+            'message': "If your frequency exists in our database, we've transmitted recovery coordinates to it."
+        })
+    
+    except Exception as e:
+        print(f"Forgot password error: {e}")
+        import traceback
+        traceback.print_exc()
+        return error_response('Failed to process request', 500, 'INTERNAL_ERROR')
+
+def reset_password_handler(event, context):
+    """POST /api/auth/reset-password"""
+    import hashlib
+    from datetime import datetime
+    from src.utils.auth_simple import decode_jwt_token
+    
+    try:
+        body = json.loads(event.get('body', '{}'))
+        token = body.get('token', '').strip()
+        new_password = body.get('newPassword', '').strip()
+        
+        if not token or not new_password:
+            return error_response('Token and new password required', 400, 'BAD_REQUEST')
+        
+        if len(new_password) < 6:
+            return error_response('Password must be at least 6 characters', 400, 'INVALID_PASSWORD')
+        
+        # Decode JWT
+        payload = decode_jwt_token(token)
+        if not payload:
+            return error_response('Reset link is invalid or expired', 401, 'INVALID_TOKEN')
+        
+        player_id = payload.get('player_id')
+        if not player_id:
+            return error_response('Invalid token format', 401, 'INVALID_TOKEN')
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                # Check token in database
+                token_hash = hashlib.sha256(token.encode()).hexdigest()
+                cursor.execute(
+                    """SELECT id, player_id, expires_at, used 
+                    FROM password_reset_tokens 
+                    WHERE token_hash = %s AND player_id = %s""",
+                    (token_hash, player_id)
+                )
+                token_record = cursor.fetchone()
+                
+                if not token_record:
+                    return error_response('Reset link is invalid or expired', 401, 'INVALID_TOKEN')
+                
+                if token_record['used']:
+                    return error_response('Reset link has already been used', 401, 'INVALID_TOKEN')
+                
+                if datetime.utcnow() > token_record['expires_at']:
+                    return error_response('Reset link has expired', 401, 'INVALID_TOKEN')
+                
+                # Update password
+                password_hash = hash_password(new_password)
+                cursor.execute(
+                    "UPDATE players SET password_hash = %s WHERE id = %s",
+                    (password_hash, player_id)
+                )
+                
+                # Mark token as used
+                cursor.execute(
+                    "UPDATE password_reset_tokens SET used = TRUE WHERE id = %s",
+                    (token_record['id'],)
+                )
+        
+        return success_response({'message': 'Password updated successfully'})
+    
+    except Exception as e:
+        print(f"Reset password error: {e}")
+        import traceback
+        traceback.print_exc()
+        return error_response('Failed to reset password', 500, 'INTERNAL_ERROR')

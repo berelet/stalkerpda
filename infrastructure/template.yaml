@@ -27,6 +27,25 @@ Parameters:
     Type: String
     Description: Your IP for RDS access (e.g., 1.2.3.4/32)
     Default: 0.0.0.0/0
+  
+  SMTPHost:
+    Type: String
+    Default: smtp.gmail.com
+    Description: SMTP server host
+  
+  SMTPPort:
+    Type: String
+    Default: '587'
+    Description: SMTP server port
+  
+  SMTPUser:
+    Type: String
+    Description: SMTP username (email address)
+  
+  SMTPPassword:
+    Type: String
+    NoEcho: true
+    Description: SMTP password (Google App Password)
 
 Globals:
   Function:
@@ -317,6 +336,40 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /api/auth/me
             Method: GET
+
+  ForgotPasswordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-forgot-password-${Environment}
+      Handler: src.handlers.auth.forgot_password_handler
+      CodeUri: ../backend/
+      Environment:
+        Variables:
+          SMTP_HOST: !Ref SMTPHost
+          SMTP_PORT: !Ref SMTPPort
+          SMTP_USER: !Ref SMTPUser
+          SMTP_PASSWORD: !Ref SMTPPassword
+      Events:
+        ForgotPassword:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/auth/forgot-password
+            Method: POST
+
+  ResetPasswordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-reset-password-${Environment}
+      Handler: src.handlers.auth.reset_password_handler
+      CodeUri: ../backend/
+      Events:
+        ResetPassword:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/auth/reset-password
+            Method: POST
 
   # Lambda - Players
   PlayersFunction:
