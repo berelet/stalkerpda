@@ -7,6 +7,7 @@ import SpawnArtifactsPage from './pages/SpawnArtifactsPage'
 import ZonesPage from './pages/ZonesPage'
 import ContractsPage from './pages/ContractsPage'
 import Layout from './components/Layout'
+import ProtectedRoute from './components/ProtectedRoute'
 import { useAuthStore } from './stores/authStore'
 
 function App() {
@@ -25,17 +26,19 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/players" element={<PlayersPage />} />
-          <Route path="/artifacts" element={<ArtifactsPage />} />
-          <Route path="/spawn-artifacts" element={<SpawnArtifactsPage />} />
-          <Route path="/zones" element={<ZonesPage />} />
-          <Route path="/contracts" element={<ContractsPage />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/players" element={<PlayersPage />} />
+            <Route path="/artifacts" element={<ArtifactsPage />} />
+            <Route path="/spawn-artifacts" element={<SpawnArtifactsPage />} />
+            <Route path="/zones" element={<ZonesPage />} />
+            <Route path="/contracts" element={<ContractsPage />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Layout>
+      </ProtectedRoute>
     </BrowserRouter>
   )
 }

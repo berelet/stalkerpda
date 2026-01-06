@@ -200,6 +200,8 @@ stalkerpda/
    - ✅ Unified Layout (Header with stats, Footer navigation)
    - ✅ Login/Register page with faction selection (English UI)
    - ✅ Auth store with JWT in cookies (not localStorage)
+   - ✅ **Auth validation** - Token check on page load and route changes ⭐ **NEW 2026-01-06**
+   - ✅ **ProtectedRoute** - Validates cookies/localStorage on every navigation ⭐ **NEW**
    - ✅ API client with auto token injection + CORS support
    - ✅ Google Translate widget (EN/RU/UK/EL) - collapsible button
    - ✅ Map page with Leaflet integration
@@ -219,6 +221,8 @@ stalkerpda/
 7. **Admin Panel (100%)**
    - ✅ Separate React app for Game Masters
    - ✅ GM authentication (requires is_gm=1 in database)
+   - ✅ **Auth validation** - Token check on page load and route changes ⭐ **NEW 2026-01-06**
+   - ✅ **ProtectedRoute** - Validates localStorage + GM status on every navigation ⭐ **NEW**
    - ✅ Dashboard with overview & stats
    - ✅ Players management page with search, filters, and status toggle
    - ✅ Artifacts spawning interface with interactive map and time controls
@@ -417,7 +421,21 @@ open https://d3gda670zz1dlb.cloudfront.net
 
 ## Known Issues & Notes
 
-### Security Note
+### Authentication & Security
+
+**Token Validation (2026-01-06):**
+- ✅ Both PDA and Admin validate JWT tokens on every page load and route change
+- ✅ PDA checks cookies directly (`pda_token`) via `ProtectedRoute` component
+- ✅ Admin checks localStorage (`admin-auth`) and validates GM status
+- ✅ Invalid/expired tokens trigger automatic logout and redirect to login
+- ✅ Works without page refresh - validates on SPA navigation
+
+**Implementation:**
+- `frontend/src/components/ProtectedRoute.tsx` - Validates cookies on route change
+- `admin/src/components/ProtectedRoute.tsx` - Validates localStorage + GM status
+- Both call `/api/auth/me` endpoint to verify token validity
+- `useEffect` with `location.pathname` dependency triggers on navigation
+
 **Password Hashing:** Currently using SHA256 for simplicity. This is NOT production-ready. For production, implement bcrypt using AWS Lambda Layers.
 
 ### Binary Dependencies Resolution
