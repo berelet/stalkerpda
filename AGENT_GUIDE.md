@@ -18,6 +18,19 @@ This project uses the **`stalker`** AWS profile exclusively.
 
 All AWS CLI commands and operations must use `--profile stalker` or set `AWS_PROFILE=stalker`.
 
+### AWS Credits Application
+
+We're applying for **$1,000 AWS Activate credits** to support MVP launch and beta testing.
+
+**Documentation:**
+- Full application: [PITCH.md](./PITCH.md)
+- Quick summary: [AWS_CREDITS_SUMMARY.md](./AWS_CREDITS_SUMMARY.md)
+- Public README: [README.md](./README.md)
+
+**Current monthly costs**: ~$44/month  
+**12-month projection**: $1,200 total  
+**Credits will cover**: 8-9 months of operations
+
 ## Deployed Infrastructure
 
 **Status:** ✅ DEPLOYED (2026-01-02)
@@ -152,7 +165,8 @@ stalkerpda/
    - ✅ Database schema designed - 18 tables (specs/database/schema.md)
    - ✅ API endpoints specified - 50+ endpoints (specs/api/endpoints.md)
    - ✅ Frontend UI/UX designed - 8 screens (specs/frontend/ui-spec.md)
-   - ✅ **Inventory system v2.0** - Equipment slots + backpack (specs/inventory-system-spec.md) **NEW 2026-01-03**
+   - ✅ **Inventory system v2.0** - Equipment slots + backpack (specs/inventory-system-spec.md)
+   - ✅ **Trading system** - Buy/sell with traders (specs/trading-system-spec.md) **NEW 2026-01-07**
 
 2. **Infrastructure (100%)**
    - ✅ AWS deployed and working
@@ -168,7 +182,14 @@ stalkerpda/
    - ✅ Seed data loaded:
      - 8 artifact types (Moonlight, Flash, Droplet, Fireball, Gravi, Crystal, Battery, Mica)
      - 9 equipment types (3 armors, 3 rings, 3 anti-rads)
-   - ⏳ **Inventory v2.0 migration pending** (003_inventory_system_v2.sql) **NEW**
+   - ✅ **Trading system tables** (004_trading_system.sql) **NEW 2026-01-07**
+     - item_definitions (7 items: medkit, bandage, anti-rad, BBs, beer, energy drink, food)
+     - player_items (backpack)
+     - traders (NPC: Sidorovich)
+     - trader_inventory
+     - trade_sessions
+     - trade_transactions
+   - ⏳ **Inventory v2.0 migration pending** (003_inventory_system_v2.sql)
 
 4. **Backend (100%)**
    - ✅ Configuration system (src/config.py)
@@ -177,7 +198,7 @@ stalkerpda/
    - ✅ Geolocation utilities - Haversine distance (src/utils/geo.py)
    - ✅ Game mechanics utilities - loot, prices (src/utils/game.py)
    - ✅ Auth middleware - @require_auth, @require_gm (src/middleware/auth.py)
-   - ✅ **ALL 8 HANDLERS FULLY IMPLEMENTED AND TESTED:**
+   - ✅ **ALL 9 HANDLERS FULLY IMPLEMENTED:**
      - auth.py (login, register, me) ✅
      - location.py (update with zone/artifact detection) ✅
      - artifacts.py (list, extract, complete, cancel, drop) ✅
@@ -186,7 +207,8 @@ stalkerpda/
      - zones.py (list, capture, complete, cancel) ✅
      - admin.py (players map, history, spawn artifacts, create zones) ✅
      - websocket.py (connect, disconnect, message) ✅
-   - ⏳ **Inventory handler pending** (inventory.py with 6 endpoints) **NEW**
+     - **trade.py (session, catalog, backpack, buy, sell, redeem)** ✅ **NEW 2026-01-07**
+   - ⏳ **Inventory handler pending** (inventory.py with 6 endpoints)
 
 5. **Testing (100%)**
    - ✅ Smoke test suite (tests/smoke-test.sh)

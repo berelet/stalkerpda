@@ -913,6 +913,91 @@ Resources:
             Path: /api/admin/artifact-types/{id}
             Method: DELETE
 
+  # Trade Functions
+  TradeStartSessionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-trade-start-session-${Environment}
+      Handler: src.handlers.trade.start_session_handler
+      CodeUri: ../backend/
+      Events:
+        StartSession:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/trade/session/start
+            Method: POST
+
+  TradeGetCatalogFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-trade-catalog-${Environment}
+      Handler: src.handlers.trade.get_catalog_handler
+      CodeUri: ../backend/
+      Events:
+        GetCatalog:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/trade/catalog
+            Method: GET
+
+  TradeGetBackpackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-trade-backpack-${Environment}
+      Handler: src.handlers.trade.get_backpack_handler
+      CodeUri: ../backend/
+      Events:
+        GetBackpack:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/trade/backpack
+            Method: GET
+
+  TradeBuyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-trade-buy-${Environment}
+      Handler: src.handlers.trade.buy_handler
+      CodeUri: ../backend/
+      Events:
+        Buy:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/trade/buy
+            Method: POST
+
+  TradeSellFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-trade-sell-${Environment}
+      Handler: src.handlers.trade.sell_handler
+      CodeUri: ../backend/
+      Events:
+        Sell:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/trade/sell
+            Method: POST
+
+  TradeRedeemFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-trade-redeem-${Environment}
+      Handler: src.handlers.trade.redeem_handler
+      CodeUri: ../backend/
+      Events:
+        Redeem:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/trade/redeem
+            Method: POST
+
   # WebSocket API
   WebSocketApi:
     Type: AWS::ApiGatewayV2::Api
