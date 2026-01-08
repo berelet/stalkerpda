@@ -796,7 +796,7 @@ def sell_handler(event, context):
                             'body': json.dumps({'error': 'INVALID_QUANTITY'})
                         }
                     
-                    unit_price = round(item_info['base_price'] * (1 - commission / 100))
+                    unit_price = round(float(item_info['base_price']) * (1 - float(commission) / 100))
                     total_amount += unit_price * quantity
                     
                     lines.append({
