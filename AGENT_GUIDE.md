@@ -49,8 +49,8 @@ This command:
 | **Quick fix 1-2 functions** | AWS CLI direct update | 15-30 sec |
 | **Changes to template.yaml** | Full `sam deploy` | 3-5 min |
 | **Production release** | Full `sam deploy` | 3-5 min |
-| **Frontend changes** | `make deploy-fe` | 1-2 min |
-| **Admin panel changes** | `make deploy-admin` | 1-2 min |
+| **Frontend changes** | `npm build` + `s3 sync` + **CloudFront invalidation** | 1-2 min |
+| **Admin panel changes** | `npm build` + `s3 sync` + **CloudFront invalidation** | 1-2 min |
 
 ### Why SAM Sync?
 
@@ -427,6 +427,10 @@ make deploy-fe ENVIRONMENT=dev
 
 # Admin panel only
 make deploy-admin ENVIRONMENT=dev
+
+# ⚠️ IMPORTANT: After deploying frontend/admin, invalidate CloudFront cache!
+aws cloudfront create-invalidation --distribution-id E1LX6WLS4JUEVL --paths "/*" --profile stalker  # Frontend
+aws cloudfront create-invalidation --distribution-id E3FHC7M1Y2KICX --paths "/*" --profile stalker  # Admin
 
 # Check status
 ./infrastructure/scripts/check-status.sh
