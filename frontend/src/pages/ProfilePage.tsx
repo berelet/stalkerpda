@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { api } from '../services/api'
 
@@ -21,6 +22,7 @@ interface PlayerData {
 }
 
 export default function ProfilePage() {
+  const navigate = useNavigate()
   const { clearAuth } = useAuthStore()
   const [player, setPlayer] = useState<PlayerData | null>(null)
 
@@ -38,6 +40,7 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     clearAuth()
+    navigate('/login')
   }
 
   if (!player) {
