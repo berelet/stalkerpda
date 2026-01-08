@@ -352,6 +352,20 @@ Resources:
             Path: /api/auth/me
             Method: GET
 
+  LogoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-logout-${Environment}
+      Handler: auth.logout_handler
+      CodeUri: ../handlers/
+      Events:
+        Logout:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/auth/logout
+            Method: POST
+
   ForgotPasswordFunction:
     Type: AWS::Serverless::Function
     Properties:
