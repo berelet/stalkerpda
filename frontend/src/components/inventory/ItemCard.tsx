@@ -31,11 +31,18 @@ export default function ItemCard({ item, isEquipped, onClick }: ItemCardProps) {
       onClick={onClick}
       className={`
         bg-pda-case-dark border-2 p-3 cursor-pointer
-        hover:bg-pda-primary/10 transition-colors
+        hover:bg-pda-primary/10 transition-colors relative
         ${isEquipped ? 'border-pda-highlight shadow-lg' : 'border-pda-primary/30'}
         ${item.itemType === 'artifact' ? getRarityColor(item.rarity) : ''}
       `}
     >
+      {/* Quantity badge for consumables */}
+      {item.itemType === 'consumable' && item.quantity && item.quantity > 1 && (
+        <div className="absolute bottom-1 right-1 bg-pda-highlight text-pda-case-dark text-xs font-bold px-2 py-0.5 rounded">
+          x{item.quantity}
+        </div>
+      )}
+      
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -43,6 +50,7 @@ export default function ItemCard({ item, isEquipped, onClick }: ItemCardProps) {
               <span className="text-lg">{getCategoryIcon(item.category)}</span>
             )}
             {item.itemType === 'artifact' && <span className="text-lg">💎</span>}
+            {item.itemType === 'consumable' && <span className="text-lg">{getCategoryIcon('consumable')}</span>}
             <div className="text-pda-highlight font-medium text-sm">{item.name}</div>
           </div>
           
@@ -53,6 +61,12 @@ export default function ItemCard({ item, isEquipped, onClick }: ItemCardProps) {
           )}
           
           {item.itemType === 'equipment' && (
+            <div className="text-xs text-pda-text/70 uppercase mt-1">
+              {item.category}
+            </div>
+          )}
+          
+          {item.itemType === 'consumable' && (
             <div className="text-xs text-pda-text/70 uppercase mt-1">
               {item.category}
             </div>

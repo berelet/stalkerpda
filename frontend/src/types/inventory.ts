@@ -24,7 +24,21 @@ export interface ArtifactItem {
   }
 }
 
-export type InventoryItem = EquipmentItem | ArtifactItem
+export interface ConsumableItem {
+  id: string
+  typeId: string
+  name: string
+  category: 'medicine' | 'ammunition' | 'food' | 'drink'
+  itemType: 'consumable'
+  quantity: number
+  isStackable: boolean
+  extraLives?: number
+  imageUrl?: string
+  description?: string
+  basePrice: number
+}
+
+export type InventoryItem = EquipmentItem | ArtifactItem | ConsumableItem
 
 export interface EquippedItems {
   armor: EquipmentItem | null

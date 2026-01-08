@@ -52,6 +52,8 @@ Globals:
     Runtime: python3.12
     Timeout: 30
     MemorySize: 256
+    Layers:
+      - !Ref CommonLayer
     Environment:
       Variables:
         ENVIRONMENT: !Ref Environment
@@ -66,6 +68,19 @@ Globals:
         ARTIFACTS_BUCKET: !Ref ArtifactImagesBucket
 
 Resources:
+  # Common Lambda Layer with shared code and dependencies
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub pda-zone-common-${Environment}
+      Description: Common code and dependencies for PDA Zone Lambda functions
+      ContentUri: ../layer/
+      CompatibleRuntimes:
+        - python3.12
+      RetentionPolicy: Delete
+    Metadata:
+      BuildMethod: python3.12
+
   # RDS MySQL (Public Access)
   DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -292,15 +307,15 @@ Resources:
         AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
         AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"
-        MaxAge: "'3600'"
+        MaxAge: "'86400'"
 
   # Lambda - Auth
   LoginFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-login-${Environment}
-      Handler: src.handlers.auth.login_handler
-      CodeUri: ../backend/
+      Handler: auth.login_handler
+      CodeUri: ../handlers/
       Events:
         Login:
           Type: Api
@@ -313,8 +328,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-register-${Environment}
-      Handler: src.handlers.auth.register_handler
-      CodeUri: ../backend/
+      Handler: auth.register_handler
+      CodeUri: ../handlers/
       Events:
         Register:
           Type: Api
@@ -327,8 +342,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-me-${Environment}
-      Handler: src.handlers.auth.me_handler
-      CodeUri: ../backend/
+      Handler: auth.me_handler
+      CodeUri: ../handlers/
       Events:
         GetMe:
           Type: Api
@@ -341,8 +356,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-forgot-password-${Environment}
-      Handler: src.handlers.auth.forgot_password_handler
-      CodeUri: ../backend/
+      Handler: auth.forgot_password_handler
+      CodeUri: ../handlers/
       Environment:
         Variables:
           SMTP_HOST: !Ref SMTPHost
@@ -361,8 +376,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-reset-password-${Environment}
-      Handler: src.handlers.auth.reset_password_handler
-      CodeUri: ../backend/
+      Handler: auth.reset_password_handler
+      CodeUri: ../handlers/
       Events:
         ResetPassword:
           Type: Api
@@ -376,8 +391,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-players-${Environment}
-      Handler: src.handlers.players.handler
-      CodeUri: ../backend/
+      Handler: players.handler
+      CodeUri: ../handlers/
       Events:
         GetPlayers:
           Type: Api
@@ -403,8 +418,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-location-update-${Environment}
-      Handler: src.handlers.location.update_handler
-      CodeUri: ../backend/
+      Handler: location.update_handler
+      CodeUri: ../handlers/
       Events:
         UpdateLocation:
           Type: Api
@@ -430,8 +445,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-artifacts-${Environment}
-      Handler: src.handlers.artifacts.handler
-      CodeUri: ../backend/
+      Handler: artifacts.handler
+      CodeUri: ../handlers/
       Events:
         GetArtifacts:
           Type: Api
@@ -445,8 +460,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-artifact-extract-start-${Environment}
-      Handler: src.handlers.artifacts.start_extraction_handler
-      CodeUri: ../backend/
+      Handler: artifacts.start_extraction_handler
+      CodeUri: ../handlers/
       Events:
         StartExtraction:
           Type: Api
@@ -460,8 +475,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-artifact-extract-complete-${Environment}
-      Handler: src.handlers.artifacts.complete_extraction_handler
-      CodeUri: ../backend/
+      Handler: artifacts.complete_extraction_handler
+      CodeUri: ../handlers/
       Events:
         CompleteExtraction:
           Type: Api
@@ -475,8 +490,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-artifact-extract-cancel-${Environment}
-      Handler: src.handlers.artifacts.cancel_extraction_handler
-      CodeUri: ../backend/
+      Handler: artifacts.cancel_extraction_handler
+      CodeUri: ../handlers/
       Events:
         CancelExtraction:
           Type: Api
@@ -490,8 +505,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-artifact-drop-${Environment}
-      Handler: src.handlers.artifacts.drop_handler
-      CodeUri: ../backend/
+      Handler: artifacts.drop_handler
+      CodeUri: ../handlers/
       Events:
         DropArtifact:
           Type: Api
@@ -505,8 +520,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-artifact-sell-${Environment}
-      Handler: src.handlers.artifacts.sell_handler
-      CodeUri: ../backend/
+      Handler: artifacts.sell_handler
+      CodeUri: ../handlers/
       Events:
         SellArtifact:
           Type: Api
@@ -524,8 +539,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-inventory-get-${Environment}
-      Handler: src.handlers.inventory.get_inventory_handler
-      CodeUri: ../backend/
+      Handler: inventory.get_inventory_handler
+      CodeUri: ../handlers/
       Events:
         GetInventory:
           Type: Api
@@ -539,8 +554,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-inventory-equip-${Environment}
-      Handler: src.handlers.inventory.equip_item_handler
-      CodeUri: ../backend/
+      Handler: inventory.equip_item_handler
+      CodeUri: ../handlers/
       Events:
         EquipItem:
           Type: Api
@@ -554,8 +569,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-inventory-unequip-${Environment}
-      Handler: src.handlers.inventory.unequip_item_handler
-      CodeUri: ../backend/
+      Handler: inventory.unequip_item_handler
+      CodeUri: ../handlers/
       Events:
         UnequipItem:
           Type: Api
@@ -569,8 +584,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-inventory-use-${Environment}
-      Handler: src.handlers.inventory.use_consumable_handler
-      CodeUri: ../backend/
+      Handler: inventory.use_consumable_handler
+      CodeUri: ../handlers/
       Events:
         UseConsumable:
           Type: Api
@@ -584,8 +599,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-inventory-drop-${Environment}
-      Handler: src.handlers.inventory.drop_item_handler
-      CodeUri: ../backend/
+      Handler: inventory.drop_item_handler
+      CodeUri: ../handlers/
       Events:
         DropItem:
           Type: Api
@@ -599,8 +614,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-inventory-sell-${Environment}
-      Handler: src.handlers.inventory.sell_item_handler
-      CodeUri: ../backend/
+      Handler: inventory.sell_item_handler
+      CodeUri: ../handlers/
       Events:
         SellItem:
           Type: Api
@@ -618,8 +633,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-contracts-${Environment}
-      Handler: src.handlers.contracts.handler
-      CodeUri: ../backend/
+      Handler: contracts.handler
+      CodeUri: ../handlers/
       Events:
         GetContracts:
           Type: Api
@@ -645,8 +660,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-zones-${Environment}
-      Handler: src.handlers.zones.handler
-      CodeUri: ../backend/
+      Handler: zones.handler
+      CodeUri: ../handlers/
       Events:
         GetZones:
           Type: Api
@@ -666,8 +681,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-admin-${Environment}
-      Handler: src.handlers.admin.handler
-      CodeUri: ../backend/
+      Handler: admin.handler
+      CodeUri: ../handlers/
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ConnectionsTable
@@ -719,8 +734,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-admin-spawn-artifact-${Environment}
-      Handler: src.handlers.admin.spawn_artifact_handler
-      CodeUri: ../backend/
+      Handler: admin.spawn_artifact_handler
+      CodeUri: ../handlers/
       Events:
         SpawnArtifact:
           Type: Api
@@ -733,8 +748,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-admin-${Environment}
-      Handler: src.handlers.admin.handler
-      CodeUri: ../backend/
+      Handler: admin.handler
+      CodeUri: ../handlers/
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ConnectionsTable
@@ -792,8 +807,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-admin-get-spawned-artifacts-${Environment}
-      Handler: src.handlers.admin.get_spawned_artifacts_handler
-      CodeUri: ../backend/
+      Handler: admin.get_spawned_artifacts_handler
+      CodeUri: ../handlers/
       Events:
         GetSpawnedArtifacts:
           Type: Api
@@ -807,8 +822,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-admin-delete-artifact-${Environment}
-      Handler: src.handlers.admin.delete_artifact_handler
-      CodeUri: ../backend/
+      Handler: admin.delete_artifact_handler
+      CodeUri: ../handlers/
       Events:
         DeleteArtifact:
           Type: Api
@@ -822,8 +837,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-admin-reset-artifact-${Environment}
-      Handler: src.handlers.admin.reset_artifact_to_map_handler
-      CodeUri: ../backend/
+      Handler: admin.reset_artifact_to_map_handler
+      CodeUri: ../handlers/
       Events:
         ResetArtifact:
           Type: Api
@@ -837,8 +852,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-admin-remove-reset-artifact-${Environment}
-      Handler: src.handlers.admin.remove_and_reset_artifact_handler
-      CodeUri: ../backend/
+      Handler: admin.remove_and_reset_artifact_handler
+      CodeUri: ../handlers/
       Events:
         RemoveAndResetArtifact:
           Type: Api
@@ -852,8 +867,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-admin-player-update-${Environment}
-      Handler: src.handlers.admin.update_player_handler
-      CodeUri: ../backend/
+      Handler: admin.update_player_handler
+      CodeUri: ../handlers/
       Events:
         UpdatePlayer:
           Type: Api
@@ -868,7 +883,8 @@ Resources:
     Properties:
       FunctionName: !Sub pda-zone-upload-${Environment}
       Handler: src.handlers.upload.upload_handler
-      CodeUri: ../backend/
+      CodeUri: ../backend-upload/
+      Layers: []  # Override global - this function has its own dependencies
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref ArtifactImagesBucket
@@ -885,8 +901,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-artifact-types-${Environment}
-      Handler: src.handlers.artifact_types.handler
-      CodeUri: ../backend/
+      Handler: artifact_types.handler
+      CodeUri: ../handlers/
       Events:
         CreateArtifactType:
           Type: Api
@@ -914,12 +930,26 @@ Resources:
             Method: DELETE
 
   # Trade Functions
+  TradeGetTradersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-trade-traders-${Environment}
+      Handler: trade.get_traders_handler
+      CodeUri: ../handlers/
+      Events:
+        GetTraders:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/traders
+            Method: GET
+
   TradeStartSessionFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-trade-start-session-${Environment}
-      Handler: src.handlers.trade.start_session_handler
-      CodeUri: ../backend/
+      Handler: trade.start_session_handler
+      CodeUri: ../handlers/
       Events:
         StartSession:
           Type: Api
@@ -932,8 +962,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-trade-catalog-${Environment}
-      Handler: src.handlers.trade.get_catalog_handler
-      CodeUri: ../backend/
+      Handler: trade.get_catalog_handler
+      CodeUri: ../handlers/
       Events:
         GetCatalog:
           Type: Api
@@ -946,8 +976,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-trade-backpack-${Environment}
-      Handler: src.handlers.trade.get_backpack_handler
-      CodeUri: ../backend/
+      Handler: trade.get_backpack_handler
+      CodeUri: ../handlers/
       Events:
         GetBackpack:
           Type: Api
@@ -960,8 +990,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-trade-buy-${Environment}
-      Handler: src.handlers.trade.buy_handler
-      CodeUri: ../backend/
+      Handler: trade.buy_handler
+      CodeUri: ../handlers/
       Events:
         Buy:
           Type: Api
@@ -974,8 +1004,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-trade-sell-${Environment}
-      Handler: src.handlers.trade.sell_handler
-      CodeUri: ../backend/
+      Handler: trade.sell_handler
+      CodeUri: ../handlers/
       Events:
         Sell:
           Type: Api
@@ -988,8 +1018,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-trade-redeem-${Environment}
-      Handler: src.handlers.trade.redeem_handler
-      CodeUri: ../backend/
+      Handler: trade.redeem_handler
+      CodeUri: ../handlers/
       Events:
         Redeem:
           Type: Api
@@ -1062,8 +1092,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-ws-connect-${Environment}
-      Handler: src.handlers.websocket.connect_handler
-      CodeUri: ../backend/
+      Handler: websocket.connect_handler
+      CodeUri: ../handlers/
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ConnectionsTable
@@ -1072,8 +1102,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-ws-disconnect-${Environment}
-      Handler: src.handlers.websocket.disconnect_handler
-      CodeUri: ../backend/
+      Handler: websocket.disconnect_handler
+      CodeUri: ../handlers/
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ConnectionsTable
@@ -1082,8 +1112,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-ws-message-${Environment}
-      Handler: src.handlers.websocket.message_handler
-      CodeUri: ../backend/
+      Handler: websocket.message_handler
+      CodeUri: ../handlers/
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ConnectionsTable

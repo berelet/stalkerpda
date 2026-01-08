@@ -1,0 +1,72 @@
+import { useEffect, useState } from 'react'
+import { Marker, Popup } from 'react-leaflet'
+import { Icon } from 'leaflet'
+import { useNavigate } from 'react-router-dom'
+import { api } from '../../services/api'
+
+interface Trader {
+  id: string
+  name: string
+  type: 'npc' | 'bartender'
+  latitude: number
+  longitude: number
+  interaction_radius: number
+  is_active: boolean
+}
+
+const traderIcon = new Icon({
+  iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <text x="12" y="16" text-anchor="middle" fill="#FFD700" font-size="12" font-weight="bold">$</text>
+    </svg>
+  `),
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
+})
+
+export default function TraderMarkers() {
+  const [traders, setTraders] = useState<Trader[]>([])
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const fetchTraders = async () => {
+      try {
+        const { data } = await api.get('/api/traders')
+        setTraders(data.traders || [])
+      } catch (err) {
+        console.error('Failed to fetch traders:', err)
+      }
+    }
+
+    fetchTraders()
+  }, [])
+
+  return (
+    <>
+      {traders.map(trader => (
+        <Marker
+          key={trader.id}
+          position={[trader.latitude, trader.longitude]}
+          icon={traderIcon}
+        >
+          <Popup>
+            <div className="text-sm space-y-2">
+              <div className="font-bold text-yellow-600">{trader.name}</div>
+              <div className="text-xs text-gray-600">
+                {trader.type === 'npc' ? 'NPC Trader' : 'Bartender'}
+              </div>
+              <button
+                onClick={() => navigate(`/trade?trader=${trader.id}`)}
+                className="w-full px-3 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700"
+              >
+                TRADE
+              </button>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </>
+  )
+}

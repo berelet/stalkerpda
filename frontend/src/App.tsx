@@ -11,6 +11,7 @@ import InventoryPage from './pages/InventoryPage'
 import ContractsPage from './pages/ContractsPage'
 import ProfilePage from './pages/ProfilePage'
 import WikiPage from './pages/WikiPage'
+import TradingPage from './pages/TradingPage'
 
 function App() {
   const { token, initAuth } = useAuthStore()
@@ -31,10 +32,12 @@ function App() {
           </ProtectedRoute>
         }>
           <Route index element={<MapPage />} />
+          <Route path="map" element={<MapPage />} />
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="contracts" element={<ContractsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="wiki" element={<WikiPage />} />
+          <Route path="trade" element={<TradingPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

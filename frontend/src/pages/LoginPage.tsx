@@ -33,13 +33,10 @@ export default function LoginPage() {
         ? { email, password, nickname, faction }
         : { email, password }
       
-      console.log('Sending request to:', endpoint, payload)
       const { data } = await api.post(endpoint, payload)
-      console.log('Response:', data)
       setAuth(data.token, data.id, data.nickname)
     } catch (err: any) {
-      console.error('Error:', err.response || err)
-      const errorMsg = err.response?.data?.error || err.response?.data?.message || err.message || (isRegister ? 'Registration failed' : 'Login failed')
+      const errorMsg = err.response?.data?.error?.message || err.response?.data?.message || (isRegister ? 'Registration failed' : 'Login failed')
       setError(errorMsg)
     } finally {
       setLoading(false)

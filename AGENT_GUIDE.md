@@ -18,6 +18,100 @@ This project uses the **`stalker`** AWS profile exclusively.
 
 All AWS CLI commands and operations must use `--profile stalker` or set `AWS_PROFILE=stalker`.
 
+## 🚀 Development Workflow - START HERE!
+
+**⚠️ IMPORTANT: Before making any code changes, start `sam sync` for automatic deployments!**
+
+### Quick Start (Run This First!)
+
+```bash
+cd /var/www/stalker/stalkerpda
+source .env.local
+sam sync --template infrastructure/template.yaml \
+  --stack-name pda-zone-dev \
+  --watch \
+  --profile stalker \
+  --region eu-north-1 \
+  --parameter-overrides Environment=dev DBUsername=pda_admin DBPassword=$DB_PASSWORD JWTSecret=$JWT_SECRET AllowedIP=0.0.0.0/0
+```
+
+This command:
+- Watches for file changes in `backend/` folder
+- Automatically deploys changed Lambda functions in **10-20 seconds**
+- No need to manually run deploy commands
+- Keep this terminal open while developing
+
+### Deployment Strategy
+
+| Situation | What to Use | Time |
+|-----------|-------------|------|
+| **Active development** | `sam sync --watch` (keep running) | 10-20 sec per change |
+| **Quick fix 1-2 functions** | AWS CLI direct update | 15-30 sec |
+| **Changes to template.yaml** | Full `sam deploy` | 3-5 min |
+| **Production release** | Full `sam deploy` | 3-5 min |
+| **Frontend changes** | `make deploy-fe` | 1-2 min |
+| **Admin panel changes** | `make deploy-admin` | 1-2 min |
+
+### Why SAM Sync?
+
+Without `sam sync`, SAM caches the Lambda code zip and may not update functions even after code changes. `sam sync --watch` solves this by:
+1. Detecting file changes automatically
+2. Building only changed functions
+3. Uploading directly to Lambda (bypassing CloudFormation)
+4. Providing instant feedback
+
+### Direct Lambda Update (Alternative)
+
+If `sam sync` is not running and you need a quick fix:
+
+```bash
+# 1. Build first (if not already built)
+sam build --template infrastructure/template.yaml
+
+# 2. Create zip from build
+cd .aws-sam/build/MeFunction && zip -r /tmp/code.zip . -q
+
+# 3. Upload to S3 and update Lambda
+aws s3 cp /tmp/code.zip s3://pda-zone-artifacts-dev-707694916945/lambda/code.zip --profile stalker --region eu-north-1
+aws lambda update-function-code \
+  --function-name pda-zone-me-dev \
+  --s3-bucket pda-zone-artifacts-dev-707694916945 \
+  --s3-key lambda/code.zip \
+  --profile stalker --region eu-north-1
+```
+
+### Build Optimization (2026-01-08)
+
+**Problem solved:** Build size reduced from 1.9 GB to 725 MB by:
+- Removing `boto3` from requirements.txt (already in Lambda runtime)
+- Moving `Pillow` to separate `backend-upload/` folder (only needed for UploadFunction)
+- Deleting old `backend/package/` cache folder
+
+**Current function sizes:**
+- Regular functions: ~19 MB
+- UploadFunction (with Pillow): ~21 MB
+
+**⚠️ Never add `boto3` to requirements.txt** - it's already available in Lambda runtime and adds 55 MB of unnecessary bloat.
+
+### Future Optimization: Lambda Layers
+
+For even faster deployments, consider migrating to Lambda Layers:
+
+```
+Current:                            With Layers:
+────────────────────────────────────────────────────────
+40 functions × 19 MB = 760 MB       1 Layer (19 MB) + 40 handlers (50 KB each)
+                                    = 21 MB total
+
+Deploy time: 3-5 min                Deploy handler: 5-10 sec
+                                    Deploy layer: 1-2 min
+```
+
+Layer contains: `src/`, `pymysql`, `geopy`, `pyjwt`
+Functions contain: only handler code
+
+This is a larger refactoring task - implement when needed.
+
 ### AWS Credits Application
 
 We're applying for **$1,000 AWS Activate credits** to support MVP launch and beta testing.
@@ -310,20 +404,23 @@ expires_at TIMESTAMP NULL  -- When artifact becomes inactive
 ## Quick Commands
 
 ### Deployment
-```bash
-# Load secrets
-source .env.local
 
-# Full deployment (infrastructure + Lambda code)
+**⚠️ See "Development Workflow" section above for recommended approach!**
+
+```bash
+# RECOMMENDED: Start sam sync for automatic deployments
+source .env.local
+sam sync --template infrastructure/template.yaml \
+  --stack-name pda-zone-dev --watch --profile stalker --region eu-north-1 \
+  --parameter-overrides Environment=dev DBUsername=pda_admin DBPassword=$DB_PASSWORD JWTSecret=$JWT_SECRET AllowedIP=0.0.0.0/0
+
+# Full deployment (only when changing template.yaml or for releases)
 sam build --template infrastructure/template.yaml
 sam deploy --template-file .aws-sam/build/template.yaml \
   --stack-name pda-zone-dev --region eu-north-1 \
   --capabilities CAPABILITY_IAM --resolve-s3 \
   --parameter-overrides Environment=dev DBUsername=pda_admin DBPassword=$DB_PASSWORD JWTSecret=$JWT_SECRET AllowedIP=0.0.0.0/0 \
   --no-confirm-changeset --profile stalker
-
-# Or use Makefile
-make deploy ENVIRONMENT=dev
 
 # Frontend only
 make deploy-fe ENVIRONMENT=dev

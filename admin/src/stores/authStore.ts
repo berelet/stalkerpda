@@ -1,72 +1,75 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
 interface AuthState {
-  token: string | null
   isAuthenticated: boolean
+  nickname: string | null
   login: (email: string, password: string) => Promise<void>
   logout: () => void
-  validateToken: () => Promise<boolean>
+  checkAuth: () => Promise<boolean>
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      token: null,
-      isAuthenticated: false,
-      login: async (email: string, password: string) => {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        })
-        
-        if (!response.ok) throw new Error('Login failed')
-        
-        const data = await response.json()
-        
-        // Check if user is GM
-        if (!data.is_gm) {
-          throw new Error('Not a GM')
-        }
-        
-        set({ token: data.token, isAuthenticated: true })
-      },
-      logout: () => {
-        set({ token: null, isAuthenticated: false })
-      },
-      validateToken: async () => {
-        const token = get().token
-        if (!token) {
-          set({ isAuthenticated: false })
-          return false
-        }
+const API_URL = import.meta.env.VITE_API_URL
 
-        try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-          
-          if (!response.ok) {
-            set({ token: null, isAuthenticated: false })
-            return false
-          }
-
-          const data = await response.json()
-          if (!data.is_gm) {
-            set({ token: null, isAuthenticated: false })
-            return false
-          }
-          
-          return true
-        } catch {
-          set({ token: null, isAuthenticated: false })
-          return false
-        }
-      }
-    }),
-    {
-      name: 'admin-auth',
+export const useAuthStore = create<AuthState>((set) => ({
+  isAuthenticated: !!localStorage.getItem('token'),
+  nickname: localStorage.getItem('nickname'),
+  
+  login: async (email: string, password: string) => {
+    const response = await fetch(`${API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    
+    if (!response.ok) throw new Error('Login failed')
+    
+    const data = await response.json()
+    
+    if (!data.is_gm) throw new Error('Not a GM')
+    
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('nickname', data.nickname)
+    set({ isAuthenticated: true, nickname: data.nickname })
+  },
+  
+  logout: () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('nickname')
+    set({ isAuthenticated: false, nickname: null })
+  },
+  
+  checkAuth: async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      set({ isAuthenticated: false, nickname: null })
+      return false
     }
-  )
-)
+    
+    try {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      
+      if (!response.ok) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('nickname')
+        set({ isAuthenticated: false, nickname: null })
+        return false
+      }
+
+      const data = await response.json()
+      if (data.role !== 'gm') {
+        localStorage.removeItem('token')
+        localStorage.removeItem('nickname')
+        set({ isAuthenticated: false, nickname: null })
+        return false
+      }
+      
+      set({ isAuthenticated: true, nickname: data.nickname })
+      return true
+    } catch {
+      set({ isAuthenticated: false, nickname: null })
+      return false
+    }
+  }
+}))

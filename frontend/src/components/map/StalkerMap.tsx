@@ -4,6 +4,7 @@ import { Icon } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { NearbyArtifact } from '../../hooks/useLocationTracking'
 import ArtifactModal from '../artifacts/ArtifactModal'
+import TraderMarkers from './TraderMarkers'
 
 interface MapProps {
   latitude: number
@@ -86,6 +87,9 @@ export default function StalkerMap({ latitude, longitude, accuracy, zoom = 16, n
             }}
           />
         )}
+
+        {/* Trader markers */}
+        <TraderMarkers />
 
         {/* Artifact markers */}
         {visibleArtifacts.map(artifact => (

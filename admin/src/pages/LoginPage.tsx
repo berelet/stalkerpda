@@ -20,6 +20,7 @@ export default function LoginPage() {
       await login(email, password)
       navigate('/')
     } catch (err) {
+      console.error('Login error:', err)
       setError('Invalid credentials or not a GM')
     } finally {
       setLoading(false)

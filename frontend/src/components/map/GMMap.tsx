@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import { DivIcon } from 'leaflet'
 import { FACTION_CONFIG, Faction } from '../../utils/factions'
+import TraderMarkers from './TraderMarkers'
 import 'leaflet/dist/leaflet.css'
 
 interface Player {
@@ -89,6 +90,9 @@ export default function GMMap({ players, center, zoom = 14 }: GMMapProps) {
           </Marker>
         )
       })}
+
+      {/* Trader markers */}
+      <TraderMarkers />
     </MapContainer>
   )
 }
