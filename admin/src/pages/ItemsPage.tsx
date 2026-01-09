@@ -233,12 +233,36 @@ function ItemModal({ item, onClose, onSave, isUploading, setIsUploading }: ItemM
   })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState(item?.image_url || '')
+  const [isDragging, setIsDragging] = useState(false)
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (file: File) => {
+    setImageFile(file)
+    const reader = new FileReader()
+    reader.onloadend = () => setImagePreview(reader.result as string)
+    reader.readAsDataURL(file)
+  }
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      setImageFile(file)
-      setImagePreview(URL.createObjectURL(file))
+    if (file) handleImageChange(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      handleImageChange(file)
     }
   }
 
@@ -412,16 +436,40 @@ function ItemModal({ item, onClose, onSave, isUploading, setIsUploading }: ItemM
           </div>
 
           <div>
-            <label className="block text-gray-300 mb-1">Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white"
-            />
-            {imagePreview && (
-              <img src={imagePreview} alt="Preview" className="mt-2 w-32 h-32 object-cover rounded" />
-            )}
+            <label className="block text-gray-300 mb-2">Image</label>
+            <div className="flex gap-4">
+              {/* Preview */}
+              <div className="w-32 h-32 rounded-lg bg-gray-800 border-2 border-dashed border-gray-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {imagePreview ? (
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-gray-500 text-4xl">📷</span>
+                )}
+              </div>
+
+              {/* Upload Area */}
+              <label
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`flex-1 flex flex-col items-center justify-center gap-2 px-4 py-6 bg-gray-800 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                  isDragging
+                    ? 'border-green-500 bg-green-900/20'
+                    : 'border-gray-600 hover:border-green-500 hover:bg-gray-750'
+                }`}
+              >
+                <span className="text-green-400 text-3xl">⬆️</span>
+                <span className="text-sm text-gray-300">Click to upload or drag and drop</span>
+                <span className="text-xs text-gray-500">PNG, JPG, WEBP (max 2MB)</span>
+                <span className="text-xs text-gray-500">Auto-resize to 400x400</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileInput}
+                  className="hidden"
+                />
+              </label>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4">
