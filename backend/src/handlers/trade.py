@@ -303,10 +303,17 @@ def get_backpack_handler(event, context):
                         pi.id as item_id,
                         pi.item_id as item_def_id,
                         i.name,
+                        i.description,
+                        i.image_url,
                         i.type,
                         i.base_price,
                         i.is_sellable,
                         i.is_stackable,
+                        i.is_physical,
+                        i.extra_lives,
+                        i.wounds_protection,
+                        i.radiation_resistance,
+                        i.anti_radiation,
                         pi.quantity,
                         'consumable' as source_type
                     FROM player_inventory pi
@@ -324,7 +331,11 @@ def get_backpack_handler(event, context):
                         pi.id as item_id,
                         pi.item_id as item_def_id,
                         at.name,
+                        at.description,
+                        at.image_url,
                         at.base_value as base_price,
+                        at.bonus_lives,
+                        at.radiation_resist,
                         1 as quantity,
                         'artifact' as source_type
                     FROM player_inventory pi
@@ -346,14 +357,19 @@ def get_backpack_handler(event, context):
                         'item_id': str(row['item_id']),
                         'item_def_id': row['item_def_id'],
                         'name': row['name'],
+                        'description': row.get('description') or '',
+                        'image_url': row.get('image_url'),
                         'type': row['type'],
                         'base_price': row['base_price'],
                         'sell_price': sell_price,
                         'is_sellable': bool(row['is_sellable']),
                         'is_stackable': bool(row['is_stackable']),
+                        'is_physical': bool(row.get('is_physical')),
                         'quantity': row['quantity'],
-                        'description': '',
-                        'image_url': None
+                        'extra_lives': row.get('extra_lives') or 0,
+                        'wounds_protection': row.get('wounds_protection') or 0,
+                        'radiation_resistance': row.get('radiation_resistance') or 0,
+                        'anti_radiation': row.get('anti_radiation') or 0
                     })
                 
                 # Add artifacts
@@ -363,14 +379,19 @@ def get_backpack_handler(event, context):
                         'item_id': str(row['item_id']),
                         'item_def_id': row['item_def_id'],
                         'name': row['name'],
+                        'description': row.get('description') or '',
+                        'image_url': row.get('image_url'),
                         'type': 'artifact',
                         'base_price': float(row['base_price']),
                         'sell_price': sell_price,
                         'is_sellable': True,
                         'is_stackable': False,
+                        'is_physical': False,
                         'quantity': 1,
-                        'description': '',
-                        'image_url': None
+                        'extra_lives': row.get('bonus_lives') or 0,
+                        'radiation_resistance': row.get('radiation_resist') or 0,
+                        'wounds_protection': 0,
+                        'anti_radiation': 0
                     })
                 
                 return {
