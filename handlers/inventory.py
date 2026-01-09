@@ -203,7 +203,7 @@ def unequip_item_handler(event, context):
 
 @require_auth
 def use_consumable_handler(event, context):
-    """POST /api/inventory/use - Use consumable (anti-rad)"""
+    """POST /api/inventory/use - Use consumable item"""
     
     player_id = event['player']['player_id']
     
@@ -221,7 +221,67 @@ def use_consumable_handler(event, context):
         with get_db() as conn:
             cursor = conn.cursor()
             
-            # Get item details
+            # First try player_inventory (consumables from item_definitions)
+            cursor.execute("""
+                SELECT pi.id, pi.item_id as item_def_id, pi.quantity,
+                       i.type, i.anti_radiation, i.extra_lives, i.is_physical, i.name
+                FROM player_inventory pi
+                JOIN item_definitions i ON pi.item_id = i.id
+                WHERE pi.id = %s AND pi.player_id = %s 
+                  AND pi.item_type = 'consumable' AND pi.slot_type = 'backpack'
+            """, (item_id, player_id))
+            
+            item = cursor.fetchone()
+            
+            if item:
+                # Handle consumable from item_definitions
+                quantity = item['quantity']
+                is_physical = item['is_physical']
+                
+                # Generate redeem code for physical items
+                redeem_code = None
+                if is_physical:
+                    import random
+                    import string
+                    redeem_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+                
+                # Apply effects (anti-radiation)
+                radiation_before = 0
+                radiation_after = 0
+                radiation_removed = 0
+                
+                if item['anti_radiation'] and item['anti_radiation'] > 0:
+                    cursor.execute("SELECT current_radiation FROM players WHERE id = %s", (player_id,))
+                    radiation_before = cursor.fetchone()['current_radiation'] or 0
+                    radiation_removed = min(radiation_before, item['anti_radiation'])
+                    radiation_after = max(0, radiation_before - item['anti_radiation'])
+                    
+                    cursor.execute("UPDATE players SET current_radiation = %s WHERE id = %s", 
+                                   (radiation_after, player_id))
+                
+                # Decrease quantity or delete
+                if quantity > 1:
+                    cursor.execute("UPDATE player_inventory SET quantity = quantity - 1 WHERE id = %s", (item_id,))
+                else:
+                    cursor.execute("DELETE FROM player_inventory WHERE id = %s", (item_id,))
+                
+                conn.commit()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': cors_headers(),
+                    'body': json.dumps({
+                        'success': True,
+                        'itemUsed': item_id,
+                        'itemName': item['name'],
+                        'radiationBefore': radiation_before,
+                        'radiationAfter': radiation_after,
+                        'radiationRemoved': radiation_removed,
+                        'redeemCode': redeem_code
+                    })
+                }
+            
+            # Fallback: try player_equipment (old system)
             cursor.execute("""
                 SELECT pe.id, et.category, et.radiation_removal
                 FROM player_equipment pe

@@ -23,7 +23,8 @@ export default function ItemContextMenu({
   onClose,
   position,
 }: ItemContextMenuProps) {
-  const isConsumable = item.itemType === 'equipment' && item.category === 'consumable'
+  // Show Use button for consumables (medicine, food, drink, ammunition)
+  const canUse = item.itemType === 'consumable' && !isEquipped
 
   return (
     <>
@@ -45,7 +46,7 @@ export default function ItemContextMenu({
           📋 Details
         </button>
 
-        {!isConsumable && (
+        {item.itemType !== 'consumable' && (
           <>
             {isEquipped ? (
               <button
@@ -65,12 +66,12 @@ export default function ItemContextMenu({
           </>
         )}
 
-        {isConsumable && !isEquipped && (
+        {canUse && (
           <button
             onClick={onUse}
-            className="w-full px-4 py-2 text-left text-pda-text hover:bg-pda-primary/20 border-b border-pda-primary/30"
+            className="w-full px-4 py-2 text-left text-pda-highlight hover:bg-pda-highlight/20 border-b border-pda-primary/30"
           >
-            💊 Use
+            ✨ Use
           </button>
         )}
 
