@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { inventoryApi } from '../services/api'
-import { Inventory, InventoryItem } from '../types/inventory'
+import { Inventory, InventoryItem, ConsumableItem } from '../types/inventory'
 import EquipmentSlots from '../components/inventory/EquipmentSlots'
 import ItemCard from '../components/inventory/ItemCard'
 import ItemContextMenu from '../components/inventory/ItemContextMenu'
 import ItemDetailsModal from '../components/inventory/ItemDetailsModal'
 import BonusesDisplay from '../components/inventory/BonusesDisplay'
+import PhysicalItemModal from '../components/inventory/PhysicalItemModal'
 
 export default function InventoryPage() {
   const [inventory, setInventory] = useState<Inventory | null>(null)
@@ -17,6 +18,7 @@ export default function InventoryPage() {
   } | null>(null)
   const [detailsModal, setDetailsModal] = useState<InventoryItem | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
+  const [physicalModal, setPhysicalModal] = useState<{ item: ConsumableItem; redeemCode?: string } | null>(null)
 
   const fetchInventory = async () => {
     try {
@@ -80,44 +82,43 @@ export default function InventoryPage() {
   const handleUse = async () => {
     if (!contextMenu) return
     
-    // Check if it's a consumable with physical property
     const item = contextMenu.item
     const isPhysical = item.itemType === 'consumable' && 'isPhysical' in item && item.isPhysical
     
     if (isPhysical && item.itemType === 'consumable') {
-      // Show confirmation modal for physical items
-      const itemName = item.name
-      const itemType = item.type
-      
-      let message = `Item "${itemName}" has been used!\n\n`
-      
-      if (itemType === 'ammunition') {
-        message += '🎯 You can now equip your weapon with these BBs.'
-      } else if (itemType === 'food' || itemType === 'drink') {
-        message += '🍺 Show this message to the bartender to receive your item.'
-      } else {
-        message += '✅ This is a physical item. Follow the game rules to use it.'
-      }
-      
-      if (!confirm(message + '\n\nConfirm usage?')) return
-    } else {
-      if (!confirm('Use this consumable?')) return
+      // Show physical item modal
+      setPhysicalModal({ item: item as ConsumableItem })
+      closeContextMenu()
+      return
     }
+    
+    if (!confirm('Use this consumable?')) return
     
     setActionLoading(true)
     try {
       const { data } = await inventoryApi.useConsumable(item.id)
-      
-      if (isPhysical && item.itemType === 'consumable') {
-        alert(`✅ Item used successfully!\n\nItem: ${item.name}\nType: ${item.type}\n\nFollow the instructions above.`)
-      } else {
-        alert(`Radiation removed: ${data.radiationRemoved}% (${data.radiationBefore} → ${data.radiationAfter})`)
-      }
-      
+      alert(`Radiation removed: ${data.radiationRemoved}% (${data.radiationBefore} → ${data.radiationAfter})`)
       await fetchInventory()
       closeContextMenu()
     } catch (error: any) {
       alert(error.response?.data?.error || 'Failed to use item')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handlePhysicalUse = async () => {
+    if (!physicalModal) return
+    
+    setActionLoading(true)
+    try {
+      const { data } = await inventoryApi.useConsumable(physicalModal.item.id)
+      // Show redeem code
+      setPhysicalModal({ ...physicalModal, redeemCode: data.redeemCode || 'USED' })
+      await fetchInventory()
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to use item')
+      setPhysicalModal(null)
     } finally {
       setActionLoading(false)
     }
@@ -223,8 +224,19 @@ export default function InventoryPage() {
         />
       )}
 
+      {/* Physical Item Modal */}
+      {physicalModal && (
+        <PhysicalItemModal
+          item={physicalModal.item}
+          redeemCode={physicalModal.redeemCode}
+          isLoading={actionLoading}
+          onConfirm={handlePhysicalUse}
+          onCancel={() => setPhysicalModal(null)}
+        />
+      )}
+
       {/* Loading overlay */}
-      {actionLoading && (
+      {actionLoading && !physicalModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
           <div className="text-pda-text text-xl">Processing...</div>
         </div>
