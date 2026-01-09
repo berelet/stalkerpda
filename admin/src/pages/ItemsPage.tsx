@@ -182,20 +182,22 @@ export default function ItemsPage() {
                 </div>
 
                 {/* Badges */}
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {item.is_sellable && (
-                    <span className="px-2 py-0.5 bg-green-900/30 border border-green-500/30 text-green-400 rounded text-xs">Sellable</span>
-                  )}
-                  {item.is_stackable && (
-                    <span className="px-2 py-0.5 bg-blue-900/30 border border-blue-500/30 text-blue-400 rounded text-xs">Stackable</span>
-                  )}
-                  {item.is_physical && (
-                    <span className="px-2 py-0.5 bg-yellow-900/30 border border-yellow-500/30 text-yellow-400 rounded text-xs">Physical</span>
-                  )}
-                  {!item.is_active && (
-                    <span className="px-2 py-0.5 bg-red-900/30 border border-red-500/30 text-red-400 rounded text-xs">Inactive</span>
-                  )}
-                </div>
+                {(item.is_sellable || item.is_stackable || item.is_physical || !item.is_active) && (
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {item.is_sellable && (
+                      <span className="px-2 py-0.5 bg-green-900/30 border border-green-500/30 text-green-400 rounded text-xs">Sellable</span>
+                    )}
+                    {item.is_stackable && (
+                      <span className="px-2 py-0.5 bg-blue-900/30 border border-blue-500/30 text-blue-400 rounded text-xs">Stackable</span>
+                    )}
+                    {item.is_physical && (
+                      <span className="px-2 py-0.5 bg-yellow-900/30 border border-yellow-500/30 text-yellow-400 rounded text-xs">Physical</span>
+                    )}
+                    {!item.is_active && (
+                      <span className="px-2 py-0.5 bg-red-900/30 border border-red-500/30 text-red-400 rounded text-xs">Inactive</span>
+                    )}
+                  </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex gap-2">
