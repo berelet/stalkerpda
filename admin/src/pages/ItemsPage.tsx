@@ -93,104 +93,131 @@ export default function ItemsPage() {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-green-400">Shop Items</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">Shop Items</h1>
+          <p className="text-[#91b3ca]">Manage shop inventory and prices</p>
+        </div>
         <button
           onClick={handleCreate}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+          className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-[#1680c7] text-white font-bold rounded-lg transition-colors"
         >
-          + Create Item
+          <span className="material-symbols-outlined">add_circle</span>
+          Create Item
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-green-500 transition"
-          >
-            {item.image_url && (
-              <img
-                src={item.image_url}
-                alt={item.name}
-                className="w-full h-32 object-cover rounded mb-3"
-              />
-            )}
-            
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="text-lg font-bold text-white">{item.name}</h3>
-              <span className={`text-sm ${itemTypeColors[item.type]}`}>
-                {itemTypeLabels[item.type]}
-              </span>
-            </div>
-
-            <p className="text-gray-400 text-sm mb-3 line-clamp-2">
-              {item.description || 'No description'}
-            </p>
-
-            <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-              <div>
-                <span className="text-gray-500">Price:</span>
-                <span className="text-yellow-400 ml-1">💰 {item.base_price}</span>
+      {loading ? (
+        <div className="bg-[#16202a] border border-[#233948] rounded-lg p-12 flex items-center justify-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : items.length === 0 ? (
+        <div className="bg-[#16202a] border border-[#233948] rounded-lg p-12 text-center">
+          <span className="material-symbols-outlined text-[#91b3ca] text-6xl mb-4">inventory_2</span>
+          <p className="text-[#91b3ca] text-lg">No items created yet</p>
+          <p className="text-[#91b3ca]/60 text-sm mt-2">Click "Create Item" to add your first shop item</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className="bg-[#16202a] border border-[#233948] rounded-lg overflow-hidden hover:border-primary/50 transition-colors"
+            >
+              {/* Image */}
+              <div className="aspect-square bg-[#233948] flex items-center justify-center overflow-hidden">
+                {item.image_url ? (
+                  <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="material-symbols-outlined text-[#91b3ca] text-6xl">photo_camera</span>
+                )}
               </div>
-              {item.extra_lives > 0 && (
-                <div>
-                  <span className="text-gray-500">Lives:</span>
-                  <span className="text-green-400 ml-1">+{item.extra_lives}</span>
-                </div>
-              )}
-              {item.wounds_protection > 0 && (
-                <div>
-                  <span className="text-gray-500">Armor:</span>
-                  <span className="text-blue-400 ml-1">+{item.wounds_protection}</span>
-                </div>
-              )}
-              {item.radiation_resistance > 0 && (
-                <div>
-                  <span className="text-gray-500">Rad Resist:</span>
-                  <span className="text-purple-400 ml-1">+{item.radiation_resistance}</span>
-                </div>
-              )}
-              {item.anti_radiation > 0 && (
-                <div>
-                  <span className="text-gray-500">Anti-Rad:</span>
-                  <span className="text-cyan-400 ml-1">-{item.anti_radiation}</span>
-                </div>
-              )}
-            </div>
 
-            <div className="flex gap-2 text-xs mb-3">
-              {item.is_sellable && (
-                <span className="px-2 py-1 bg-green-900 text-green-300 rounded">Sellable</span>
-              )}
-              {item.is_stackable && (
-                <span className="px-2 py-1 bg-blue-900 text-blue-300 rounded">Stackable</span>
-              )}
-              {item.is_physical && (
-                <span className="px-2 py-1 bg-yellow-900 text-yellow-300 rounded">Physical</span>
-              )}
-              {!item.is_active && (
-                <span className="px-2 py-1 bg-red-900 text-red-300 rounded">Inactive</span>
-              )}
-            </div>
+              {/* Info */}
+              <div className="p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="text-white font-bold text-lg">{item.name}</h3>
+                  <span className={`text-xs font-mono uppercase ${itemTypeColors[item.type]}`}>
+                    {itemTypeLabels[item.type]}
+                  </span>
+                </div>
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit(item)}
-                className="flex-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(item)}
-                className="flex-1 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
-              >
-                Delete
-              </button>
+                {item.description && (
+                  <p className="text-[#91b3ca] text-sm mb-3 line-clamp-2">{item.description}</p>
+                )}
+
+                <div className="space-y-2 text-sm mb-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#91b3ca]">Price:</span>
+                    <span className="text-yellow-400 font-mono">💰 {item.base_price}</span>
+                  </div>
+                  
+                  {item.extra_lives > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#91b3ca]">Lives:</span>
+                      <span className="text-green-400 font-mono">+{item.extra_lives}</span>
+                    </div>
+                  )}
+                  
+                  {item.wounds_protection > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#91b3ca]">Armor:</span>
+                      <span className="text-blue-400 font-mono">+{item.wounds_protection}</span>
+                    </div>
+                  )}
+                  
+                  {item.radiation_resistance > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#91b3ca]">Rad Resist:</span>
+                      <span className="text-purple-400 font-mono">+{item.radiation_resistance}</span>
+                    </div>
+                  )}
+                  
+                  {item.anti_radiation > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#91b3ca]">Anti-Rad:</span>
+                      <span className="text-cyan-400 font-mono">-{item.anti_radiation}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Badges */}
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {item.is_sellable && (
+                    <span className="px-2 py-0.5 bg-green-900/30 border border-green-500/30 text-green-400 rounded text-xs">Sellable</span>
+                  )}
+                  {item.is_stackable && (
+                    <span className="px-2 py-0.5 bg-blue-900/30 border border-blue-500/30 text-blue-400 rounded text-xs">Stackable</span>
+                  )}
+                  {item.is_physical && (
+                    <span className="px-2 py-0.5 bg-yellow-900/30 border border-yellow-500/30 text-yellow-400 rounded text-xs">Physical</span>
+                  )}
+                  {!item.is_active && (
+                    <span className="px-2 py-0.5 bg-red-900/30 border border-red-500/30 text-red-400 rounded text-xs">Inactive</span>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="flex-1 h-9 rounded-lg bg-[#233948] hover:bg-primary/20 border border-primary/30 hover:border-primary text-primary font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">edit</span>
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item)}
+                    className="h-9 px-3 rounded-lg bg-[#233948] hover:bg-red-500/20 border border-red-500/30 hover:border-red-500 text-red-500 font-medium transition-colors flex items-center justify-center"
+                  >
+                    <span className="material-symbols-outlined text-sm">delete</span>
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {isModalOpen && (
         <ItemModal
