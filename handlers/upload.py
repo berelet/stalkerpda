@@ -43,7 +43,7 @@ def upload_handler(event, context):
         filename = body.get('filename', 'artifact.jpg')
         
         if not file_data:
-            return error_response('File data is required', 400)
+            return error_response('File data is required', 400, event=event)
         
         # Decode base64
         file_bytes = base64.b64decode(file_data)
@@ -69,8 +69,8 @@ def upload_handler(event, context):
         return success_response({
             'imageUrl': image_url,
             'key': s3_key
-        })
+        }, event=event)
         
     except Exception as e:
         print(f"Error uploading image: {str(e)}")
-        return error_response(str(e), 500)
+        return error_response(str(e), 500, event=event)
