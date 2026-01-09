@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../services/api'
 import { useGeolocation } from '../hooks/useGeolocation'
+import { refreshPlayerData } from '../components/layout/PDAHeader'
 
 interface Trader {
   id: string
@@ -260,6 +261,7 @@ export default function TradingPage() {
       })
 
       alert(`${tab === 'buy' ? 'Purchase' : 'Sale'} successful! New balance: ${data.new_balance}`)
+      refreshPlayerData()
       navigate('/inventory')
     } catch (err: any) {
       setError(err.response?.data?.error || 'Transaction failed')

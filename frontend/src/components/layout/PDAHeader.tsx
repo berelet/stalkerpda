@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import { api } from '../../services/api'
@@ -10,23 +10,37 @@ interface PlayerData {
   balance: number
 }
 
+// Custom event for balance refresh
+export const refreshPlayerData = () => {
+  window.dispatchEvent(new CustomEvent('refreshPlayerData'))
+}
+
 export default function PDAHeader() {
   const { nickname } = useAuthStore()
   const [player, setPlayer] = useState<PlayerData | null>(null)
 
-  useEffect(() => {
-    const fetchPlayer = async () => {
-      try {
-        const { data } = await api.get('/api/auth/me')
-        setPlayer(data)
-      } catch (error) {
-        console.error('Failed to fetch player data:', error)
-      }
+  const fetchPlayer = useCallback(async () => {
+    try {
+      const { data } = await api.get('/api/auth/me')
+      setPlayer(data)
+    } catch (error) {
+      console.error('Failed to fetch player data:', error)
     }
+  }, [])
+
+  useEffect(() => {
     fetchPlayer()
     const interval = setInterval(fetchPlayer, 30000)
-    return () => clearInterval(interval)
-  }, [])
+    
+    // Listen for refresh events
+    const handleRefresh = () => fetchPlayer()
+    window.addEventListener('refreshPlayerData', handleRefresh)
+    
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('refreshPlayerData', handleRefresh)
+    }
+  }, [fetchPlayer])
 
   const getRadiationColor = (rad: number) => {
     if (rad < 50) return 'text-pda-phosphor'
