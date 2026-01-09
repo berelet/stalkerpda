@@ -138,23 +138,6 @@ export default function InventoryPage() {
     }
   }
 
-  const handleSell = async () => {
-    if (!contextMenu) return
-    const price = contextMenu.item.itemType === 'artifact' ? contextMenu.item.value : contextMenu.item.basePrice
-    if (!confirm(`Sell ${contextMenu.item.name} for 💰 ${price}?`)) return
-    setActionLoading(true)
-    try {
-      const { data } = await inventoryApi.sellItem(contextMenu.item.id, contextMenu.item.itemType)
-      alert(`Sold for 💰 ${data.priceReceived}. New balance: 💰 ${data.newBalance}`)
-      await fetchInventory()
-      closeContextMenu()
-    } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to sell item')
-    } finally {
-      setActionLoading(false)
-    }
-  }
-
   if (loading) {
     return (
       <div className="p-4">
@@ -227,7 +210,6 @@ export default function InventoryPage() {
           onUnequip={handleUnequip}
           onUse={handleUse}
           onDrop={handleDrop}
-          onSell={handleSell}
           onClose={closeContextMenu}
           position={contextMenu.position}
         />

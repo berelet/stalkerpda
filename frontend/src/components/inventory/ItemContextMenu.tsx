@@ -8,7 +8,6 @@ interface ItemContextMenuProps {
   onUnequip: () => void
   onUse: () => void
   onDrop: () => void
-  onSell: () => void
   onClose: () => void
   position: { x: number; y: number }
 }
@@ -21,7 +20,6 @@ export default function ItemContextMenu({
   onUnequip,
   onUse,
   onDrop,
-  onSell,
   onClose,
   position,
 }: ItemContextMenuProps) {
@@ -78,19 +76,10 @@ export default function ItemContextMenu({
 
         <button
           onClick={onDrop}
-          className="w-full px-4 py-2 text-left text-pda-danger hover:bg-pda-danger/20 border-b border-pda-primary/30"
+          className="w-full px-4 py-2 text-left text-pda-danger hover:bg-pda-danger/20"
         >
           🗑️ Drop
         </button>
-
-        {!isEquipped && (
-          <button
-            onClick={onSell}
-            className="w-full px-4 py-2 text-left text-pda-amber hover:bg-pda-amber/20"
-          >
-            💰 Sell
-          </button>
-        )}
       </div>
     </>
   )
