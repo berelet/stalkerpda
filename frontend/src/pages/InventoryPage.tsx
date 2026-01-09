@@ -83,9 +83,10 @@ export default function InventoryPage() {
     if (!contextMenu) return
     
     const item = contextMenu.item
-    const isPhysical = item.itemType === 'consumable' && 'isPhysical' in item && item.isPhysical
+    // Check is_physical flag (can be 0/1 from API)
+    const isPhysical = item.itemType === 'consumable' && 'isPhysical' in item && !!item.isPhysical
     
-    if (isPhysical && item.itemType === 'consumable') {
+    if (isPhysical) {
       // Show physical item modal
       setPhysicalModal({ item: item as ConsumableItem })
       closeContextMenu()
@@ -97,7 +98,7 @@ export default function InventoryPage() {
     setActionLoading(true)
     try {
       const { data } = await inventoryApi.useConsumable(item.id)
-      alert(`Radiation removed: ${data.radiationRemoved}% (${data.radiationBefore} → ${data.radiationAfter})`)
+      alert(`Used: ${data.itemName || 'Item'}\nRadiation: ${data.radiationBefore} → ${data.radiationAfter} (-${data.radiationRemoved})`)
       await fetchInventory()
       closeContextMenu()
     } catch (error: any) {
