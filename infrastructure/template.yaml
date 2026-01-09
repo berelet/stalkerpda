@@ -910,6 +910,91 @@ Resources:
             Path: /api/admin/upload
             Method: POST
 
+  # Traders Management Functions
+  TradersListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-traders-list-${Environment}
+      Handler: traders.list_traders_handler
+      CodeUri: ../handlers/
+      Events:
+        ListTraders:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/traders
+            Method: GET
+
+  TradersCreateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-traders-create-${Environment}
+      Handler: traders.create_trader_handler
+      CodeUri: ../handlers/
+      Events:
+        CreateTrader:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/traders
+            Method: POST
+
+  TradersUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-traders-update-${Environment}
+      Handler: traders.update_trader_handler
+      CodeUri: ../handlers/
+      Events:
+        UpdateTrader:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/traders/{id}
+            Method: PUT
+
+  TradersDeleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-traders-delete-${Environment}
+      Handler: traders.delete_trader_handler
+      CodeUri: ../handlers/
+      Events:
+        DeleteTrader:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/traders/{id}
+            Method: DELETE
+
+  TraderInventoryGetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-trader-inventory-get-${Environment}
+      Handler: traders.get_trader_inventory_handler
+      CodeUri: ../handlers/
+      Events:
+        GetTraderInventory:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/traders/{id}/inventory
+            Method: GET
+
+  TraderInventoryUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-trader-inventory-update-${Environment}
+      Handler: traders.update_trader_inventory_handler
+      CodeUri: ../handlers/
+      Events:
+        UpdateTraderInventory:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/traders/{id}/inventory
+            Method: PUT
+
   # Items Management Functions
   ItemsListFunction:
     Type: AWS::Serverless::Function
