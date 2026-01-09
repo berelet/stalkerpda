@@ -135,6 +135,7 @@ export default function TradingPage() {
   const [backpack, setBackpack] = useState<TradeItem[]>([])
   const [cart, setCart] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [timeLeft, setTimeLeft] = useState(300) // 5 minutes
   const [selectedItem, setSelectedItem] = useState<TradeItem | null>(null)
@@ -246,7 +247,7 @@ export default function TradingPage() {
     if (!session || Object.keys(cart).length === 0) return
 
     try {
-      setLoading(true)
+      setSubmitting(true)
       const items = Object.entries(cart).map(([id, quantity]) => ({
         [tab === 'buy' ? 'item_def_id' : 'item_id']: id,
         quantity
@@ -263,7 +264,7 @@ export default function TradingPage() {
     } catch (err: any) {
       setError(err.response?.data?.error || 'Transaction failed')
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 
@@ -350,10 +351,10 @@ export default function TradingPage() {
 
             <button
               onClick={executeTrade}
-              disabled={loading}
+              disabled={submitting}
               className="w-full py-2 bg-pda-highlight/20 border border-pda-highlight text-pda-highlight font-pixel hover:bg-pda-highlight/30 disabled:opacity-50"
             >
-              {loading ? 'PROCESSING...' : `CONFIRM ${tab.toUpperCase()}`}
+              {submitting ? 'PROCESSING...' : `CONFIRM ${tab.toUpperCase()}`}
             </button>
           </>
         )}
