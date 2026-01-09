@@ -221,6 +221,12 @@ def use_consumable_handler(event, context):
         with get_db() as conn:
             cursor = conn.cursor()
             
+            # Convert item_id to int if it's a number string
+            try:
+                item_id_int = int(item_id)
+            except (ValueError, TypeError):
+                item_id_int = item_id
+            
             # First try player_inventory (consumables from item_definitions)
             cursor.execute("""
                 SELECT pi.id, pi.item_id as item_def_id, pi.quantity,
@@ -229,7 +235,7 @@ def use_consumable_handler(event, context):
                 JOIN item_definitions i ON pi.item_id = i.id
                 WHERE pi.id = %s AND pi.player_id = %s 
                   AND pi.item_type = 'consumable' AND pi.slot_type = 'backpack'
-            """, (item_id, player_id))
+            """, (item_id_int, player_id))
             
             item = cursor.fetchone()
             
@@ -261,9 +267,9 @@ def use_consumable_handler(event, context):
                 
                 # Decrease quantity or delete
                 if quantity > 1:
-                    cursor.execute("UPDATE player_inventory SET quantity = quantity - 1 WHERE id = %s", (item_id,))
+                    cursor.execute("UPDATE player_inventory SET quantity = quantity - 1 WHERE id = %s", (item_id_int,))
                 else:
-                    cursor.execute("DELETE FROM player_inventory WHERE id = %s", (item_id,))
+                    cursor.execute("DELETE FROM player_inventory WHERE id = %s", (item_id_int,))
                 
                 conn.commit()
                 
