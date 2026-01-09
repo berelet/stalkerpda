@@ -26,6 +26,7 @@ interface TradeItem {
   sell_price?: number
   is_sellable?: boolean
   is_stackable: boolean
+  is_physical?: boolean
   quantity: number
   extra_lives?: number
   wounds_protection?: number
@@ -37,6 +38,89 @@ interface TradeSession {
   trade_session_id: string
   trader: Trader
   expires_at: string
+}
+
+function ItemDetailsModal({ item, onClose }: { item: TradeItem; onClose: () => void }) {
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'medicine': return 'text-green-400'
+      case 'ammunition': return 'text-yellow-400'
+      case 'food': return 'text-orange-400'
+      case 'drink': return 'text-purple-400'
+      default: return 'text-pda-text'
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="bg-pda-case border-2 border-pda-primary max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button onClick={onClose} className="absolute top-2 right-2 text-pda-text hover:text-pda-primary text-2xl">×</button>
+
+        {item.image_url && (
+          <div className="mb-4">
+            <img src={item.image_url} alt={item.name} className="w-full aspect-square object-cover border border-pda-primary/30" />
+          </div>
+        )}
+
+        <h3 className="text-pda-highlight text-xl font-bold mb-2">{item.name}</h3>
+        <span className={`text-sm uppercase ${getTypeColor(item.type)}`}>{item.type}</span>
+
+        {item.description && (
+          <div className="mt-3 text-pda-text/80 text-sm">{item.description}</div>
+        )}
+
+        <div className="space-y-2 mt-4 border-t border-pda-primary/30 pt-4">
+          {item.extra_lives && item.extra_lives > 0 && (
+            <div className="flex justify-between text-pda-text">
+              <span>Extra Lives:</span>
+              <span className="text-green-400">+{item.extra_lives}</span>
+            </div>
+          )}
+          {item.wounds_protection && item.wounds_protection > 0 && (
+            <div className="flex justify-between text-pda-text">
+              <span>Wounds Protection:</span>
+              <span className="text-blue-400">+{item.wounds_protection}</span>
+            </div>
+          )}
+          {item.radiation_resistance && item.radiation_resistance > 0 && (
+            <div className="flex justify-between text-pda-text">
+              <span>Radiation Resist:</span>
+              <span className="text-purple-400">+{item.radiation_resistance}%</span>
+            </div>
+          )}
+          {item.anti_radiation && item.anti_radiation > 0 && (
+            <div className="flex justify-between text-pda-text">
+              <span>Anti-Radiation:</span>
+              <span className="text-cyan-400">-{item.anti_radiation}%</span>
+            </div>
+          )}
+          <div className="flex justify-between text-pda-text">
+            <span>Base Price:</span>
+            <span className="text-pda-amber">💰 {item.base_price.toLocaleString()}</span>
+          </div>
+          {item.is_stackable && (
+            <div className="flex justify-between text-pda-text">
+              <span>Stackable:</span>
+              <span className="text-blue-400">Yes</span>
+            </div>
+          )}
+          {item.is_physical && (
+            <div className="flex justify-between text-pda-text">
+              <span>Physical Item:</span>
+              <span className="text-yellow-400">Yes</span>
+            </div>
+          )}
+        </div>
+
+        <button onClick={onClose} className="w-full mt-4 bg-pda-primary/20 hover:bg-pda-primary/30 text-pda-text py-2 border border-pda-primary">
+          Close
+        </button>
+      </div>
+    </div>
+  )
 }
 
 export default function TradingPage() {
@@ -53,6 +137,7 @@ export default function TradingPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [timeLeft, setTimeLeft] = useState(300) // 5 minutes
+  const [selectedItem, setSelectedItem] = useState<TradeItem | null>(null)
 
   // Start trade session
   useEffect(() => {
@@ -290,7 +375,12 @@ export default function TradingPage() {
               <div key={itemId} className="border border-pda-primary/30 p-3 space-y-2">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="text-pda-phosphor font-pixel">{item.name}</div>
+                    <button
+                      onClick={() => setSelectedItem(item)}
+                      className="text-pda-phosphor font-pixel hover:text-pda-highlight underline text-left"
+                    >
+                      {item.name}
+                    </button>
                     <div className="text-xs text-pda-text/70">{item.description}</div>
                     {item.extra_lives && item.extra_lives > 0 && (
                       <div className="text-xs text-green-500">+{item.extra_lives} lives</div>
@@ -333,6 +423,11 @@ export default function TradingPage() {
           })
         )}
       </div>
+
+      {/* Item Details Modal */}
+      {selectedItem && (
+        <ItemDetailsModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+      )}
     </div>
   )
 }
