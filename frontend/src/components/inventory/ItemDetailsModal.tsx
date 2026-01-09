@@ -1,4 +1,4 @@
-import { InventoryItem } from '../../types/inventory'
+import { InventoryItem, ConsumableItem, ArtifactItem, EquipmentItem } from '../../types/inventory'
 
 interface ItemDetailsModalProps {
   item: InventoryItem
@@ -15,6 +15,31 @@ export default function ItemDetailsModal({ item, onClose }: ItemDetailsModalProp
       default: return 'text-pda-text'
     }
   }
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'medicine': return 'text-green-400'
+      case 'ammunition': return 'text-yellow-400'
+      case 'food': return 'text-orange-400'
+      case 'drink': return 'text-purple-400'
+      case 'armor': return 'text-blue-400'
+      case 'addon': return 'text-cyan-400'
+      default: return 'text-pda-text'
+    }
+  }
+
+  // Get image URL based on item type
+  const getImageUrl = () => {
+    if (item.itemType === 'artifact') {
+      return (item as any).imageUrl
+    }
+    if (item.itemType === 'consumable') {
+      return (item as ConsumableItem).imageUrl
+    }
+    return null
+  }
+
+  const imageUrl = getImageUrl()
 
   return (
     <>
@@ -33,11 +58,11 @@ export default function ItemDetailsModal({ item, onClose }: ItemDetailsModalProp
             ×
           </button>
 
-          {/* Item image (artifacts only) */}
-          {item.itemType === 'artifact' && (item as any).imageUrl && (
+          {/* Item image */}
+          {imageUrl && (
             <div className="mb-4">
               <img 
-                src={(item as any).imageUrl} 
+                src={imageUrl} 
                 alt={item.name}
                 className="w-full aspect-square object-cover border border-pda-primary/30"
                 onError={(e) => {
@@ -48,75 +73,117 @@ export default function ItemDetailsModal({ item, onClose }: ItemDetailsModalProp
           )}
 
           {/* Item name */}
-          <h3 className="text-pda-highlight text-xl font-bold mb-4">{item.name}</h3>
+          <h3 className="text-pda-highlight text-xl font-bold mb-2">{item.name}</h3>
 
           {/* Item type badge */}
           <div className="mb-4">
-            {item.itemType === 'artifact' ? (
-              <span className={`text-sm uppercase ${getRarityColor(item.rarity)}`}>
-                {item.rarity} Artifact
+            {item.itemType === 'artifact' && (
+              <span className={`text-sm uppercase ${getRarityColor((item as ArtifactItem).rarity)}`}>
+                {(item as ArtifactItem).rarity} Artifact
               </span>
-            ) : (
-              <span className="text-sm uppercase text-pda-text/70">
-                {item.category}
+            )}
+            {item.itemType === 'equipment' && (
+              <span className={`text-sm uppercase ${getTypeColor((item as EquipmentItem).category)}`}>
+                {(item as EquipmentItem).category}
+              </span>
+            )}
+            {item.itemType === 'consumable' && (
+              <span className={`text-sm uppercase ${getTypeColor((item as ConsumableItem).type || (item as ConsumableItem).category)}`}>
+                {(item as ConsumableItem).type || (item as ConsumableItem).category}
               </span>
             )}
           </div>
 
-          {/* Description (artifacts only) */}
-          {item.itemType === 'artifact' && (item as any).description && (
+          {/* Description */}
+          {item.itemType === 'consumable' && (item as ConsumableItem).description && (
             <div className="mb-4 text-pda-text/80 text-sm">
-              {(item as any).description}
+              {(item as ConsumableItem).description}
             </div>
           )}
 
           {/* Stats */}
-          <div className="space-y-2 mb-4">
+          <div className="space-y-2 mb-4 border-t border-pda-primary/30 pt-4">
+            {/* Equipment stats */}
             {item.itemType === 'equipment' && (
               <>
-                {item.bonusWounds !== undefined && item.bonusWounds > 0 && (
+                {(item as EquipmentItem).bonusWounds !== undefined && (item as EquipmentItem).bonusWounds! > 0 && (
                   <div className="flex justify-between text-pda-text">
-                    <span>Bonus Wounds:</span>
-                    <span className="text-pda-highlight">+{item.bonusWounds}</span>
+                    <span>Wounds Protection:</span>
+                    <span className="text-blue-400">+{(item as EquipmentItem).bonusWounds}</span>
                   </div>
                 )}
-                {item.radiationResist !== undefined && item.radiationResist > 0 && (
+                {(item as EquipmentItem).radiationResist !== undefined && (item as EquipmentItem).radiationResist! > 0 && (
                   <div className="flex justify-between text-pda-text">
                     <span>Radiation Resist:</span>
-                    <span className="text-pda-highlight">{item.radiationResist}%</span>
+                    <span className="text-purple-400">{(item as EquipmentItem).radiationResist}%</span>
                   </div>
                 )}
-                {item.radiationRemoval !== undefined && item.radiationRemoval > 0 && (
+                {(item as EquipmentItem).radiationRemoval !== undefined && (item as EquipmentItem).radiationRemoval! > 0 && (
                   <div className="flex justify-between text-pda-text">
-                    <span>Radiation Removal:</span>
-                    <span className="text-pda-highlight">{item.radiationRemoval}%</span>
+                    <span>Anti-Radiation:</span>
+                    <span className="text-cyan-400">-{(item as EquipmentItem).radiationRemoval}%</span>
                   </div>
                 )}
                 <div className="flex justify-between text-pda-text">
                   <span>Base Price:</span>
-                  <span className="text-pda-amber">💰 {item.basePrice.toLocaleString()}</span>
+                  <span className="text-pda-amber">💰 {(item as EquipmentItem).basePrice.toLocaleString()}</span>
                 </div>
               </>
             )}
 
+            {/* Artifact stats */}
             {item.itemType === 'artifact' && (
               <>
-                {item.effects.bonusLives !== undefined && item.effects.bonusLives > 0 && (
+                {(item as ArtifactItem).effects.bonusLives !== undefined && (item as ArtifactItem).effects.bonusLives! > 0 && (
                   <div className="flex justify-between text-pda-text">
                     <span>Bonus Lives:</span>
-                    <span className="text-pda-highlight">+{item.effects.bonusLives}</span>
+                    <span className="text-green-400">+{(item as ArtifactItem).effects.bonusLives}</span>
                   </div>
                 )}
-                {item.effects.radiationResist !== undefined && item.effects.radiationResist > 0 && (
+                {(item as ArtifactItem).effects.radiationResist !== undefined && (item as ArtifactItem).effects.radiationResist! > 0 && (
                   <div className="flex justify-between text-pda-text">
                     <span>Radiation Resist:</span>
-                    <span className="text-pda-highlight">{item.effects.radiationResist}%</span>
+                    <span className="text-purple-400">{(item as ArtifactItem).effects.radiationResist}%</span>
                   </div>
                 )}
                 <div className="flex justify-between text-pda-text">
                   <span>Value:</span>
-                  <span className="text-pda-amber">💰 {item.value.toLocaleString()}</span>
+                  <span className="text-pda-amber">💰 {(item as ArtifactItem).value.toLocaleString()}</span>
                 </div>
+              </>
+            )}
+
+            {/* Consumable stats */}
+            {item.itemType === 'consumable' && (
+              <>
+                {(item as ConsumableItem).extraLives !== undefined && (item as ConsumableItem).extraLives! > 0 && (
+                  <div className="flex justify-between text-pda-text">
+                    <span>Extra Lives:</span>
+                    <span className="text-green-400">+{(item as ConsumableItem).extraLives}</span>
+                  </div>
+                )}
+                {(item as ConsumableItem).quantity > 1 && (
+                  <div className="flex justify-between text-pda-text">
+                    <span>Quantity:</span>
+                    <span className="text-pda-highlight">x{(item as ConsumableItem).quantity}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-pda-text">
+                  <span>Base Price:</span>
+                  <span className="text-pda-amber">💰 {(item as ConsumableItem).basePrice.toLocaleString()}</span>
+                </div>
+                {(item as ConsumableItem).isStackable && (
+                  <div className="flex justify-between text-pda-text">
+                    <span>Stackable:</span>
+                    <span className="text-blue-400">Yes</span>
+                  </div>
+                )}
+                {(item as ConsumableItem).isPhysical && (
+                  <div className="flex justify-between text-pda-text">
+                    <span>Physical Item:</span>
+                    <span className="text-yellow-400">Yes</span>
+                  </div>
+                )}
               </>
             )}
           </div>
