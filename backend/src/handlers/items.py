@@ -150,7 +150,17 @@ def delete_item_handler(event, context):
                     FROM player_inventory 
                     WHERE item_type = 'consumable' AND item_id = %s
                 """, (item_id,))
-                player_count = cursor.fetchone()['count']
+                player_inv_count = cursor.fetchone()['count']
+                
+                # Check if item is in player_items table
+                cursor.execute("""
+                    SELECT COUNT(*) as count 
+                    FROM player_items 
+                    WHERE item_def_id = %s
+                """, (item_id,))
+                player_items_count = cursor.fetchone()['count']
+                
+                player_count = player_inv_count + player_items_count
                 
                 # If used and not forced, return warning
                 if (trader_count > 0 or player_count > 0) and not force:
@@ -173,10 +183,17 @@ def delete_item_handler(event, context):
                     }
                 
                 # Delete from player inventories
-                if player_count > 0:
+                if player_inv_count > 0:
                     cursor.execute("""
                         DELETE FROM player_inventory 
                         WHERE item_type = 'consumable' AND item_id = %s
+                    """, (item_id,))
+                
+                # Delete from player_items
+                if player_items_count > 0:
+                    cursor.execute("""
+                        DELETE FROM player_items 
+                        WHERE item_def_id = %s
                     """, (item_id,))
                 
                 # Delete from trader inventory
