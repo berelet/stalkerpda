@@ -40,25 +40,52 @@ This command:
 - Automatically deploys changed Lambda functions in **10-20 seconds**
 - No need to manually run deploy commands
 - Keep this terminal open while developing
+- **You can edit files immediately** - sync detects changes and deploys automatically
+
+**Quick start script:** Use `./sync.sh` instead of typing the full command.
 
 ### Deployment Strategy
 
 | Situation | What to Use | Time |
 |-----------|-------------|------|
-| **Active development** | `sam sync --watch` (keep running) | 10-20 sec per change |
-| **Quick fix 1-2 functions** | AWS CLI direct update | 15-30 sec |
+| **Backend code changes** | `sam sync --watch` (auto-deploys) | 10-20 sec per change |
 | **Changes to template.yaml** | Full `sam deploy` | 3-5 min |
 | **Production release** | Full `sam deploy` | 3-5 min |
-| **Frontend changes** | `npm build` + `s3 sync` + **CloudFront invalidation** | 1-2 min |
-| **Admin panel changes** | `npm build` + `s3 sync` + **CloudFront invalidation** | 1-2 min |
+| **Frontend changes** | `make deploy-fe` + invalidate cache | 1-2 min |
+| **Admin panel changes** | `make deploy-admin` + invalidate cache | 1-2 min |
+
+**⚠️ CRITICAL: Always invalidate CloudFront cache after frontend/admin deployments!**
+
+```bash
+# Frontend cache invalidation
+aws cloudfront create-invalidation --distribution-id E1LX6WLS4JUEVL --paths "/*" --profile stalker
+
+# Admin cache invalidation
+aws cloudfront create-invalidation --distribution-id E3FHC7M1Y2KICX --paths "/*" --profile stalker
+```
 
 ### Why SAM Sync?
 
 Without `sam sync`, SAM caches the Lambda code zip and may not update functions even after code changes. `sam sync --watch` solves this by:
-1. Detecting file changes automatically
+1. Detecting file changes automatically (1-2 seconds after save)
 2. Building only changed functions
 3. Uploading directly to Lambda (bypassing CloudFormation)
-4. Providing instant feedback
+4. Providing instant feedback in terminal
+
+**Workflow:**
+1. Start `./sync.sh` in one terminal (leave it running)
+2. Edit backend files in another terminal/editor
+3. Save files - sync auto-detects and deploys
+4. Watch deployment progress in sync terminal
+5. Test changes immediately (10-20 sec after save)
+
+### When to Use Full Deploy
+
+Use `sam deploy` instead of sync when:
+- Changing `infrastructure/template.yaml` (resources, permissions, etc.)
+- Adding/removing Lambda functions
+- Modifying API Gateway routes
+- Production releases (for safety)
 
 ### Direct Lambda Update (Alternative)
 
