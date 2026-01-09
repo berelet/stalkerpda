@@ -12,6 +12,7 @@ interface ItemDefinition {
   is_sellable: boolean
   is_active: boolean
   is_stackable: boolean
+  is_physical: boolean
   wounds_protection: number
   radiation_resistance: number
   extra_lives: number
@@ -165,6 +166,9 @@ export default function ItemsPage() {
               {item.is_stackable && (
                 <span className="px-2 py-1 bg-blue-900 text-blue-300 rounded">Stackable</span>
               )}
+              {item.is_physical && (
+                <span className="px-2 py-1 bg-yellow-900 text-yellow-300 rounded">Physical</span>
+              )}
               {!item.is_active && (
                 <span className="px-2 py-1 bg-red-900 text-red-300 rounded">Inactive</span>
               )}
@@ -221,6 +225,7 @@ function ItemModal({ item, onClose, onSave, isUploading, setIsUploading }: ItemM
     is_sellable: item?.is_sellable ?? true,
     is_active: item?.is_active ?? true,
     is_stackable: item?.is_stackable ?? false,
+    is_physical: item?.is_physical ?? false,
     wounds_protection: item?.wounds_protection || 0,
     radiation_resistance: item?.radiation_resistance || 0,
     extra_lives: item?.extra_lives || 0,
@@ -383,6 +388,16 @@ function ItemModal({ item, onClose, onSave, isUploading, setIsUploading }: ItemM
                 className="mr-2"
               />
               Stackable
+            </label>
+
+            <label className="flex items-center text-gray-300">
+              <input
+                type="checkbox"
+                checked={formData.is_physical}
+                onChange={(e) => setFormData({ ...formData, is_physical: e.target.checked })}
+                className="mr-2"
+              />
+              Physical Item
             </label>
 
             <label className="flex items-center text-gray-300">

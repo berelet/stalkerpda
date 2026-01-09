@@ -16,7 +16,7 @@ def list_items_handler(event, context):
             with conn.cursor() as cursor:
                 cursor.execute("""
                     SELECT id, name, description, image_url, type, base_price,
-                           is_sellable, is_active, is_stackable,
+                           is_sellable, is_active, is_stackable, is_physical,
                            wounds_protection, radiation_resistance, extra_lives, anti_radiation,
                            created_at, updated_at
                     FROM item_definitions
@@ -55,6 +55,7 @@ def create_item_handler(event, context):
         is_sellable = body.get('is_sellable', True)
         is_active = body.get('is_active', True)
         is_stackable = body.get('is_stackable', False)
+        is_physical = body.get('is_physical', False)
         wounds_protection = body.get('wounds_protection', 0)
         radiation_resistance = body.get('radiation_resistance', 0)
         extra_lives = body.get('extra_lives', 0)
@@ -67,11 +68,11 @@ def create_item_handler(event, context):
                 cursor.execute("""
                     INSERT INTO item_definitions 
                     (id, name, description, image_url, type, base_price,
-                     is_sellable, is_active, is_stackable,
+                     is_sellable, is_active, is_stackable, is_physical,
                      wounds_protection, radiation_resistance, extra_lives, anti_radiation)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (item_id, name, description, image_url, item_type, base_price,
-                      is_sellable, is_active, is_stackable,
+                      is_sellable, is_active, is_stackable, is_physical,
                       wounds_protection, radiation_resistance, extra_lives, anti_radiation))
                 conn.commit()
         
@@ -95,7 +96,7 @@ def update_item_handler(event, context):
         
         allowed_fields = [
             'name', 'description', 'image_url', 'type', 'base_price',
-            'is_sellable', 'is_active', 'is_stackable',
+            'is_sellable', 'is_active', 'is_stackable', 'is_physical',
             'wounds_protection', 'radiation_resistance', 'extra_lives', 'anti_radiation'
         ]
         

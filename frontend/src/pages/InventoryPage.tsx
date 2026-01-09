@@ -79,11 +79,41 @@ export default function InventoryPage() {
 
   const handleUse = async () => {
     if (!contextMenu) return
-    if (!confirm('Use this consumable?')) return
+    
+    // Check if it's a consumable with physical property
+    const item = contextMenu.item
+    const isPhysical = item.itemType === 'consumable' && 'isPhysical' in item && item.isPhysical
+    
+    if (isPhysical && item.itemType === 'consumable') {
+      // Show confirmation modal for physical items
+      const itemName = item.name
+      const itemType = item.type
+      
+      let message = `Item "${itemName}" has been used!\n\n`
+      
+      if (itemType === 'ammunition') {
+        message += '🎯 You can now equip your weapon with these BBs.'
+      } else if (itemType === 'food' || itemType === 'drink') {
+        message += '🍺 Show this message to the bartender to receive your item.'
+      } else {
+        message += '✅ This is a physical item. Follow the game rules to use it.'
+      }
+      
+      if (!confirm(message + '\n\nConfirm usage?')) return
+    } else {
+      if (!confirm('Use this consumable?')) return
+    }
+    
     setActionLoading(true)
     try {
-      const { data } = await inventoryApi.useConsumable(contextMenu.item.id)
-      alert(`Radiation removed: ${data.radiationRemoved}% (${data.radiationBefore} → ${data.radiationAfter})`)
+      const { data } = await inventoryApi.useConsumable(item.id)
+      
+      if (isPhysical && item.itemType === 'consumable') {
+        alert(`✅ Item used successfully!\n\nItem: ${item.name}\nType: ${item.type}\n\nFollow the instructions above.`)
+      } else {
+        alert(`Radiation removed: ${data.radiationRemoved}% (${data.radiationBefore} → ${data.radiationAfter})`)
+      }
+      
       await fetchInventory()
       closeContextMenu()
     } catch (error: any) {

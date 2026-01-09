@@ -28,10 +28,12 @@ export interface ConsumableItem {
   id: string
   typeId: string
   name: string
+  type: 'medicine' | 'ammunition' | 'food' | 'drink'
   category: 'medicine' | 'ammunition' | 'food' | 'drink'
   itemType: 'consumable'
   quantity: number
   isStackable: boolean
+  isPhysical: boolean
   extraLives?: number
   imageUrl?: string
   description?: string
