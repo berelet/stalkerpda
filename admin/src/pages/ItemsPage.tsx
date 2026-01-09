@@ -69,7 +69,24 @@ export default function ItemsPage() {
       alert('Item deleted!')
       loadItems()
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to delete item')
+      // Check if item is in use
+      if (error.response?.status === 409) {
+        const data = error.response.data.error
+        const message = `Item is used by:\n- ${data.trader_count} trader(s)\n- ${data.player_count} player(s)\n\nDelete anyway? This will remove it from all inventories!`
+        
+        if (confirm(message)) {
+          try {
+            await api.delete(`/api/admin/items/${item.id}?force=true`)
+            alert(`Item deleted!\nRemoved from ${data.player_count} player(s) and ${data.trader_count} trader(s).`)
+            loadItems()
+          } catch (err: any) {
+            alert(err.response?.data?.error?.message || 'Failed to delete item')
+          }
+        }
+      } else {
+        const errorMsg = error.response?.data?.error?.message || error.response?.data?.error || 'Failed to delete item'
+        alert(errorMsg)
+      }
     }
   }
 

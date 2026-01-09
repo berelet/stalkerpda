@@ -130,6 +130,10 @@ def delete_item_handler(event, context):
     try:
         item_id = event['pathParameters']['id']
         
+        # Check for force parameter
+        query_params = event.get('queryStringParameters') or {}
+        force = query_params.get('force') == 'true'
+        
         with get_db() as conn:
             with conn.cursor() as cursor:
                 # Check if item is used in trader inventory
@@ -138,15 +142,51 @@ def delete_item_handler(event, context):
                     FROM trader_inventory 
                     WHERE item_def_id = %s
                 """, (item_id,))
-                result = cursor.fetchone()
+                trader_count = cursor.fetchone()['count']
                 
-                if result['count'] > 0:
-                    return error_response(
-                        'Cannot delete item: it is used in trader inventory', 
-                        400
-                    )
+                # Check if item is in player inventories
+                cursor.execute("""
+                    SELECT COUNT(*) as count 
+                    FROM player_inventory 
+                    WHERE item_type = 'consumable' AND item_id = %s
+                """, (item_id,))
+                player_count = cursor.fetchone()['count']
                 
-                # Delete item
+                # If used and not forced, return warning
+                if (trader_count > 0 or player_count > 0) and not force:
+                    return {
+                        'statusCode': 409,
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*',
+                            'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                            'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
+                        },
+                        'body': json.dumps({
+                            'error': {
+                                'code': 'ITEM_IN_USE',
+                                'message': f'Item is used in {trader_count} trader(s) and {player_count} player(s) inventory. Add ?force=true to delete anyway.',
+                                'trader_count': trader_count,
+                                'player_count': player_count
+                            }
+                        })
+                    }
+                
+                # Delete from player inventories
+                if player_count > 0:
+                    cursor.execute("""
+                        DELETE FROM player_inventory 
+                        WHERE item_type = 'consumable' AND item_id = %s
+                    """, (item_id,))
+                
+                # Delete from trader inventory
+                if trader_count > 0:
+                    cursor.execute("""
+                        DELETE FROM trader_inventory 
+                        WHERE item_def_id = %s
+                    """, (item_id,))
+                
+                # Delete item definition
                 cursor.execute("DELETE FROM item_definitions WHERE id = %s", (item_id,))
                 
                 if cursor.rowcount == 0:
@@ -154,6 +194,10 @@ def delete_item_handler(event, context):
                 
                 conn.commit()
         
-        return success_response({'message': 'Item deleted successfully'})
+        return success_response({
+            'message': 'Item deleted successfully',
+            'removed_from_traders': trader_count,
+            'removed_from_players': player_count
+        })
     except Exception as e:
         return error_response(f'Failed to delete item: {str(e)}', 500)
