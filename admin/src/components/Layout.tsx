@@ -21,6 +21,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/players', icon: 'group', label: 'Players' },
     { path: '/artifacts', icon: 'auto_awesome', label: 'Artifact Library' },
     { path: '/spawn-artifacts', icon: 'add_location', label: 'Spawn Artifacts' },
+    { path: '/items', icon: 'inventory_2', label: 'Shop Items' },
     { path: '/zones', icon: 'location_on', label: 'Zones' },
     { path: '/contracts', icon: 'description', label: 'Contracts' },
   ]

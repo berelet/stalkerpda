@@ -7,6 +7,7 @@ from src.config import config
 
 def login_handler(event, context):
     """POST /api/auth/login"""
+    # Test sync - 2026-01-09 07:43
     try:
         body = json.loads(event.get('body', '{}'))
         email = body.get('email')

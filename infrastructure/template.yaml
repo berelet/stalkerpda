@@ -910,6 +910,63 @@ Resources:
             Path: /api/admin/upload
             Method: POST
 
+  # Items Management Functions
+  ItemsListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-items-list-${Environment}
+      Handler: src.handlers.items.list_items_handler
+      CodeUri: ../backend/
+      Events:
+        ListItems:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/items
+            Method: GET
+
+  ItemsCreateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-items-create-${Environment}
+      Handler: src.handlers.items.create_item_handler
+      CodeUri: ../backend/
+      Events:
+        CreateItem:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/items
+            Method: POST
+
+  ItemsUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-items-update-${Environment}
+      Handler: src.handlers.items.update_item_handler
+      CodeUri: ../backend/
+      Events:
+        UpdateItem:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/items/{id}
+            Method: PUT
+
+  ItemsDeleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-items-delete-${Environment}
+      Handler: src.handlers.items.delete_item_handler
+      CodeUri: ../backend/
+      Events:
+        DeleteItem:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/items/{id}
+            Method: DELETE
+
   # Artifact Types Function
   ArtifactTypesFunction:
     Type: AWS::Serverless::Function

@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage'
 import PlayersPage from './pages/PlayersPage'
 import ArtifactsPage from './pages/ArtifactsPage'
 import SpawnArtifactsPage from './pages/SpawnArtifactsPage'
+import ItemsPage from './pages/ItemsPage'
 import ZonesPage from './pages/ZonesPage'
 import ContractsPage from './pages/ContractsPage'
 import Layout from './components/Layout'
@@ -32,6 +33,7 @@ function App() {
                 <Route path="/players" element={<PlayersPage />} />
                 <Route path="/artifacts" element={<ArtifactsPage />} />
                 <Route path="/spawn-artifacts" element={<SpawnArtifactsPage />} />
+                <Route path="/items" element={<ItemsPage />} />
                 <Route path="/zones" element={<ZonesPage />} />
                 <Route path="/contracts" element={<ContractsPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
