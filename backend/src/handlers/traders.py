@@ -176,3 +176,53 @@ def update_trader_inventory_handler(event, context):
         return success_response({'message': 'Inventory updated', 'count': len(item_ids)})
     except Exception as e:
         return error_response(f'Failed to update inventory: {str(e)}', 500)
+
+
+@require_gm
+def get_trader_quests_handler(event, context):
+    """GET /api/admin/traders/{id}/quests - Get quests assigned to trader"""
+    try:
+        trader_id = event['pathParameters']['id']
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT tq.quest_id, c.title, c.quest_type, c.reward
+                    FROM trader_quests tq
+                    JOIN contracts c ON tq.quest_id = c.id
+                    WHERE tq.trader_id = %s AND tq.is_active = 1
+                    ORDER BY c.title
+                """, (trader_id,))
+                quests = cursor.fetchall()
+                
+                for q in quests:
+                    if q.get('reward'):
+                        q['reward_money'] = int(q.pop('reward'))
+                
+                return success_response({'quests': quests})
+    except Exception as e:
+        return error_response(f'Failed to fetch quests: {str(e)}', 500)
+
+@require_gm
+def update_trader_quests_handler(event, context):
+    """PUT /api/admin/traders/{id}/quests - Update quests assigned to trader"""
+    try:
+        trader_id = event['pathParameters']['id']
+        body = json.loads(event.get('body', '{}'))
+        quest_ids = body.get('quest_ids', [])
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM trader_quests WHERE trader_id = %s", (trader_id,))
+                
+                for quest_id in quest_ids:
+                    cursor.execute("""
+                        INSERT INTO trader_quests (id, trader_id, quest_id)
+                        VALUES (%s, %s, %s)
+                    """, (str(uuid.uuid4()), trader_id, quest_id))
+                
+                conn.commit()
+        
+        return success_response({'message': 'Quests updated', 'count': len(quest_ids)})
+    except Exception as e:
+        return error_response(f'Failed to update quests: {str(e)}', 500)

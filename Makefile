@@ -1,4 +1,4 @@
-.PHONY: help install deploy deploy-pda deploy-admin logs clean update-lambdas test smoke-test dev-admin outputs
+.PHONY: help install deploy deploy-pda deploy-admin logs clean update-lambdas test full-test smoke-test dev-admin outputs
 
 ENVIRONMENT ?= dev
 REGION = eu-north-1
@@ -61,6 +61,9 @@ update-lambdas:
 
 test:
 	./tests/api-tests.sh
+
+full-test:
+	./tests/full-api-tests.sh
 
 smoke-test:
 	./tests/smoke-test.sh

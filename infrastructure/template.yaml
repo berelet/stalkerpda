@@ -995,6 +995,34 @@ Resources:
             Path: /api/admin/traders/{id}/inventory
             Method: PUT
 
+  TraderQuestsGetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-trader-quests-get-${Environment}
+      Handler: src.handlers.traders.get_trader_quests_handler
+      CodeUri: ../backend/
+      Events:
+        GetTraderQuests:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/traders/{id}/quests
+            Method: GET
+
+  TraderQuestsUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-trader-quests-update-${Environment}
+      Handler: src.handlers.traders.update_trader_quests_handler
+      CodeUri: ../backend/
+      Events:
+        UpdateTraderQuests:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/traders/{id}/quests
+            Method: PUT
+
   # Items Management Functions
   ItemsListFunction:
     Type: AWS::Serverless::Function
@@ -1098,6 +1126,20 @@ Resources:
           Properties:
             RestApiId: !Ref RestApi
             Path: /api/traders
+            Method: GET
+
+  TraderQuestsPlayerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-trader-quests-player-${Environment}
+      Handler: src.handlers.trade.get_trader_quests_handler
+      CodeUri: ../backend/
+      Events:
+        GetTraderQuestsPlayer:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/traders/{id}/quests
             Method: GET
 
   TradeStartSessionFunction:
@@ -1299,6 +1341,190 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref WebSocketMessageFunction
       Principal: apigateway.amazonaws.com
+
+  # Lambda - Quests (Enhanced Contracts)
+  QuestsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-quests-${Environment}
+      Handler: src.handlers.quests.list_available_handler
+      CodeUri: ../backend/
+      Events:
+        ListAvailable:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/quests
+            Method: GET
+
+  QuestsActiveFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-quests-active-${Environment}
+      Handler: src.handlers.quests.list_active_handler
+      CodeUri: ../backend/
+      Events:
+        ListActive:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/quests/active
+            Method: GET
+
+  QuestsCompletedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-quests-completed-${Environment}
+      Handler: src.handlers.quests.list_completed_handler
+      CodeUri: ../backend/
+      Events:
+        ListCompleted:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/quests/completed
+            Method: GET
+
+  QuestsGetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-quests-get-${Environment}
+      Handler: src.handlers.quests.get_quest_handler
+      CodeUri: ../backend/
+      Events:
+        GetQuest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/quests/{id}
+            Method: GET
+
+  QuestsAcceptFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-quests-accept-${Environment}
+      Handler: src.handlers.quests.accept_handler
+      CodeUri: ../backend/
+      Events:
+        AcceptQuest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/quests/{id}/accept
+            Method: POST
+
+  QuestsClaimFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-quests-claim-${Environment}
+      Handler: src.handlers.quests.claim_handler
+      CodeUri: ../backend/
+      Events:
+        ClaimQuest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/quests/{id}/claim
+            Method: POST
+
+  QuestsCancelFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-quests-cancel-${Environment}
+      Handler: src.handlers.quests.cancel_handler
+      CodeUri: ../backend/
+      Events:
+        CancelQuest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/quests/{id}/cancel
+            Method: POST
+
+  QuestsCreateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-quests-create-${Environment}
+      Handler: src.handlers.quests.create_handler
+      CodeUri: ../backend/
+      Events:
+        CreateQuest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/quests/create
+            Method: POST
+
+  # Lambda - Admin Quests
+  AdminQuestsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-quests-${Environment}
+      Handler: src.handlers.quests.admin_list_handler
+      CodeUri: ../backend/
+      Events:
+        AdminListQuests:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/quests
+            Method: GET
+
+  AdminQuestsCreateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-quests-create-${Environment}
+      Handler: src.handlers.quests.admin_create_handler
+      CodeUri: ../backend/
+      Events:
+        AdminCreateQuest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/quests
+            Method: POST
+
+  AdminQuestsConfirmFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-quests-confirm-${Environment}
+      Handler: src.handlers.quests.admin_confirm_handler
+      CodeUri: ../backend/
+      Events:
+        AdminConfirmQuest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/quests/{id}/confirm
+            Method: POST
+
+  AdminQuestsDeleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-quests-delete-${Environment}
+      Handler: src.handlers.quests.admin_delete_handler
+      CodeUri: ../backend/
+      Events:
+        AdminDeleteQuest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/quests/{id}
+            Method: DELETE
+
+  AdminQuestsUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-quests-update-${Environment}
+      Handler: src.handlers.quests.admin_update_handler
+      CodeUri: ../backend/
+      Events:
+        AdminUpdateQuest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/quests/{id}
+            Method: PUT
 
   # DynamoDB
   ConnectionsTable:

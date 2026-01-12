@@ -23,8 +23,8 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/spawn-artifacts', icon: 'add_location', label: 'Spawn Artifacts' },
     { path: '/items', icon: 'inventory_2', label: 'Shop Items' },
     { path: '/traders', icon: 'storefront', label: 'Traders' },
+    { path: '/quests', icon: 'assignment', label: 'Quests' },
     { path: '/zones', icon: 'location_on', label: 'Zones' },
-    { path: '/contracts', icon: 'description', label: 'Contracts' },
   ]
 
   return (

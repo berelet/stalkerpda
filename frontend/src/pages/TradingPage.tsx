@@ -55,7 +55,7 @@ function ItemDetailsModal({ item, onClose }: { item: TradeItem; onClose: () => v
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-pda-case border-2 border-pda-primary max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto"
+        className="bg-pda-case border-2 border-pda-primary max-w-md w-full p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute top-2 right-2 text-pda-text hover:text-pda-primary text-2xl">×</button>

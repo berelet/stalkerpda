@@ -169,6 +169,45 @@ def update_handler(event, context):
                                 "UPDATE artifacts SET state = 'visible' WHERE id = %s",
                                 (art['id'],)
                             )
+                
+                # Activate respawned artifacts
+                from src.utils.respawn import activate_respawned_artifacts
+                activate_respawned_artifacts(cursor)
+                
+                # Update quest progress for patrol/visit quests
+                from src.utils.quest import update_patrol_progress, update_visit_progress, log_quest_event
+                
+                cursor.execute("""
+                    SELECT id, quest_type, quest_data, auto_complete FROM contracts
+                    WHERE accepted_by = %s AND status = 'accepted' AND failed = 0
+                      AND quest_type IN ('patrol', 'visit')
+                """, (player_id,))
+                
+                # Estimate delta time (assume 15 sec between updates)
+                delta_time = 15
+                
+                for quest in cursor.fetchall():
+                    quest_data = json.loads(quest['quest_data']) if quest['quest_data'] else {}
+                    
+                    if quest['quest_type'] == 'visit':
+                        updated_data, completed = update_visit_progress(quest_data, latitude, longitude)
+                    else:  # patrol
+                        updated_data, completed = update_patrol_progress(quest_data, latitude, longitude, delta_time)
+                    
+                    if updated_data != quest_data:
+                        cursor.execute(
+                            "UPDATE contracts SET quest_data = %s WHERE id = %s",
+                            (json.dumps(updated_data), quest['id'])
+                        )
+                        log_quest_event(cursor, quest['id'], player_id, 'progress', updated_data, 'location_update')
+                        
+                        # Auto-complete if enabled and objectives met
+                        if completed and quest['auto_complete']:
+                            cursor.execute(
+                                "UPDATE contracts SET status = 'completed', completed_at = NOW() WHERE id = %s",
+                                (quest['id'],)
+                            )
+                            log_quest_event(cursor, quest['id'], player_id, 'completed', updated_data, 'auto_complete')
         
         response = {
             'success': True,

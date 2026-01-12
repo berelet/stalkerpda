@@ -39,7 +39,6 @@ export default function TraderMarkers() {
         console.error('Failed to fetch traders:', err)
       }
     }
-
     fetchTraders()
   }, [])
 
@@ -51,18 +50,27 @@ export default function TraderMarkers() {
           position={[trader.latitude, trader.longitude]}
           icon={traderIcon}
         >
-          <Popup>
-            <div className="text-sm space-y-2">
-              <div className="font-bold text-yellow-600">{trader.name}</div>
-              <div className="text-xs text-gray-600">
+          <Popup minWidth={200}>
+            <div className="text-sm">
+              <div className="font-bold text-yellow-600 text-base mb-1">{trader.name}</div>
+              <div className="text-xs text-gray-500 mb-3">
                 {trader.type === 'npc' ? 'NPC Trader' : 'Bartender'}
               </div>
-              <button
-                onClick={() => navigate(`/trade?trader=${trader.id}`)}
-                className="w-full px-3 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700"
-              >
-                TRADE
-              </button>
+              
+              <div className="space-y-2">
+                <button
+                  onClick={() => navigate(`/trade?trader=${trader.id}`)}
+                  className="w-full px-3 py-2 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700 flex items-center justify-center gap-2"
+                >
+                  <span>💰</span> TRADE
+                </button>
+                <button
+                  onClick={() => navigate(`/trader-quests?trader=${trader.id}&name=${encodeURIComponent(trader.name)}`)}
+                  className="w-full px-3 py-2 bg-green-600 text-white text-xs rounded hover:bg-green-700 flex items-center justify-center gap-2"
+                >
+                  <span>📜</span> QUESTS
+                </button>
+              </div>
             </div>
           </Popup>
         </Marker>

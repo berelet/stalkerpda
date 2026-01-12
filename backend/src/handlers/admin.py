@@ -105,9 +105,8 @@ def history_handler(event, context):
         }
 
 @require_gm
-@require_gm
 def spawn_artifact_handler(event, context):
-    """POST /api/admin/artifacts/spawn - Spawn artifact with expiration"""
+    """POST /api/admin/artifacts/spawn - Spawn artifact with expiration and respawn"""
     try:
         body = json.loads(event.get('body', '{}'))
         type_id = body.get('typeId')
@@ -115,13 +114,21 @@ def spawn_artifact_handler(event, context):
         lng = body.get('longitude')
         expires_at = body.get('expiresAt')  # ISO datetime string
         
+        # Respawn settings (new)
+        respawn_enabled = body.get('respawnEnabled', False)
+        respawn_delay = body.get('respawnDelayMinutes', 30) if respawn_enabled else None
+        respawn_radius = body.get('respawnRadiusMeters', 50) if respawn_enabled else None
+        
         with get_db() as conn:
             with conn.cursor() as cursor:
                 artifact_id = str(uuid.uuid4())
                 cursor.execute(
-                    """INSERT INTO artifacts (id, type_id, latitude, longitude, state, expires_at)
-                    VALUES (%s, %s, %s, %s, 'hidden', %s)""",
-                    (artifact_id, type_id, lat, lng, expires_at)
+                    """INSERT INTO artifacts (id, type_id, latitude, longitude, state, expires_at,
+                                             respawn_enabled, respawn_delay_minutes, respawn_radius_meters,
+                                             original_latitude, original_longitude)
+                    VALUES (%s, %s, %s, %s, 'hidden', %s, %s, %s, %s, %s, %s)""",
+                    (artifact_id, type_id, lat, lng, expires_at,
+                     respawn_enabled, respawn_delay, respawn_radius, lat, lng)
                 )
                 
                 cursor.execute(
@@ -143,7 +150,10 @@ def spawn_artifact_handler(event, context):
                 'id': artifact_id,
                 'name': artifact_type['name'] if artifact_type else 'Unknown',
                 'location': {'latitude': lat, 'longitude': lng},
-                'expiresAt': expires_at
+                'expiresAt': expires_at,
+                'respawnEnabled': respawn_enabled,
+                'respawnDelayMinutes': respawn_delay,
+                'respawnRadiusMeters': respawn_radius
             })
         }
     
@@ -308,6 +318,8 @@ def get_spawned_artifacts_handler(event, context):
                 cursor.execute(
                     """SELECT a.id, a.type_id, a.latitude, a.longitude, a.state, 
                     a.spawned_at, a.expires_at, a.extracted_at, a.owner_id,
+                    a.respawn_enabled, a.respawn_delay_minutes, a.respawn_radius_meters,
+                    a.pickup_count, a.last_pickup_at,
                     at.name as type_name, p.nickname as collected_by
                     FROM artifacts a
                     JOIN artifact_types at ON a.type_id = at.id
@@ -325,6 +337,8 @@ def get_spawned_artifacts_handler(event, context):
                 status = 'Collected'
             elif a['state'] == 'lost':
                 status = 'Lost'
+            elif a['state'] == 'respawning':
+                status = 'Respawning'
             elif a['expires_at'] and a['expires_at'] < now:
                 status = 'Expired'
             elif a['spawned_at'] > now:
@@ -344,7 +358,12 @@ def get_spawned_artifacts_handler(event, context):
                 'collectedByPlayerId': a['owner_id'],
                 'spawnedAt': a['spawned_at'].isoformat() + 'Z' if a['spawned_at'] else None,
                 'expiresAt': a['expires_at'].isoformat() + 'Z' if a['expires_at'] else None,
-                'extractedAt': a['extracted_at'].isoformat() + 'Z' if a['extracted_at'] else None
+                'extractedAt': a['extracted_at'].isoformat() + 'Z' if a['extracted_at'] else None,
+                'respawnEnabled': bool(a['respawn_enabled']),
+                'respawnDelayMinutes': a['respawn_delay_minutes'],
+                'respawnRadiusMeters': a['respawn_radius_meters'],
+                'pickupCount': a['pickup_count'] or 0,
+                'lastPickupAt': a['last_pickup_at'].isoformat() + 'Z' if a['last_pickup_at'] else None
             })
         
         return {

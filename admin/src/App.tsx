@@ -8,7 +8,7 @@ import SpawnArtifactsPage from './pages/SpawnArtifactsPage'
 import ItemsPage from './pages/ItemsPage'
 import TradersPage from './pages/TradersPage'
 import ZonesPage from './pages/ZonesPage'
-import ContractsPage from './pages/ContractsPage'
+import QuestsPage from './pages/QuestsPage'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import { useAuthStore } from './stores/authStore'
@@ -37,7 +37,7 @@ function App() {
                 <Route path="/items" element={<ItemsPage />} />
                 <Route path="/traders" element={<TradersPage />} />
                 <Route path="/zones" element={<ZonesPage />} />
-                <Route path="/contracts" element={<ContractsPage />} />
+                <Route path="/quests" element={<QuestsPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </Layout>

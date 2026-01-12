@@ -3,8 +3,10 @@ import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet'
 import { Icon } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { NearbyArtifact } from '../../hooks/useLocationTracking'
+import { useActiveQuests } from '../../hooks/useActiveQuests'
 import ArtifactModal from '../artifacts/ArtifactModal'
 import TraderMarkers from './TraderMarkers'
+import QuestMarkers from './QuestMarkers'
 
 interface MapProps {
   latitude: number
@@ -41,6 +43,7 @@ const artifactIconHighlighted = new Icon({
 export default function StalkerMap({ latitude, longitude, accuracy, zoom = 16, nearbyArtifacts = [] }: MapProps) {
   const [selectedArtifact, setSelectedArtifact] = useState<NearbyArtifact | null>(null)
   const [hiddenArtifacts, setHiddenArtifacts] = useState<Set<string>>(new Set())
+  const { markers: questMarkers } = useActiveQuests()
 
   const handleExtracted = (artifactId: string) => {
     setHiddenArtifacts(prev => new Set(prev).add(artifactId))
@@ -90,6 +93,9 @@ export default function StalkerMap({ latitude, longitude, accuracy, zoom = 16, n
 
         {/* Trader markers */}
         <TraderMarkers />
+
+        {/* Quest markers */}
+        <QuestMarkers markers={questMarkers} />
 
         {/* Artifact markers */}
         {visibleArtifacts.map(artifact => (

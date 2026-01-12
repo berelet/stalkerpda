@@ -121,12 +121,21 @@ export default function SpawnArtifactsPage() {
         })
         console.log('Artifact updated successfully')
       } else {
+        // Get respawn settings
+        const respawnCheckbox = document.getElementById('respawnEnabled') as HTMLInputElement
+        const respawnEnabled = respawnCheckbox?.checked || false
+        const respawnDelay = respawnEnabled ? parseInt((document.getElementById('respawnDelay') as HTMLInputElement)?.value || '30') : undefined
+        const respawnRadius = respawnEnabled ? parseInt((document.getElementById('respawnRadius') as HTMLInputElement)?.value || '50') : undefined
+        
         // Create new artifact
         await api.post('/api/admin/artifacts/spawn', {
           typeId: selectedType,
           latitude: typeof latitude === 'number' ? latitude : parseFloat(String(latitude)),
           longitude: typeof longitude === 'number' ? longitude : parseFloat(String(longitude)),
-          expiresAt
+          expiresAt,
+          respawnEnabled,
+          respawnDelayMinutes: respawnDelay,
+          respawnRadiusMeters: respawnRadius
         })
         console.log('Artifact spawned successfully')
       }
@@ -448,6 +457,56 @@ export default function SpawnArtifactsPage() {
                     </p>
                   </div>
                 )}
+              </div>
+
+              {/* Respawn Settings */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-[#91b3ca] mb-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="respawnEnabled"
+                    className="w-4 h-4 rounded border-[#233948] bg-[#101b22] text-[#1e9cf1] focus:ring-[#1e9cf1]"
+                    onChange={(e) => {
+                      const checkbox = e.target as HTMLInputElement
+                      const respawnSettings = document.getElementById('respawnSettings')
+                      if (respawnSettings) {
+                        respawnSettings.style.display = checkbox.checked ? 'block' : 'none'
+                      }
+                    }}
+                  />
+                  Enable Respawn
+                </label>
+                <div id="respawnSettings" style={{ display: 'none' }} className="space-y-3 mt-2 p-3 bg-[#101b22] border border-[#233948] rounded-lg">
+                  <div>
+                    <label className="block text-xs font-medium text-[#91b3ca] mb-1">
+                      Respawn Delay (minutes)
+                    </label>
+                    <input
+                      type="number"
+                      id="respawnDelay"
+                      min="1"
+                      max="1440"
+                      defaultValue="30"
+                      className="w-full bg-[#18242e] border border-[#233948] text-white px-3 py-2 rounded-lg focus:outline-none focus:border-[#1e9cf1] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[#91b3ca] mb-1">
+                      Random Radius (meters)
+                    </label>
+                    <input
+                      type="number"
+                      id="respawnRadius"
+                      min="0"
+                      max="500"
+                      defaultValue="50"
+                      className="w-full bg-[#18242e] border border-[#233948] text-white px-3 py-2 rounded-lg focus:outline-none focus:border-[#1e9cf1] text-sm"
+                    />
+                    <p className="text-xs text-[#91b3ca] mt-1">
+                      Artifact will respawn within this radius from original location
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Submit */}

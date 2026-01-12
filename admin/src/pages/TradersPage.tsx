@@ -25,6 +25,13 @@ interface ItemDef {
   image_url: string | null
 }
 
+interface Quest {
+  id: string
+  title: string
+  quest_type: string
+  reward_money: number
+}
+
 const traderIcon = new Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
   iconSize: [25, 41],
@@ -43,11 +50,14 @@ function LocationPicker({ position, onSelect }: { position: [number, number] | n
 export default function TradersPage() {
   const [traders, setTraders] = useState<Trader[]>([])
   const [items, setItems] = useState<ItemDef[]>([])
+  const [quests, setQuests] = useState<Quest[]>([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingTrader, setEditingTrader] = useState<Trader | null>(null)
   const [inventoryModal, setInventoryModal] = useState<Trader | null>(null)
+  const [questsModal, setQuestsModal] = useState<Trader | null>(null)
   const [traderItems, setTraderItems] = useState<string[]>([])
+  const [traderQuests, setTraderQuests] = useState<string[]>([])
 
   const loadTraders = async () => {
     try {
@@ -69,9 +79,19 @@ export default function TradersPage() {
     }
   }
 
+  const loadQuests = async () => {
+    try {
+      const { data } = await api.get('/api/admin/quests?status=available')
+      setQuests(data.quests || [])
+    } catch (error) {
+      console.error('Error loading quests:', error)
+    }
+  }
+
   useEffect(() => {
     loadTraders()
     loadItems()
+    loadQuests()
   }, [])
 
   const handleDelete = async (trader: Trader) => {
@@ -100,6 +120,27 @@ export default function TradersPage() {
       await api.put(`/api/admin/traders/${inventoryModal.id}/inventory`, { item_ids: traderItems })
       alert('Inventory updated!')
       setInventoryModal(null)
+    } catch (error: any) {
+      alert(error.response?.data?.error?.message || 'Failed to update')
+    }
+  }
+
+  const handleEditQuests = async (trader: Trader) => {
+    try {
+      const { data } = await api.get(`/api/admin/traders/${trader.id}/quests`)
+      setTraderQuests(data.quests.map((q: any) => q.quest_id))
+      setQuestsModal(trader)
+    } catch (error) {
+      console.error('Error loading quests:', error)
+    }
+  }
+
+  const saveQuests = async () => {
+    if (!questsModal) return
+    try {
+      await api.put(`/api/admin/traders/${questsModal.id}/quests`, { quest_ids: traderQuests })
+      alert('Quests updated!')
+      setQuestsModal(null)
     } catch (error: any) {
       alert(error.response?.data?.error?.message || 'Failed to update')
     }
@@ -168,6 +209,13 @@ export default function TradersPage() {
                 Items
               </button>
               <button
+                onClick={() => handleEditQuests(trader)}
+                className="flex-1 h-9 rounded-lg bg-[#233948] hover:bg-green-500/20 border border-green-500/30 hover:border-green-500 text-green-500 font-medium transition-colors flex items-center justify-center gap-1"
+              >
+                <span className="material-symbols-outlined text-sm">assignment</span>
+                Quests
+              </button>
+              <button
                 onClick={() => handleDelete(trader)}
                 className="h-9 px-3 rounded-lg bg-[#233948] hover:bg-red-500/20 border border-red-500/30 hover:border-red-500 text-red-500 transition-colors"
               >
@@ -220,6 +268,53 @@ export default function TradersPage() {
                 Save Inventory
               </button>
               <button onClick={() => setInventoryModal(null)} className="flex-1 py-2 bg-[#233948] hover:bg-[#2c4659] text-white rounded-lg">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quests Modal */}
+      {questsModal && (
+        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111b22] border border-[#233948] rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold text-white mb-4">{questsModal.name} - Quests</h2>
+            <p className="text-[#91b3ca] text-sm mb-4">Select quests this trader can give:</p>
+            
+            {quests.length === 0 ? (
+              <p className="text-[#91b3ca] text-center py-8">No quest templates available. Create quests in the Quests page first.</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-2 mb-4 max-h-[400px] overflow-y-auto">
+                {quests.map((quest) => (
+                  <label key={quest.id} className="flex items-center gap-3 p-3 bg-[#233948] rounded cursor-pointer hover:bg-[#2c4659]">
+                    <input
+                      type="checkbox"
+                      checked={traderQuests.includes(quest.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setTraderQuests([...traderQuests, quest.id])
+                        } else {
+                          setTraderQuests(traderQuests.filter(id => id !== quest.id))
+                        }
+                      }}
+                      className="w-4 h-4"
+                    />
+                    <div className="flex-1">
+                      <span className="text-white">{quest.title}</span>
+                      <span className="text-xs text-[#91b3ca] ml-2">[{quest.quest_type}]</span>
+                    </div>
+                    <span className="text-yellow-400 text-sm">💰 {quest.reward_money?.toLocaleString()}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button onClick={saveQuests} className="flex-1 py-2 bg-primary hover:bg-[#1680c7] text-white rounded-lg">
+                Save Quests
+              </button>
+              <button onClick={() => setQuestsModal(null)} className="flex-1 py-2 bg-[#233948] hover:bg-[#2c4659] text-white rounded-lg">
                 Cancel
               </button>
             </div>

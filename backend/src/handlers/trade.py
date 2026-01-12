@@ -1037,3 +1037,109 @@ def get_traders_handler(event, context):
             'headers': CORS_HEADERS,
             'body': json.dumps({'error': 'INTERNAL_ERROR', 'message': str(e)})
         }
+
+
+@require_auth
+def get_trader_quests_handler(event, context):
+    """GET /api/traders/{id}/quests - Get quests available from trader"""
+    try:
+        trader_id = event['pathParameters']['id']
+        player_id = event['player']['player_id']
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                # Get trader info
+                cursor.execute("""
+                    SELECT latitude, longitude, interaction_radius 
+                    FROM traders WHERE id = %s AND is_active = 1
+                """, (trader_id,))
+                trader = cursor.fetchone()
+                
+                if not trader:
+                    return {
+                        'statusCode': 404,
+                        'headers': CORS_HEADERS,
+                        'body': json.dumps({'error': 'TRADER_NOT_FOUND', 'message': 'Trader not found'})
+                    }
+                
+                # Get player location and faction
+                cursor.execute("""
+                    SELECT p.faction, pl.latitude, pl.longitude 
+                    FROM players p
+                    LEFT JOIN player_locations pl ON p.id = pl.player_id
+                    WHERE p.id = %s
+                """, (player_id,))
+                player = cursor.fetchone()
+                player_faction = player['faction'] if player else None
+                
+                # Check distance if trader has location
+                if trader['latitude'] and trader['longitude'] and player['latitude']:
+                    from src.utils.geo import haversine_distance
+                    distance = haversine_distance(
+                        float(player['latitude']), float(player['longitude']),
+                        float(trader['latitude']), float(trader['longitude'])
+                    )
+                    if distance > trader['interaction_radius']:
+                        return {
+                            'statusCode': 403,
+                            'headers': CORS_HEADERS,
+                            'body': json.dumps({
+                                'error': 'TOO_FAR',
+                                'message': f'Too far from trader ({int(distance)}m, need ≤{trader["interaction_radius"]}m)'
+                            })
+                        }
+                
+                # Get quests assigned to this trader
+                cursor.execute("""
+                    SELECT c.id, c.title, c.description, c.quest_type, 
+                           c.reward, c.reward_reputation, c.reward_item_id,
+                           c.faction_restriction, c.faction_restrictions, c.expires_at, c.quest_data,
+                           i.name as reward_item_name
+                    FROM trader_quests tq
+                    JOIN contracts c ON tq.quest_id = c.id
+                    LEFT JOIN item_definitions i ON c.reward_item_id = i.id
+                    WHERE tq.trader_id = %s 
+                      AND tq.is_active = 1
+                      AND c.status = 'available'
+                      AND c.quest_type IS NOT NULL
+                      AND (c.expires_at IS NULL OR c.expires_at > NOW())
+                    ORDER BY c.reward DESC
+                """, (trader_id,))
+                
+                quests = []
+                for q in cursor.fetchall():
+                    # Check faction restrictions
+                    if q['faction_restrictions']:
+                        allowed = json.loads(q['faction_restrictions'])
+                        if player_faction not in allowed:
+                            continue
+                    elif q['faction_restriction'] and q['faction_restriction'] != player_faction:
+                        continue
+                    
+                    quest_data = json.loads(q['quest_data']) if q['quest_data'] else {}
+                    quests.append({
+                        'id': q['id'],
+                        'title': q['title'],
+                        'description': q['description'],
+                        'questType': q['quest_type'],
+                        'reward': float(q['reward']) if q['reward'] else 0,
+                        'rewardReputation': q['reward_reputation'] or 0,
+                        'rewardItemId': q['reward_item_id'],
+                        'rewardItemName': q['reward_item_name'],
+                        'expiresAt': q['expires_at'].isoformat() + 'Z' if q['expires_at'] else None,
+                        'objectives': quest_data
+                    })
+                
+                return {
+                    'statusCode': 200,
+                    'headers': CORS_HEADERS,
+                    'body': json.dumps({'quests': quests})
+                }
+                
+    except Exception as e:
+        print(f"Error in get_trader_quests_handler: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': CORS_HEADERS,
+            'body': json.dumps({'error': 'INTERNAL_ERROR', 'message': str(e)})
+        }

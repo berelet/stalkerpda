@@ -363,24 +363,37 @@ def complete_extraction_handler(event, context):
                         'body': json.dumps({'error': {'code': 'TOO_FAR', 'message': f'You moved too far ({distance:.1f}m, need ≤5m)'}})
                     }
                 
-                # Mark map artifact as extracted (no longer available for pickup)
-                cursor.execute(
-                    """UPDATE artifacts 
-                    SET state = 'extracted', owner_id = %s, extracted_at = %s,
-                    extracting_by = NULL, extraction_started_at = NULL
-                    WHERE id = %s AND owner_id IS NULL""",
-                    (player_id, datetime.utcnow(), artifact_id)
-                )
+                # Check if respawn enabled - handle differently
+                from src.utils.respawn import set_artifact_respawning
                 
-                if cursor.rowcount == 0:
-                    return {
-                        'statusCode': 409,
-                        'headers': {
-                            'Content-Type': 'application/json',
-                            'Access-Control-Allow-Origin': '*'
-                        },
-                        'body': json.dumps({'error': {'code': 'ALREADY_TAKEN', 'message': 'Artifact was picked up by another player'}})
-                    }
+                cursor.execute(
+                    "SELECT respawn_enabled FROM artifacts WHERE id = %s",
+                    (artifact_id,)
+                )
+                respawn_info = cursor.fetchone()
+                
+                if respawn_info and respawn_info['respawn_enabled']:
+                    # Set to respawning state (will respawn later)
+                    set_artifact_respawning(cursor, artifact_id)
+                else:
+                    # Mark as extracted (no respawn)
+                    cursor.execute(
+                        """UPDATE artifacts 
+                        SET state = 'extracted', owner_id = %s, extracted_at = %s,
+                        extracting_by = NULL, extraction_started_at = NULL
+                        WHERE id = %s AND owner_id IS NULL""",
+                        (player_id, datetime.utcnow(), artifact_id)
+                    )
+                    
+                    if cursor.rowcount == 0:
+                        return {
+                            'statusCode': 409,
+                            'headers': {
+                                'Content-Type': 'application/json',
+                                'Access-Control-Allow-Origin': '*'
+                            },
+                            'body': json.dumps({'error': {'code': 'ALREADY_TAKEN', 'message': 'Artifact was picked up by another player'}})
+                        }
                 
                 # Add to player_inventory (each artifact as separate record)
                 cursor.execute(
@@ -397,6 +410,38 @@ def complete_extraction_handler(event, context):
                     WHERE id = %s""",
                     (player_id,)
                 )
+                
+                # Update quest progress for artifact collection quests
+                from src.utils.quest import update_artifact_collection_progress, log_quest_event, fail_artifact_quests_for_others
+                import json as json_module
+                
+                # Fail artifact quests for OTHER players targeting this artifact type
+                fail_artifact_quests_for_others(cursor, artifact['type_id'], player_id)
+                
+                cursor.execute("""
+                    SELECT id, quest_data, auto_complete FROM contracts
+                    WHERE accepted_by = %s AND status = 'accepted' AND failed = 0
+                      AND quest_type = 'artifact_collection'
+                """, (player_id,))
+                
+                for quest in cursor.fetchall():
+                    quest_data = json_module.loads(quest['quest_data']) if quest['quest_data'] else {}
+                    updated_data, completed = update_artifact_collection_progress(quest_data, artifact['type_id'])
+                    
+                    if updated_data != quest_data:
+                        cursor.execute(
+                            "UPDATE contracts SET quest_data = %s WHERE id = %s",
+                            (json_module.dumps(updated_data), quest['id'])
+                        )
+                        log_quest_event(cursor, quest['id'], player_id, 'progress', updated_data, 'artifact_pickup')
+                        
+                        # Auto-complete if enabled and objectives met
+                        if completed and quest['auto_complete']:
+                            cursor.execute(
+                                "UPDATE contracts SET status = 'completed', completed_at = NOW() WHERE id = %s",
+                                (quest['id'],)
+                            )
+                            log_quest_event(cursor, quest['id'], player_id, 'completed', updated_data, 'auto_complete')
                 
                 # Invalidate artifacts cache
                 invalidate_artifacts_cache(cursor)

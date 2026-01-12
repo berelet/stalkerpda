@@ -4,7 +4,12 @@
 
 **Before working on this project, you MUST read:**
 - `specs/game-mechanics/FINAL-SPEC.md` - Complete game mechanics specification
-- `specs/inventory-system-spec.md` - **NEW** Inventory system v2.0 specification (2026-01-03)
+- `specs/inventory-system-spec.md` - Inventory system v2.0 specification (2026-01-03)
+- `specs/quest-system-spec.md` - **NEW** Quest system specification (2026-01-11)
+- `specs/artifact-respawn-spec.md` - **NEW** Artifact respawn mechanics (2026-01-11)
+
+**Quick reference:**
+- `specs/quest-system-SUMMARY.md` - Quest system implementation checklist
 
 This document contains all game rules, formulas, and mechanics that must be followed.
 
@@ -287,7 +292,9 @@ stalkerpda/
    - ✅ API endpoints specified - 50+ endpoints (specs/api/endpoints.md)
    - ✅ Frontend UI/UX designed - 8 screens (specs/frontend/ui-spec.md)
    - ✅ **Inventory system v2.0** - Equipment slots + backpack (specs/inventory-system-spec.md)
-   - ✅ **Trading system** - Buy/sell with traders (specs/trading-system-spec.md) **NEW 2026-01-07**
+   - ✅ **Trading system** - Buy/sell with traders (specs/trading-system-spec.md)
+   - ✅ **Quest system** - Enhanced contracts with progress tracking (specs/quest-system-spec.md) **NEW 2026-01-11**
+   - ✅ **Artifact respawn** - Auto-respawn mechanics (specs/artifact-respawn-spec.md) **NEW 2026-01-11**
 
 2. **Infrastructure (100%)**
    - ✅ AWS deployed and working
@@ -424,9 +431,24 @@ expires_at TIMESTAMP NULL  -- When artifact becomes inactive
 - Expired artifacts shown in list but not returned to players
 - Artifact types stored in `artifact_types` table (managed via Artifacts Library page)
 
-### ⏳ TODO (40%)
+### ⏳ TODO (30%)
+- **Quest System Frontend** - UI for quests page, map markers, bartender creation
 - **Frontend features** - Real-time WebSocket updates, contract/zone mechanics UI
 - **Advanced features** - Push notifications, PWA, offline mode
+
+### ✅ Recently Completed (2026-01-11)
+
+**Quest System Backend:**
+- ✅ Database migrations (006_quest_system.sql, 007_artifact_respawn.sql)
+- ✅ Quest progress tracking utilities (src/utils/quest.py)
+- ✅ Reputation system (src/utils/reputation.py)
+- ✅ Artifact respawn utilities (src/utils/respawn.py)
+- ✅ Quest handlers (src/handlers/quests.py) - 12 endpoints
+- ✅ Integration with death handler (fail quests on death)
+- ✅ Integration with loot handler (elimination quest progress)
+- ✅ Integration with artifact pickup (collection quest progress)
+- ✅ Integration with location update (patrol/visit quest progress + respawn activation)
+- ✅ Admin spawn artifact with respawn settings
 
 ## Quick Commands
 
