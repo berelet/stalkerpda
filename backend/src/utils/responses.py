@@ -27,12 +27,12 @@ def get_cors_origin(event):
 
 def cors_headers(event=None, with_credentials=False):
     """Return CORS headers for all responses"""
-    # For now, always return admin origin when credentials are needed
-    # TODO: Make this smarter based on event.headers.origin
-    if with_credentials:
-        origin = 'https://d3gda670zz1dlb.cloudfront.net'
-    else:
-        origin = get_cors_origin(event) if event else '*'
+    origin = get_cors_origin(event) if event else '*'
+    
+    # If credentials needed but origin not in allowed list, use wildcard
+    # (credentials won't work with wildcard, but at least won't break)
+    if with_credentials and origin == '*':
+        origin = ALLOWED_ORIGINS[1]  # Default to PDA frontend
     
     headers = {
         'Content-Type': 'application/json',

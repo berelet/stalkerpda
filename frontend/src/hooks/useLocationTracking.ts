@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../services/api'
+import { logger } from '../utils/logger'
 
 interface LocationData {
   latitude: number
@@ -56,8 +57,11 @@ export const useLocationTracking = (location: LocationData | null, enabled = tru
         setNearbyArtifacts(data.nearbyArtifacts || [])
         setRadiationZones(data.currentZones?.radiationZones || [])
         setControlPoints(data.currentZones?.controlPoints || [])
-      } catch (error) {
-        console.error('Failed to send location:', error)
+      } catch (error: any) {
+        logger.error('Location failed', { 
+          status: error.response?.status,
+          message: error.response?.data?.error?.message || error.message
+        })
       }
     }
 

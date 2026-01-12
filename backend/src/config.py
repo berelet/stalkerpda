@@ -26,7 +26,7 @@ class Config:
     # Game Settings
     DEFAULT_LIVES = 4
     DEFAULT_BALANCE = 1000.0
-    ARTIFACT_DETECTION_RADIUS = 15  # meters
+    ARTIFACT_DETECTION_RADIUS = 20  # meters
     ARTIFACT_PICKUP_RADIUS = 2  # meters
     CONTROL_POINT_RADIUS = 2  # meters
     EXTRACTION_DURATION = 30  # seconds

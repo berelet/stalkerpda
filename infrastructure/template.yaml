@@ -309,6 +309,21 @@ Resources:
         AllowOrigin: "'*'"
         MaxAge: "'86400'"
 
+  # Lambda - Frontend Logging
+  LogFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-log-${Environment}
+      Handler: src.handlers.log.log_handler
+      CodeUri: ../backend/
+      Events:
+        Log:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/log
+            Method: POST
+
   # Lambda - Auth
   LoginFunction:
     Type: AWS::Serverless::Function
@@ -432,8 +447,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-location-update-${Environment}
-      Handler: location.update_handler
-      CodeUri: ../handlers/
+      Handler: src.handlers.location.update_handler
+      CodeUri: ../backend/
       Events:
         UpdateLocation:
           Type: Api
@@ -474,8 +489,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-artifact-extract-start-${Environment}
-      Handler: artifacts.start_extraction_handler
-      CodeUri: ../handlers/
+      Handler: src.handlers.artifacts.start_extraction_handler
+      CodeUri: ../backend/
       Events:
         StartExtraction:
           Type: Api
@@ -489,8 +504,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-artifact-extract-complete-${Environment}
-      Handler: artifacts.complete_extraction_handler
-      CodeUri: ../handlers/
+      Handler: src.handlers.artifacts.complete_extraction_handler
+      CodeUri: ../backend/
       Events:
         CompleteExtraction:
           Type: Api
@@ -504,8 +519,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub pda-zone-artifact-extract-cancel-${Environment}
-      Handler: artifacts.cancel_extraction_handler
-      CodeUri: ../handlers/
+      Handler: src.handlers.artifacts.cancel_extraction_handler
+      CodeUri: ../backend/
       Events:
         CancelExtraction:
           Type: Api

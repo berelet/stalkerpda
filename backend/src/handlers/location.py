@@ -61,8 +61,12 @@ def update_handler(event, context):
         if not latitude or not longitude:
             return {
                 'statusCode': 400,
-            'headers': {'Content-Type': 'application/json'},
-                'headers': {'Content-Type': 'application/json'},
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                    'Access-Control-Allow-Methods': 'POST,OPTIONS'
+                },
                 'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'Latitude and longitude required'}})
             }
         
