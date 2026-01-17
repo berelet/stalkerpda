@@ -1,5 +1,7 @@
 import json
 import uuid
+import random
+from datetime import datetime
 from src.database import get_db
 from src.middleware.auth import require_auth
 from src.utils.game import calculate_loot_money, should_loot_item, should_lose_item_on_death
@@ -11,6 +13,143 @@ def cors_headers():
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type,Authorization',
         'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
+    }
+
+
+def trigger_death(cursor, player_id, reason='radiation_zone'):
+    """
+    Trigger player death (atomic transaction)
+    
+    Args:
+        cursor: Database cursor
+        player_id: Player UUID
+        reason: Death reason ('radiation_zone', 'radiation_artifact', 'player_kill')
+        
+    Returns:
+        Dict with death event info
+    """
+    # Get player info
+    cursor.execute(
+        "SELECT current_lives, status FROM players WHERE id = %s",
+        (player_id,)
+    )
+    player = cursor.fetchone()
+    
+    if not player:
+        return {'error': 'Player not found'}
+    
+    # Decrement lives
+    new_lives = max(0, player['current_lives'] - 1)
+    
+    # Set status
+    new_status = 'dead' if new_lives == 0 else 'alive'
+    
+    # Reset radiation and update player
+    cursor.execute("""
+        UPDATE players 
+        SET current_lives = %s,
+            status = %s,
+            current_radiation = 0,
+            current_radiation_zone_id = NULL,
+            dead_at = NOW(),
+            total_deaths = total_deaths + 1
+        WHERE id = %s
+    """, (new_lives, new_status, player_id))
+    
+    # Item loss (1-10% all items)
+    lost_equipment = []
+    lost_artifacts = []
+    
+    # Process equipment
+    cursor.execute("""
+        SELECT pe.id, et.name, pe.slot_type
+        FROM player_equipment pe
+        JOIN equipment_types et ON pe.equipment_type_id = et.id
+        WHERE pe.player_id = %s
+    """, (player_id,))
+    
+    for eq in cursor.fetchall():
+        if random.randint(1, 100) <= 10:  # 1-10% chance
+            # If equipped, unequip first
+            if eq['slot_type'] != 'backpack':
+                cursor.execute(
+                    "UPDATE player_equipment SET slot_type = 'backpack', slot_position = 0 WHERE id = %s",
+                    (eq['id'],)
+                )
+            
+            # Delete item
+            cursor.execute("DELETE FROM player_equipment WHERE id = %s", (eq['id'],))
+            lost_equipment.append({'id': eq['id'], 'name': eq['name']})
+    
+    # Process artifacts
+    cursor.execute("""
+        SELECT a.id, at.name, a.slot_type
+        FROM artifacts a
+        JOIN artifact_types at ON a.type_id = at.id
+        WHERE a.owner_id = %s
+    """, (player_id,))
+    
+    for art in cursor.fetchall():
+        if random.randint(1, 100) <= 10:  # 1-10% chance
+            # If equipped, remove bonuses
+            if art['slot_type'] == 'artifact':
+                cursor.execute("""
+                    SELECT at.bonus_lives
+                    FROM artifacts a
+                    JOIN artifact_types at ON a.type_id = at.id
+                    WHERE a.id = %s
+                """, (art['id'],))
+                bonus = cursor.fetchone()
+                if bonus and bonus['bonus_lives'] > 0:
+                    cursor.execute(
+                        "UPDATE players SET current_lives = current_lives - %s WHERE id = %s",
+                        (bonus['bonus_lives'], player_id)
+                    )
+            
+            # Mark as lost
+            cursor.execute(
+                "UPDATE artifacts SET state = 'lost', owner_id = NULL WHERE id = %s",
+                (art['id'],)
+            )
+            lost_artifacts.append({'id': art['id'], 'name': art['name']})
+    
+    # Fail active quests
+    from src.utils.quest import fail_player_quests, fail_protection_quests, complete_elimination_quest_for_target
+    failed_quests_count = fail_player_quests(cursor, player_id, 'player_death')
+    fail_protection_quests(cursor, player_id)
+    
+    # Complete elimination quests targeting this player
+    completed_eliminations = complete_elimination_quest_for_target(cursor, player_id)
+    for q in completed_eliminations:
+        if q['reward']:
+            cursor.execute("UPDATE players SET balance = balance + %s WHERE id = %s",
+                          (q['reward'], q['accepted_by']))
+        if q['reward_reputation']:
+            cursor.execute("""
+                INSERT INTO npc_reputation (id, player_id, faction, reputation)
+                VALUES (%s, %s, 'loner', %s)
+                ON DUPLICATE KEY UPDATE reputation = reputation + %s
+            """, (str(uuid.uuid4()), q['accepted_by'], q['reward_reputation'], q['reward_reputation']))
+    
+    # Create death event
+    cursor.execute("""
+        INSERT INTO game_events (type, player_id, data)
+        VALUES ('death', %s, %s)
+    """, (player_id, json.dumps({
+        'reason': reason,
+        'livesRemaining': new_lives
+    })))
+    
+    return {
+        'died': True,
+        'reason': reason,
+        'livesRemaining': new_lives,
+        'outOfLives': new_lives == 0,
+        'itemsLost': {
+            'equipment': lost_equipment,
+            'artifacts': lost_artifacts
+        },
+        'questsFailed': failed_quests_count
     }
 
 
@@ -56,143 +195,27 @@ def death_handler(event, context):
         
         with get_db() as conn:
             with conn.cursor() as cursor:
-                # Get player info
-                cursor.execute(
-                    "SELECT current_lives, balance FROM players WHERE id = %s",
-                    (player_id,)
-                )
-                player = cursor.fetchone()
+                # Trigger death
+                result = trigger_death(cursor, player_id, reason='player_kill')
                 
-                if not player:
+                if 'error' in result:
                     return {
                         'statusCode': 404,
                         'headers': cors_headers(),
-                        'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Player not found'}})
+                        'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': result['error']}})
                     }
-                
-                # Decrease lives
-                new_lives = max(0, player['current_lives'] - 1)
-                
-                # Reset radiation
-                cursor.execute(
-                    """UPDATE players 
-                    SET current_lives = %s, current_radiation = 0, total_deaths = total_deaths + 1
-                    WHERE id = %s""",
-                    (new_lives, player_id)
-                )
-                
-                # Lose ALL items (equipment + artifacts) with 1-10% chance
-                lost_equipment = []
-                lost_artifacts = []
-                
-                # Process equipment (all slots including backpack)
-                cursor.execute(
-                    """SELECT pe.id, et.name, pe.slot_type
-                    FROM player_equipment pe
-                    JOIN equipment_types et ON pe.equipment_type_id = et.id
-                    WHERE pe.player_id = %s""",
-                    (player_id,)
-                )
-                equipment = cursor.fetchall()
-                
-                for eq in equipment:
-                    # 1-10% chance to lose
-                    import random
-                    if random.randint(1, 100) <= 10:
-                        # If equipped, remove bonuses first
-                        if eq['slot_type'] != 'backpack':
-                            # Unequip to backpack first, then delete
-                            cursor.execute(
-                                "UPDATE player_equipment SET slot_type = 'backpack', slot_position = 0 WHERE id = %s",
-                                (eq['id'],)
-                            )
-                        
-                        cursor.execute(
-                            "DELETE FROM player_equipment WHERE id = %s",
-                            (eq['id'],)
-                        )
-                        lost_equipment.append({'id': eq['id'], 'name': eq['name']})
-                
-                # Process artifacts (all - equipped + backpack)
-                cursor.execute(
-                    """SELECT a.id, at.name, a.slot_type
-                    FROM artifacts a
-                    JOIN artifact_types at ON a.type_id = at.id
-                    WHERE a.owner_id = %s""",
-                    (player_id,)
-                )
-                artifacts = cursor.fetchall()
-                
-                for art in artifacts:
-                    # 1-10% chance to lose
-                    if random.randint(1, 100) <= 10:
-                        # If equipped, remove bonuses first
-                        if art['slot_type'] == 'artifact':
-                            # Get bonus lives
-                            cursor.execute(
-                                """SELECT at.bonus_lives
-                                FROM artifacts a
-                                JOIN artifact_types at ON a.type_id = at.id
-                                WHERE a.id = %s""",
-                                (art['id'],)
-                            )
-                            bonus_lives = cursor.fetchone()['bonus_lives']
-                            
-                            if bonus_lives > 0:
-                                cursor.execute(
-                                    "UPDATE players SET current_lives = current_lives - %s WHERE id = %s",
-                                    (bonus_lives, player_id)
-                                )
-                        
-                        # Delete artifact
-                        cursor.execute(
-                            "UPDATE artifacts SET state = 'lost', owner_id = NULL WHERE id = %s",
-                            (art['id'],)
-                        )
-                        lost_artifacts.append({'id': art['id'], 'name': art['name']})
-                
-                # Create death event
-                cursor.execute(
-                    """INSERT INTO game_events (type, player_id, data)
-                    VALUES ('radiation_death', %s, %s)""",
-                    (player_id, json.dumps({'livesRemaining': new_lives}))
-                )
-                
-                # Fail all active quests on death
-                from src.utils.quest import fail_player_quests, fail_protection_quests, complete_elimination_quest_for_target
-                failed_quests_count = fail_player_quests(cursor, player_id, 'player_death')
-                
-                # Fail protection quests where this player was being protected
-                fail_protection_quests(cursor, player_id)
-                
-                # Complete elimination quests targeting this player
-                completed_eliminations = complete_elimination_quest_for_target(cursor, player_id)
-                for q in completed_eliminations:
-                    # Pay reward to quest holder
-                    if q['reward']:
-                        cursor.execute("UPDATE players SET balance = balance + %s WHERE id = %s",
-                                      (q['reward'], q['accepted_by']))
-                    if q['reward_reputation']:
-                        cursor.execute("""
-                            INSERT INTO npc_reputation (id, player_id, faction, reputation)
-                            VALUES (%s, %s, 'loner', %s)
-                            ON DUPLICATE KEY UPDATE reputation = reputation + %s
-                        """, (str(uuid.uuid4()), q['accepted_by'], q['reward_reputation'], q['reward_reputation']))
-        
-        response = {
-            'success': True,
-            'livesRemaining': new_lives,
-            'radiationReset': True,
-            'artifactsLost': [a['id'] for a in lost_artifacts],
-            'equipmentLost': lost_equipment,
-            'outOfLives': new_lives == 0,
-            'questsFailed': failed_quests_count
-        }
         
         return {
             'statusCode': 200,
             'headers': cors_headers(),
-            'body': json.dumps(response)
+            'body': json.dumps({
+                'success': True,
+                'livesRemaining': result['livesRemaining'],
+                'radiationReset': True,
+                'itemsLost': result['itemsLost']['equipment'] + result['itemsLost']['artifacts'],
+                'outOfLives': result['outOfLives'],
+                'questsFailed': result['questsFailed']
+            })
         }
     
     except Exception as e:
@@ -202,9 +225,13 @@ def death_handler(event, context):
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
+
+@require_auth
 @require_auth
 def loot_handler(event, context):
     """POST /api/player/loot - Loot player via QR scan"""
+    from src.utils.qr import parse_qr_code
+    
     try:
         looter_id = event['player']['player_id']
         body = json.loads(event.get('body', '{}'))
@@ -217,12 +244,21 @@ def loot_handler(event, context):
                 'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'QR code required'}})
             }
         
+        # Parse QR code
+        victim_id = parse_qr_code(victim_qr_code)
+        if not victim_id:
+            return {
+                'statusCode': 400,
+                'headers': cors_headers(),
+                'body': json.dumps({'error': {'code': 'INVALID_QR', 'message': 'Invalid QR code format'}})
+            }
+        
         with get_db() as conn:
             with conn.cursor() as cursor:
-                # Find victim by QR code
+                # Get victim info
                 cursor.execute(
-                    "SELECT id, nickname, balance FROM players WHERE qr_code = %s",
-                    (victim_qr_code,)
+                    "SELECT id, nickname, status, dead_at FROM players WHERE id = %s",
+                    (victim_id,)
                 )
                 victim = cursor.fetchone()
                 
@@ -233,8 +269,6 @@ def loot_handler(event, context):
                         'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Player not found'}})
                     }
                 
-                victim_id = victim['id']
-                
                 if looter_id == victim_id:
                     return {
                         'statusCode': 400,
@@ -242,179 +276,91 @@ def loot_handler(event, context):
                         'body': json.dumps({'error': {'code': 'BAD_REQUEST', 'message': 'Cannot loot yourself'}})
                     }
                 
-                # Check if already looted (one loot per death)
-                cursor.execute(
-                    """SELECT id FROM looting_events 
-                    WHERE victim_id = %s AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)""",
-                    (victim_id,)
-                )
-                if cursor.fetchone():
+                # Check if victim is dead
+                if victim['status'] != 'dead':
                     return {
-                        'statusCode': 409,
+                        'statusCode': 400,
                         'headers': cors_headers(),
-                        'body': json.dumps({'error': {'code': 'ALREADY_LOOTED', 'message': 'Already looted'}})
+                        'body': json.dumps({'error': {'code': 'PLAYER_NOT_DEAD', 'message': 'Player is not dead'}})
                     }
                 
-                # Calculate loot
-                money_stolen = calculate_loot_money(float(victim['balance']))
+                # Check if already looted this death
+                if victim['dead_at']:
+                    cursor.execute(
+                        """SELECT id FROM looting_events 
+                        WHERE victim_id = %s AND death_timestamp = %s""",
+                        (victim_id, victim['dead_at'])
+                    )
+                    if cursor.fetchone():
+                        return {
+                            'statusCode': 409,
+                            'headers': cors_headers(),
+                            'body': json.dumps({'error': {'code': 'ALREADY_LOOTED', 'message': 'Already looted this death'}})
+                        }
                 
-                # Loot ALL equipment (equipped + backpack)
-                cursor.execute(
-                    """SELECT pe.id, et.name, pe.slot_type
+                # Loot items (1-5% equipment, 1-3% artifacts)
+                looted_equipment = []
+                looted_artifacts = []
+                
+                # Loot equipment
+                cursor.execute("""
+                    SELECT pe.id, et.name, pe.slot_type
                     FROM player_equipment pe
                     JOIN equipment_types et ON pe.equipment_type_id = et.id
-                    WHERE pe.player_id = %s""",
-                    (victim_id,)
-                )
-                victim_equipment = cursor.fetchall()
+                    WHERE pe.player_id = %s
+                """, (victim_id,))
                 
-                looted_equipment = []
-                for eq in victim_equipment:
-                    if should_loot_item('equipment'):
-                        # Check looter backpack capacity
-                        cursor.execute(
-                            """SELECT COUNT(*) as count
-                            FROM player_equipment
-                            WHERE player_id = %s AND slot_type = 'backpack'""",
-                            (looter_id,)
-                        )
-                        looter_backpack_count = cursor.fetchone()['count']
-                        
-                        cursor.execute(
-                            "SELECT backpack_capacity FROM players WHERE id = %s",
-                            (looter_id,)
-                        )
-                        looter_capacity = cursor.fetchone()['backpack_capacity']
-                        
-                        if looter_backpack_count < looter_capacity:
-                            # Transfer to looter's backpack
-                            cursor.execute(
-                                """UPDATE player_equipment 
-                                SET player_id = %s, slot_type = 'backpack', slot_position = 0 
-                                WHERE id = %s""",
-                                (looter_id, eq['id'])
-                            )
-                            looted_equipment.append({'id': eq['id'], 'name': eq['name']})
+                for eq in cursor.fetchall():
+                    if random.randint(1, 100) <= 5:  # 1-5% chance
+                        # Transfer to looter's backpack
+                        cursor.execute("""
+                            UPDATE player_equipment 
+                            SET player_id = %s, slot_type = 'backpack', slot_position = 0 
+                            WHERE id = %s
+                        """, (looter_id, eq['id']))
+                        looted_equipment.append({'type': 'equipment', 'name': eq['name']})
                 
-                # Loot ALL artifacts (equipped + backpack)
-                cursor.execute(
-                    """SELECT a.id, at.name, a.slot_type
+                # Loot artifacts
+                cursor.execute("""
+                    SELECT a.id, at.name, a.slot_type
                     FROM artifacts a
                     JOIN artifact_types at ON a.type_id = at.id
-                    WHERE a.owner_id = %s""",
-                    (victim_id,)
-                )
-                victim_artifacts = cursor.fetchall()
+                    WHERE a.owner_id = %s
+                """, (victim_id,))
                 
-                looted_artifacts = []
-                for art in victim_artifacts:
-                    if should_loot_item('artifact'):
-                        # Check looter backpack capacity (artifacts count too)
-                        cursor.execute(
-                            """SELECT COUNT(*) as count
-                            FROM player_equipment
-                            WHERE player_id = %s AND slot_type = 'backpack'""",
-                            (looter_id,)
-                        )
-                        equipment_count = cursor.fetchone()['count']
-                        
-                        cursor.execute(
-                            """SELECT COUNT(*) as count
-                            FROM player_inventory
-                            WHERE player_id = %s AND item_type = 'artifact' AND slot_type = 'backpack'""",
-                            (looter_id,)
-                        )
-                        artifact_count = cursor.fetchone()['count']
-                        
-                        cursor.execute(
-                            "SELECT backpack_capacity FROM players WHERE id = %s",
-                            (looter_id,)
-                        )
-                        looter_capacity = cursor.fetchone()['backpack_capacity']
-                        
-                        if (equipment_count + artifact_count) < looter_capacity:
-                            # Transfer to looter's backpack
-                            cursor.execute(
-                                """UPDATE artifacts 
-                                SET owner_id = %s, slot_type = 'backpack' 
-                                WHERE id = %s""",
-                                (looter_id, art['id'])
-                            )
-                            looted_artifacts.append({'id': art['id'], 'name': art['name']})
-                
-                # Transfer money
-                if money_stolen > 0:
-                    cursor.execute(
-                        "UPDATE players SET balance = balance - %s WHERE id = %s",
-                        (money_stolen, victim_id)
-                    )
-                    cursor.execute(
-                        "UPDATE players SET balance = balance + %s WHERE id = %s",
-                        (money_stolen, looter_id)
-                    )
-                    
-                    # Record transaction
-                    cursor.execute(
-                        """INSERT INTO transactions (id, type, from_player_id, to_player_id, amount)
-                        VALUES (%s, 'looting', %s, %s, %s)""",
-                        (str(uuid.uuid4()), victim_id, looter_id, money_stolen)
-                    )
+                for art in cursor.fetchall():
+                    if random.randint(1, 100) <= 3:  # 1-3% chance
+                        # Transfer to looter's backpack
+                        cursor.execute("""
+                            UPDATE artifacts 
+                            SET owner_id = %s, slot_type = 'backpack'
+                            WHERE id = %s
+                        """, (looter_id, art['id']))
+                        looted_artifacts.append({'type': 'artifact', 'name': art['name']})
                 
                 # Record looting event
-                cursor.execute(
-                    """INSERT INTO looting_events 
-                    (id, looter_id, victim_id, money_stolen, equipment_stolen, artifacts_stolen, qr_scanned)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-                    (str(uuid.uuid4()), looter_id, victim_id, money_stolen,
-                     json.dumps([e['id'] for e in looted_equipment]),
-                     json.dumps([a['id'] for a in looted_artifacts]),
-                     victim_qr_code)
-                )
-                
-                # Update quest progress for elimination quests
-                cursor.execute("SELECT faction FROM players WHERE id = %s", (victim_id,))
-                victim_faction = cursor.fetchone()['faction']
-                
-                from src.utils.quest import update_elimination_progress, log_quest_event
-                
                 cursor.execute("""
-                    SELECT id, quest_data, auto_complete FROM contracts
-                    WHERE accepted_by = %s AND status = 'accepted' AND failed = 0
-                      AND quest_type = 'elimination'
-                """, (looter_id,))
-                
-                for quest in cursor.fetchall():
-                    quest_data = json.loads(quest['quest_data']) if quest['quest_data'] else {}
-                    updated_data, completed = update_elimination_progress(quest_data, victim_faction)
-                    
-                    if updated_data != quest_data:
-                        cursor.execute(
-                            "UPDATE contracts SET quest_data = %s WHERE id = %s",
-                            (json.dumps(updated_data), quest['id'])
-                        )
-                        log_quest_event(cursor, quest['id'], looter_id, 'progress', updated_data, 'player_kill')
-                
-                # Get looter's new balance
-                cursor.execute(
-                    "SELECT balance FROM players WHERE id = %s",
-                    (looter_id,)
-                )
-                looter_balance = cursor.fetchone()['balance']
-        
-        response = {
-            'success': True,
-            'loot': {
-                'money': float(money_stolen),
-                'equipment': looted_equipment,
-                'artifacts': looted_artifacts
-            },
-            'yourBalance': float(looter_balance)
-        }
+                    INSERT INTO looting_events 
+                    (id, victim_id, looter_id, death_timestamp, equipment_stolen, artifacts_stolen, qr_scanned)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    str(uuid.uuid4()),
+                    victim_id,
+                    looter_id,
+                    victim['dead_at'],
+                    json.dumps(looted_equipment),
+                    json.dumps(looted_artifacts),
+                    victim_qr_code
+                ))
         
         return {
             'statusCode': 200,
             'headers': cors_headers(),
-            'body': json.dumps(response)
+            'body': json.dumps({
+                'success': True,
+                'victimName': victim['nickname'],
+                'itemsLooted': looted_equipment + looted_artifacts
+            })
         }
     
     except Exception as e:
@@ -423,3 +369,4 @@ def loot_handler(event, context):
             'headers': cors_headers(),
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
+

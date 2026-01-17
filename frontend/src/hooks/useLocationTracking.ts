@@ -31,7 +31,23 @@ interface LocationResponse {
   nearbyArtifacts: NearbyArtifact[]
   currentZones: {
     radiationZones: any[]
+    respawnZones: any[]
     controlPoints: any[]
+  }
+  radiationUpdate?: {
+    current: number
+    delta: number
+    resist: number
+  }
+  resurrectionUpdate?: {
+    progress: number
+    required: number | null
+    insideZone: boolean
+    resurrected: boolean
+  }
+  death?: {
+    died: boolean
+    reason?: string
   }
 }
 
@@ -39,7 +55,10 @@ export const useLocationTracking = (location: LocationData | null, enabled = tru
   const intervalRef = useRef<number>()
   const [nearbyArtifacts, setNearbyArtifacts] = useState<NearbyArtifact[]>([])
   const [radiationZones, setRadiationZones] = useState<any[]>([])
+  const [respawnZones, setRespawnZones] = useState<any[]>([])
   const [controlPoints, setControlPoints] = useState<any[]>([])
+  const [radiationUpdate, setRadiationUpdate] = useState<any>(null)
+  const [resurrectionUpdate, setResurrectionUpdate] = useState<any>(null)
 
   useEffect(() => {
     if (!enabled || !location?.latitude || !location?.longitude) {
@@ -56,7 +75,16 @@ export const useLocationTracking = (location: LocationData | null, enabled = tru
         
         setNearbyArtifacts(data.nearbyArtifacts || [])
         setRadiationZones(data.currentZones?.radiationZones || [])
+        setRespawnZones(data.currentZones?.respawnZones || [])
         setControlPoints(data.currentZones?.controlPoints || [])
+        setRadiationUpdate(data.radiationUpdate || null)
+        setResurrectionUpdate(data.resurrectionUpdate || null)
+        
+        // Handle death
+        if (data.death?.died) {
+          // Reload player data
+          window.location.reload()
+        }
       } catch (error: any) {
         logger.error('Location failed', { 
           status: error.response?.status,
@@ -78,5 +106,12 @@ export const useLocationTracking = (location: LocationData | null, enabled = tru
     }
   }, [location?.latitude, location?.longitude, location?.accuracy, enabled])
 
-  return { nearbyArtifacts, radiationZones, controlPoints }
+  return { 
+    nearbyArtifacts, 
+    radiationZones, 
+    respawnZones,
+    controlPoints,
+    radiationUpdate,
+    resurrectionUpdate
+  }
 }

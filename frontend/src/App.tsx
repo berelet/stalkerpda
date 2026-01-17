@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage'
 import WikiPage from './pages/WikiPage'
 import TradingPage from './pages/TradingPage'
 import TraderQuestsPage from './pages/TraderQuestsPage'
+import LootingPage from './pages/LootingPage'
 
 function App() {
   const { token, initAuth } = useAuthStore()
@@ -36,6 +37,7 @@ function App() {
           <Route path="map" element={<MapPage />} />
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="quests" element={<QuestsPage />} />
+          <Route path="loot" element={<LootingPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="wiki" element={<WikiPage />} />
           <Route path="trade" element={<TradingPage />} />

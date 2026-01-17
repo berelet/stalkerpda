@@ -1541,6 +1541,51 @@ Resources:
             Path: /api/admin/quests/{id}
             Method: PUT
 
+  # Admin Create Radiation Zone
+  AdminCreateRadiationZoneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-create-radiation-zone-${Environment}
+      Handler: src.handlers.admin.create_radiation_zone_handler
+      CodeUri: ../backend/
+      Events:
+        CreateRadiationZone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/zones/radiation
+            Method: POST
+
+  # Admin Create Respawn Zone
+  AdminCreateRespawnZoneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-create-respawn-zone-${Environment}
+      Handler: src.handlers.admin.create_respawn_zone_handler
+      CodeUri: ../backend/
+      Events:
+        CreateRespawnZone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/zones/respawn
+            Method: POST
+
+  # Admin Resurrect Player
+  AdminResurrectPlayerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-resurrect-player-${Environment}
+      Handler: src.handlers.admin.resurrect_player_handler
+      CodeUri: ../backend/
+      Events:
+        ResurrectPlayer:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/players/{id}/resurrect
+            Method: POST
+
   # DynamoDB
   ConnectionsTable:
     Type: AWS::DynamoDB::Table

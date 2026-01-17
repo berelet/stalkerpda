@@ -99,8 +99,24 @@ export default function ProfilePage() {
       </div>
 
       <div className="bg-pda-case-dark border border-pda-primary/30 p-4">
-        <div className="text-pda-text text-sm mb-2">QR CODE</div>
-        <div className="text-pda-highlight font-mono text-xs">{player.qrCode}</div>
+        <div className="text-pda-text text-sm mb-3">LOOTING QR CODE</div>
+        <div className="text-xs text-pda-text/70 mb-3">
+          Show this code to other players when you die
+        </div>
+        {player.qrCode ? (
+          <div className="flex justify-center bg-white p-4 rounded">
+            <img 
+              src={player.qrCode} 
+              alt="QR Code" 
+              className="w-48 h-48"
+            />
+          </div>
+        ) : (
+          <div className="text-pda-text/50 text-center py-4">Loading QR code...</div>
+        )}
+        <div className="text-xs text-pda-text/50 text-center mt-2">
+          Can only be scanned once per death
+        </div>
       </div>
       
       <button

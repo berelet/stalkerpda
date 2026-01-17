@@ -14,6 +14,7 @@ interface MapProps {
   accuracy?: number
   zoom?: number
   nearbyArtifacts?: NearbyArtifact[]
+  respawnZones?: any[]
 }
 
 const playerIcon = new Icon({
@@ -40,7 +41,14 @@ const artifactIconHighlighted = new Icon({
   zIndexOffset: 1000
 })
 
-export default function StalkerMap({ latitude, longitude, accuracy, zoom = 16, nearbyArtifacts = [] }: MapProps) {
+export default function StalkerMap({ 
+  latitude, 
+  longitude, 
+  accuracy, 
+  zoom = 16, 
+  nearbyArtifacts = [],
+  respawnZones = []
+}: MapProps) {
   const [selectedArtifact, setSelectedArtifact] = useState<NearbyArtifact | null>(null)
   const [hiddenArtifacts, setHiddenArtifacts] = useState<Set<string>>(new Set())
   const { markers: questMarkers } = useActiveQuests()
@@ -96,6 +104,32 @@ export default function StalkerMap({ latitude, longitude, accuracy, zoom = 16, n
 
         {/* Quest markers */}
         <QuestMarkers markers={questMarkers} />
+
+        {/* Respawn zones */}
+        {respawnZones.map(zone => (
+          <Circle
+            key={zone.id}
+            center={[zone.centerLat, zone.centerLng]}
+            radius={zone.radius}
+            pathOptions={{
+              color: '#00ff00',
+              fillColor: '#00ff00',
+              fillOpacity: 0.2,
+              weight: 2
+            }}
+          >
+            <Popup>
+              <div className="text-xs">
+                <div className="font-bold text-green-600">RESPAWN ZONE</div>
+                <div>{zone.name}</div>
+                <div>Respawn time: {zone.respawnTimeSeconds}s</div>
+                {zone.insideZone && (
+                  <div className="text-green-600 font-bold mt-1">YOU ARE INSIDE</div>
+                )}
+              </div>
+            </Popup>
+          </Circle>
+        ))}
 
         {/* Artifact markers */}
         {visibleArtifacts.map(artifact => (

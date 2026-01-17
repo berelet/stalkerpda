@@ -24,8 +24,10 @@ export default function MapPage() {
   const [players, setPlayers] = useState<GMPlayer[]>([])
   const [loadingPlayers, setLoadingPlayers] = useState(false)
   const [isGM, setIsGM] = useState(false)
+  const [playerStatus, setPlayerStatus] = useState<'alive' | 'dead'>('alive')
+  const [playerLives, setPlayerLives] = useState(0)
 
-  // Check if user is GM
+  // Check if user is GM and get player status
   useEffect(() => {
     const checkGM = async () => {
       try {
@@ -33,6 +35,8 @@ export default function MapPage() {
         console.log('User data:', data)
         console.log('Is GM:', data.role === 'gm')
         setIsGM(data.role === 'gm')
+        setPlayerStatus(data.status)
+        setPlayerLives(data.currentLives)
       } catch (err) {
         console.error('Failed to check GM:', err)
         setIsGM(false)
@@ -42,7 +46,7 @@ export default function MapPage() {
   }, [])
 
   // Send location to server every 15 seconds (always, even in GM mode)
-  const { nearbyArtifacts } = useLocationTracking(
+  const { nearbyArtifacts, respawnZones, resurrectionUpdate } = useLocationTracking(
     latitude && longitude ? { latitude, longitude, accuracy } : null,
     true
   )
@@ -122,6 +126,38 @@ export default function MapPage() {
       </div>
 
       <div className="relative h-[500px] border border-pda-primary/30">
+        {/* Death Banner */}
+        {playerStatus === 'dead' && !gmMode && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-black/90 border-2 border-red-500 rounded-lg p-4 min-w-[300px] text-center shadow-lg shadow-red-500/50">
+            <h2 className="text-red-500 text-2xl font-bold mb-2">
+              YOU ARE DEAD
+            </h2>
+            
+            {playerLives > 0 ? (
+              <>
+                <p className="text-yellow-400 mb-1">
+                  Lives remaining: {playerLives}
+                </p>
+                <p className="text-gray-300 text-sm">
+                  Go to respawn zone to resurrect
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-red-400 mb-1">
+                  No lives remaining
+                </p>
+                <p className="text-gray-300 text-sm mb-1">
+                  You can only trade with Barman
+                </p>
+                <p className="text-xs text-gray-400">
+                  Equip items with bonus lives to become eligible for respawn
+                </p>
+              </>
+            )}
+          </div>
+        )}
+        
         {gmMode ? (
           loadingPlayers ? (
             <div className="absolute inset-0 flex items-center justify-center bg-pda-case-dark z-10">
@@ -151,12 +187,33 @@ export default function MapPage() {
             )}
 
             {latitude && longitude && (
-              <StalkerMap 
-                latitude={latitude} 
-                longitude={longitude} 
-                accuracy={accuracy || undefined}
-                nearbyArtifacts={nearbyArtifacts}
-              />
+              <>
+                <StalkerMap 
+                  latitude={latitude} 
+                  longitude={longitude} 
+                  accuracy={accuracy || undefined}
+                  nearbyArtifacts={nearbyArtifacts}
+                  respawnZones={respawnZones || []}
+                />
+                
+                {/* Resurrection Progress */}
+                {playerStatus === 'dead' && playerLives > 0 && resurrectionUpdate?.insideZone && (
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-black/90 border border-green-500 rounded-lg p-3 min-w-[250px]">
+                    <h3 className="text-green-400 text-sm font-bold mb-2 text-center">
+                      RESURRECTION PROGRESS
+                    </h3>
+                    <div className="w-full h-5 bg-gray-800 rounded overflow-hidden mb-1">
+                      <div 
+                        className="h-full bg-gradient-to-r from-green-600 to-green-400 transition-all duration-300"
+                        style={{ width: `${resurrectionUpdate.progressPercent}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-300 text-center">
+                      {Math.round(resurrectionUpdate.progress)}s / {resurrectionUpdate.required}s
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

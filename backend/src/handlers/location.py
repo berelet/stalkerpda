@@ -48,7 +48,7 @@ def get_active_artifacts(cursor):
 
 @require_auth
 def update_handler(event, context):
-    """POST /api/location - Update player location"""
+    """POST /api/location - Update player location + radiation + respawn"""
     try:
         player_id = event['player']['player_id']
         body = json.loads(event.get('body', '{}'))
@@ -72,7 +72,66 @@ def update_handler(event, context):
         
         with get_db() as conn:
             with conn.cursor() as cursor:
-                # Update or insert location
+                # Get player data
+                cursor.execute("""
+                    SELECT id, status, current_lives, current_radiation,
+                           current_radiation_zone_id, last_radiation_calc_at,
+                           resurrection_progress_seconds, last_resurrection_calc_at
+                    FROM players WHERE id = %s
+                """, (player_id,))
+                player = cursor.fetchone()
+                
+                if not player:
+                    return {
+                        'statusCode': 404,
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Player not found'}})
+                    }
+                
+                # Get previous location
+                cursor.execute("""
+                    SELECT latitude, longitude, updated_at
+                    FROM player_locations WHERE player_id = %s
+                """, (player_id,))
+                prev_location = cursor.fetchone()
+                
+                P0 = {'lat': float(prev_location['latitude']), 'lng': float(prev_location['longitude'])} if prev_location else None
+                P1 = {'lat': latitude, 'lng': longitude}
+                now = datetime.utcnow()
+                
+                # === RADIATION CALCULATION ===
+                radiation_update = None
+                death_event = None
+                
+                if player['status'] == 'alive':
+                    from src.utils.radiation import calculate_radiation_accrual
+                    radiation_update = calculate_radiation_accrual(
+                        cursor, player, P0, P1, now
+                    )
+                    
+                    # Check death
+                    if radiation_update['current'] >= 100:
+                        from src.handlers.players import trigger_death
+                        death_event = trigger_death(
+                            cursor, player_id, reason='radiation_zone'
+                        )
+                        # Update player status for respawn check
+                        player['status'] = 'dead'
+                        player['current_lives'] = death_event['livesRemaining']
+                
+                # === RESPAWN CALCULATION ===
+                respawn_update = None
+                
+                if player['status'] == 'dead' and player['current_lives'] > 0:
+                    from src.utils.respawn import update_resurrection_progress
+                    respawn_update = update_resurrection_progress(
+                        cursor, player, P1, now
+                    )
+                
+                # === UPDATE LOCATION ===
                 cursor.execute(
                     """INSERT INTO player_locations (player_id, latitude, longitude, accuracy)
                     VALUES (%s, %s, %s, %s)
@@ -94,7 +153,11 @@ def update_handler(event, context):
                 # Check radiation zones
                 cursor.execute(
                     """SELECT id, name, center_lat, center_lng, radius, radiation_level
-                    FROM radiation_zones WHERE active = TRUE"""
+                    FROM radiation_zones 
+                    WHERE active = TRUE
+                      AND (active_from IS NULL OR active_from <= %s)
+                      AND (active_to IS NULL OR active_to > %s)""",
+                    (now, now)
                 )
                 radiation_zones = cursor.fetchall()
                 
@@ -108,8 +171,37 @@ def update_handler(event, context):
                         current_radiation_zones.append({
                             'id': zone['id'],
                             'name': zone['name'],
-                            'radiationLevel': zone['radiation_level']
+                            'radiationLevel': zone['radiation_level'],
+                            'insideZone': True
                         })
+                
+                # Check respawn zones
+                cursor.execute(
+                    """SELECT id, name, center_lat, center_lng, radius, respawn_time_seconds
+                    FROM respawn_zones 
+                    WHERE active = TRUE
+                      AND (active_from IS NULL OR active_from <= %s)
+                      AND (active_to IS NULL OR active_to > %s)""",
+                    (now, now)
+                )
+                respawn_zones_data = cursor.fetchall()
+                
+                respawn_zones = []
+                for zone in respawn_zones_data:
+                    inside = point_in_circle(
+                        latitude, longitude,
+                        float(zone['center_lat']), float(zone['center_lng']),
+                        zone['radius']
+                    )
+                    respawn_zones.append({
+                        'id': zone['id'],
+                        'name': zone['name'],
+                        'centerLat': float(zone['center_lat']),
+                        'centerLng': float(zone['center_lng']),
+                        'radius': zone['radius'],
+                        'respawnTimeSeconds': zone['respawn_time_seconds'],
+                        'insideZone': inside
+                    })
                 
                 # Check control points
                 cursor.execute(
@@ -217,9 +309,13 @@ def update_handler(event, context):
             'success': True,
             'currentZones': {
                 'radiationZones': current_radiation_zones,
+                'respawnZones': respawn_zones,
                 'controlPoints': nearby_control_points
             },
-            'nearbyArtifacts': nearby_artifacts
+            'nearbyArtifacts': nearby_artifacts,
+            'radiationUpdate': radiation_update,
+            'resurrectionUpdate': respawn_update,
+            'death': death_event
         }
         
         return {
