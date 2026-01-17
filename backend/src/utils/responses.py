@@ -25,6 +25,16 @@ def get_cors_origin(event):
     print(f"DEBUG CORS: Origin not matched, returning *")
     return '*'
 
+def handle_cors(event):
+    """Handle CORS preflight requests"""
+    if event.get('httpMethod') == 'OPTIONS':
+        return {
+            'statusCode': 200,
+            'headers': cors_headers(event),
+            'body': ''
+        }
+    return None
+
 def cors_headers(event=None, with_credentials=False):
     """Return CORS headers for all responses"""
     origin = get_cors_origin(event) if event else '*'

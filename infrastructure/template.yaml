@@ -1541,6 +1541,21 @@ Resources:
             Path: /api/admin/quests/{id}
             Method: PUT
 
+  # Admin Get Radiation Zones
+  AdminGetRadiationZonesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-get-radiation-zones-${Environment}
+      Handler: src.handlers.admin.get_radiation_zones_handler
+      CodeUri: ../backend/
+      Events:
+        GetRadiationZones:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/zones/radiation
+            Method: GET
+
   # Admin Create Radiation Zone
   AdminCreateRadiationZoneFunction:
     Type: AWS::Serverless::Function
@@ -1556,6 +1571,51 @@ Resources:
             Path: /api/admin/zones/radiation
             Method: POST
 
+  # Admin Delete Radiation Zone
+  AdminDeleteRadiationZoneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-delete-radiation-zone-${Environment}
+      Handler: src.handlers.admin.delete_radiation_zone_handler
+      CodeUri: ../backend/
+      Events:
+        DeleteRadiationZone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/zones/radiation/{id}
+            Method: DELETE
+
+  # Admin Update Radiation Zone
+  AdminUpdateRadiationZoneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-update-radiation-zone-${Environment}
+      Handler: src.handlers.admin.update_radiation_zone_handler
+      CodeUri: ../backend/
+      Events:
+        UpdateRadiationZone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/zones/radiation/{id}
+            Method: PUT
+
+  # Admin Get Respawn Zones
+  AdminGetRespawnZonesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-get-respawn-zones-${Environment}
+      Handler: src.handlers.admin.get_respawn_zones_handler
+      CodeUri: ../backend/
+      Events:
+        GetRespawnZones:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/zones/respawn
+            Method: GET
+
   # Admin Create Respawn Zone
   AdminCreateRespawnZoneFunction:
     Type: AWS::Serverless::Function
@@ -1570,6 +1630,36 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /api/admin/zones/respawn
             Method: POST
+
+  # Admin Delete Respawn Zone
+  AdminDeleteRespawnZoneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-delete-respawn-zone-${Environment}
+      Handler: src.handlers.admin.delete_respawn_zone_handler
+      CodeUri: ../backend/
+      Events:
+        DeleteRespawnZone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/zones/respawn/{id}
+            Method: DELETE
+
+  # Admin Update Respawn Zone
+  AdminUpdateRespawnZoneFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-admin-update-respawn-zone-${Environment}
+      Handler: src.handlers.admin.update_respawn_zone_handler
+      CodeUri: ../backend/
+      Events:
+        UpdateRespawnZone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/admin/zones/respawn/{id}
+            Method: PUT
 
   # Admin Resurrect Player
   AdminResurrectPlayerFunction:

@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 from src.database import get_db
 from src.middleware.auth import require_gm
+from src.utils.responses import success_response, error_response, handle_cors, cors_headers
 
 @require_gm
 def handler(event, context):
@@ -165,9 +166,157 @@ def spawn_artifact_handler(event, context):
         }
 
 @require_gm
+def get_radiation_zones_handler(event, context):
+    """GET /api/admin/zones/radiation - Get all radiation zones"""
+    cors = handle_cors(event)
+    if cors:
+        return cors
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, name, center_lat, center_lng, radius, radiation_level,
+                           active_from, active_to, active, created_at
+                    FROM radiation_zones ORDER BY created_at DESC
+                """)
+                zones = cursor.fetchall()
+        
+        return {
+            'statusCode': 200,
+            'headers': cors_headers(event),
+            'body': json.dumps({'zones': [{
+                'id': z['id'], 'name': z['name'],
+                'centerLat': float(z['center_lat']), 'centerLng': float(z['center_lng']),
+                'radius': z['radius'], 'radiationLevel': z['radiation_level'],
+                'activeFrom': z['active_from'].isoformat() if z['active_from'] else None,
+                'activeTo': z['active_to'].isoformat() if z['active_to'] else None,
+                'isActive': z['active'], 'createdAt': z['created_at'].isoformat()
+            } for z in zones]})
+        }
+    except Exception as e:
+        return {'statusCode': 500, 'headers': cors_headers(event),
+                'body': json.dumps({'error': {'message': str(e)}})}
+
+@require_gm
+def update_radiation_zone_handler(event, context):
+    """PUT /api/admin/zones/radiation/{id}"""
+    cors = handle_cors(event)
+    if cors:
+        return cors
+    try:
+        zone_id = event['pathParameters']['id']
+        body = json.loads(event.get('body', '{}'))
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE radiation_zones SET name=%s, center_lat=%s, center_lng=%s, 
+                    radius=%s, radiation_level=%s, active_from=%s, active_to=%s, active=%s
+                    WHERE id=%s
+                """, (body['name'], body['centerLat'], body['centerLng'], body['radius'],
+                      body['radiationLevel'], body.get('activeFrom'), body.get('activeTo'),
+                      body.get('isActive', True), zone_id))
+                cursor.execute("UPDATE cache_versions SET version = version + 1 WHERE cache_key = 'radiation_zones'")
+        return {'statusCode': 200, 'headers': cors_headers(event), 'body': json.dumps({'success': True})}
+    except Exception as e:
+        return {'statusCode': 500, 'headers': cors_headers(event), 'body': json.dumps({'error': {'message': str(e)}})}
+
+@require_gm
+def delete_radiation_zone_handler(event, context):
+    """DELETE /api/admin/zones/radiation/{id}"""
+    cors = handle_cors(event)
+    if cors:
+        return cors
+    try:
+        zone_id = event['pathParameters']['id']
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM radiation_zones WHERE id = %s", (zone_id,))
+                cursor.execute("UPDATE cache_versions SET version = version + 1 WHERE cache_key = 'radiation_zones'")
+        return {'statusCode': 200, 'headers': cors_headers(event),
+                'body': json.dumps({'success': True})}
+    except Exception as e:
+        return {'statusCode': 500, 'headers': cors_headers(event),
+                'body': json.dumps({'error': {'message': str(e)}})}
+
+@require_gm
+def get_respawn_zones_handler(event, context):
+    """GET /api/admin/zones/respawn - Get all respawn zones"""
+    cors = handle_cors(event)
+    if cors:
+        return cors
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, name, center_lat, center_lng, radius, respawn_time_seconds,
+                           active_from, active_to, active, created_at
+                    FROM respawn_zones ORDER BY created_at DESC
+                """)
+                zones = cursor.fetchall()
+        
+        return {
+            'statusCode': 200,
+            'headers': cors_headers(event),
+            'body': json.dumps({'zones': [{
+                'id': z['id'], 'name': z['name'],
+                'centerLat': float(z['center_lat']), 'centerLng': float(z['center_lng']),
+                'radius': z['radius'], 'respawnTimeSeconds': z['respawn_time_seconds'],
+                'activeFrom': z['active_from'].isoformat() if z['active_from'] else None,
+                'activeTo': z['active_to'].isoformat() if z['active_to'] else None,
+                'isActive': z['active'], 'createdAt': z['created_at'].isoformat()
+            } for z in zones]})
+        }
+    except Exception as e:
+        return {'statusCode': 500, 'headers': cors_headers(event),
+                'body': json.dumps({'error': {'message': str(e)}})}
+
+@require_gm
+def update_respawn_zone_handler(event, context):
+    """PUT /api/admin/zones/respawn/{id}"""
+    cors = handle_cors(event)
+    if cors:
+        return cors
+    try:
+        zone_id = event['pathParameters']['id']
+        body = json.loads(event.get('body', '{}'))
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE respawn_zones SET name=%s, center_lat=%s, center_lng=%s,
+                    radius=%s, respawn_time_seconds=%s, active_from=%s, active_to=%s, active=%s
+                    WHERE id=%s
+                """, (body['name'], body['centerLat'], body['centerLng'], body['radius'],
+                      body['respawnTimeSeconds'], body.get('activeFrom'), body.get('activeTo'),
+                      body.get('isActive', True), zone_id))
+                cursor.execute("UPDATE cache_versions SET version = version + 1 WHERE cache_key = 'respawn_zones'")
+        return {'statusCode': 200, 'headers': cors_headers(event), 'body': json.dumps({'success': True})}
+    except Exception as e:
+        return {'statusCode': 500, 'headers': cors_headers(event), 'body': json.dumps({'error': {'message': str(e)}})}
+
+@require_gm
+def delete_respawn_zone_handler(event, context):
+    """DELETE /api/admin/zones/respawn/{id}"""
+    cors = handle_cors(event)
+    if cors:
+        return cors
+    try:
+        zone_id = event['pathParameters']['id']
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM respawn_zones WHERE id = %s", (zone_id,))
+                cursor.execute("UPDATE cache_versions SET version = version + 1 WHERE cache_key = 'respawn_zones'")
+        return {'statusCode': 200, 'headers': cors_headers(event),
+                'body': json.dumps({'success': True})}
+    except Exception as e:
+        return {'statusCode': 500, 'headers': cors_headers(event),
+                'body': json.dumps({'error': {'message': str(e)}})}
+
 @require_gm
 def create_radiation_zone_handler(event, context):
     """POST /api/admin/zones/radiation - Create radiation zone"""
+    cors = handle_cors(event)
+    if cors:
+        return cors
     try:
         player_id = event['player']['player_id']
         body = json.loads(event.get('body', '{}'))
@@ -603,6 +752,9 @@ def remove_and_reset_artifact_handler(event, context):
 @require_gm
 def create_respawn_zone_handler(event, context):
     """POST /api/admin/zones/respawn - Create respawn zone"""
+    cors = handle_cors(event)
+    if cors:
+        return cors
     try:
         player_id = event['player']['player_id']
         body = json.loads(event.get('body', '{}'))
@@ -649,6 +801,9 @@ def create_respawn_zone_handler(event, context):
 @require_gm
 def resurrect_player_handler(event, context):
     """POST /api/admin/players/{id}/resurrect - GM resurrect player"""
+    cors = handle_cors(event)
+    if cors:
+        return cors
     try:
         player_id = event['pathParameters']['id']
         

@@ -1,266 +1,271 @@
 # Radiation & Death System - Implementation Summary
 
+**Status:** ✅ IMPLEMENTED (2026-01-17)
 **Full Specification:** See `radiation-system-implementation.md` (Parts 1-4)
 
 ---
 
-## Quick Overview
+## What Was Built
 
-**What we're building:**
+### Core Features
 - ✅ Radiation accumulation from zones (tick-based, 15 sec)
-- ✅ Instant radiation from artifact pickup
-- ✅ Death at 100 radiation (atomic: lives-1, rad=0, item loss, quest fail)
+- ✅ Death at 100% radiation
 - ✅ Respawn zones with resurrection timer
-- ✅ Equipment-based resurrection (bonus lives)
-- ✅ Looting system (QR scan, 1-5% equipment, 1-3% artifacts)
-- ✅ Zone respawn mechanics (auto-respawn after expiration)
-- ✅ Admin UI for zone management
+- ✅ QR codes for looting (SVG format, stored on S3)
+- ✅ Looting page with manual QR input
+- ✅ Admin UI for zone management (CRUD)
 - ✅ PDA UI for radiation display and death state
-- ✅ AWS EventBridge cron for offline radiation calculation
+
+### Not Implemented (Future)
+- ⏳ Instant radiation from artifact pickup
+- ⏳ Equipment-based resurrection (bonus lives)
+- ⏳ Item loss on death (1-10%)
+- ⏳ AWS EventBridge cron for offline radiation
 
 ---
 
 ## Database Changes
 
-**New tables:**
-- `respawn_zones` - resurrection zones
-- `loot_events` - track looting (prevent double-loot)
-
-**Modified tables:**
-- `players` - add 6 fields (radiation tracking, respawn progress, wounds)
-- `artifacts` - add 5 fields (pickup radiation, respawn settings)
-- `radiation_zones` - add 6 fields (time window, respawn settings)
-- `cache_versions` - add keys: `radiation_zones`, `respawn_zones`
-
 **Migration:** `database/migrations/008_radiation_system.sql`
 
+**New tables:**
+- `respawn_zones` - resurrection zones with time windows
+
+**Modified tables:**
+- `players` - added: `current_radiation`, `resurrection_progress_seconds`, `dead_at`, `current_radiation_zone_id`
+- `radiation_zones` - added: `active_from`, `active_to`, `active`, `respawn_enabled`, `respawn_delay_seconds`, `respawn_radius_meters`
+- `cache_versions` - added keys: `radiation_zones`, `respawn_zones`
+
 ---
 
-## Backend Changes
+## Backend Implementation
 
-**New files:**
-- `src/utils/radiation.py` - radiation calculation logic
-- `src/utils/qr.py` - QR code generation
-- `src/handlers/cron.py` - EventBridge cron handler
+### New Files
+- `backend/src/utils/radiation.py` - radiation calculation with caching
+- `backend/src/utils/qr.py` - QR code generation (SVG, no Pillow)
+- `backend/src/utils/respawn.py` - respawn zone utilities
 
-**Modified files:**
-- `src/handlers/location.py` - add radiation + respawn calculation
-- `src/handlers/players.py` - modify death handler, add loot handler
-- `src/handlers/auth.py` - add QR code to profile
-- `src/handlers/admin.py` - add zone management endpoints
-- `src/utils/respawn.py` - extend with respawn zones
+### Modified Files
+- `backend/src/handlers/location.py` - radiation + respawn calculation on each tick
+- `backend/src/handlers/players.py` - `trigger_death()` function, `loot_handler`
+- `backend/src/handlers/admin.py` - zone CRUD handlers
+- `backend/src/utils/responses.py` - added `handle_cors()`
+- `layer/src/utils/auth.py` - QR generation with S3 upload
+- `layer/src/utils/auth_simple.py` - QR generation with S3 upload
 
-**New endpoints:**
-- `POST /api/player/loot` - loot dead player via QR
+### New API Endpoints
+
+**Radiation Zones:**
+- `GET /api/admin/zones/radiation` - list all radiation zones
 - `POST /api/admin/zones/radiation` - create radiation zone
+- `PUT /api/admin/zones/radiation/{id}` - update radiation zone
+- `DELETE /api/admin/zones/radiation/{id}` - delete radiation zone
+
+**Respawn Zones:**
+- `GET /api/admin/zones/respawn` - list all respawn zones
 - `POST /api/admin/zones/respawn` - create respawn zone
+- `PUT /api/admin/zones/respawn/{id}` - update respawn zone
+- `DELETE /api/admin/zones/respawn/{id}` - delete respawn zone
+
+**Player Actions:**
 - `POST /api/admin/players/{id}/resurrect` - GM resurrect player
+- `POST /api/player/loot` - loot dead player via QR code
 
-**Dependencies:**
-- `qrcode==7.4.2`
-- `Pillow==10.2.0`
-
----
-
-## Frontend Changes
-
-**Modified pages:**
-- `MapPage.tsx` - death banner, respawn zones, resurrection progress
-- `ProfilePage.tsx` - QR code display
-- `Header.tsx` - radiation display with colors
-
-**New pages:**
-- `LootingPage.tsx` - QR scanner for looting
-
-**Dependencies:**
-- `react-qr-reader`
+### Dependencies Added
+- `qrcode` in `layer/requirements.txt` and `backend/requirements.txt`
 
 ---
 
-## Admin Panel Changes
+## Frontend PDA Implementation
 
-**Modified pages:**
-- `ZonesPage.tsx` - add time window + respawn settings
-- `ArtifactsPage.tsx` - add pickup radiation field
-- `DashboardPage.tsx` - add resurrect button to player popup
+### Modified Files
+- `frontend/src/pages/MapPage.tsx` - death banner, respawn zones display, resurrection progress
+- `frontend/src/pages/ProfilePage.tsx` - QR code display as image
+- `frontend/src/components/layout/PDAHeader.tsx` - radiation display with colors:
+  - 0-20%: green
+  - 21-70%: yellow  
+  - 71-100%: red
+- `frontend/src/components/map/StalkerMap.tsx` - respawn zones (green circles)
+- `frontend/src/hooks/useLocationTracking.ts` - radiation/respawn data from location API
+- `frontend/src/components/layout/PDAFooter.tsx` - LOOT button in navigation
+- `frontend/src/App.tsx` - added looting route
 
-**New pages:**
-- `RespawnZonesPage.tsx` - manage respawn zones
+### New Files
+- `frontend/src/pages/LootingPage.tsx` - looting page with manual QR input
 
 ---
 
-## Key Algorithms
+## Admin Panel Implementation
 
-### Radiation Accumulation
+### Modified Files
+- `admin/src/pages/ZonesPage.tsx` - complete rewrite with:
+  - Zone type selector (Radiation / Respawn)
+  - Zones list with edit/delete buttons
+  - Map with zone preview and existing zones
+  - Create/Edit form with:
+    - Name, coordinates, radius
+    - Radiation level (for radiation zones)
+    - Respawn time (for respawn zones)
+    - Active toggle (in edit mode)
+  - Geolocation detection on page load
+  - Status display showing detected coordinates
+
+### New Lambda Functions (template.yaml)
+- `AdminGetRadiationZonesFunction`
+- `AdminCreateRadiationZoneFunction`
+- `AdminUpdateRadiationZoneFunction`
+- `AdminDeleteRadiationZoneFunction`
+- `AdminGetRespawnZonesFunction`
+- `AdminCreateRespawnZoneFunction`
+- `AdminUpdateRespawnZoneFunction`
+- `AdminDeleteRespawnZoneFunction`
+- `AdminResurrectPlayerFunction`
+
+---
+
+## QR Code System
+
+### How It Works
+1. QR code generated at player registration
+2. SVG format (no Pillow dependency)
+3. Uploaded to S3: `s3://pda-zone-frontend-dev-707694916945/qr/{player_id}.svg`
+4. URL stored in `players.qr_code` column
+5. Served via CloudFront: `https://d384azcb4go67w.cloudfront.net/qr/{player_id}.svg`
+
+### QR Data Format
 ```
-1. Get active zones (cache)
-2. Calculate delta_t = now - last_calc
-3. Handle untracked period (1 m/s assumption)
-4. Select zone (first-entered rule, no stacking)
-5. Calculate time_inside = segment_in_circle(P0, P1, zone)
-6. Apply radiation: delta_rad = (zone_level / 300) * (1 - resist%) * time_inside
-7. Update: radiation = min(100, radiation + delta_rad)
-8. Check death: if radiation >= 100 → trigger_death()
+STALKER_LOOT:{player_id}
 ```
 
-### Death
-```
-1. Decrement lives (max 0)
-2. Reset radiation = 0
-3. Clear current_radiation_zone_id
-4. Set status = 'dead' if lives == 0
-5. Record dead_at timestamp
-6. Item loss: 1-10% all items (equipment + artifacts)
-7. Fail active quests
-8. Complete elimination quests targeting this player
-```
-
-### Looting
-```
-1. Parse QR code → victim_id
-2. Check: victim is dead, not already looted
-3. Loot items:
-   - Equipment: 1-5% per item
-   - Artifacts: 1-3% per item
-4. Transfer to looter's backpack
-5. Record loot event (prevent double-loot)
-```
-
-### Respawn
-```
-1. Check: player is dead, lives > 0, inside respawn zone
-2. Calculate delta_t = now - last_calc
-3. Update: progress += delta_t
-4. If progress >= required_time:
-   - Set status = 'alive'
-   - Reset progress = 0
-   - Clear dead_at
+### Migration Script (run once)
+```python
+# Generate QR codes for existing players
+# See conversation history for full script
 ```
 
 ---
 
-## Testing Checklist
+## Location API Response (Updated)
 
-**Unit tests:**
-- [ ] `test_radiation.py` - time in zone, resist calculation
-
-**Integration tests:**
-- [ ] `test_radiation_flow.sh` - full flow (zone → death → respawn)
-
-**Manual tests:**
-- [ ] Radiation accumulation (enter/exit zone)
-- [ ] Death at 100 radiation
-- [ ] Item loss (1-10%)
-- [ ] Looting (QR scan)
-- [ ] Respawn timer
-- [ ] Equipment bonus lives
-- [ ] Admin zone creation
-- [ ] Cron job (offline radiation)
+```json
+{
+  "success": true,
+  "zones": [...],
+  "radiationZones": [
+    {
+      "id": "uuid",
+      "name": "Zone Name",
+      "centerLat": 34.7654,
+      "centerLng": 32.4247,
+      "radius": 100,
+      "radiationLevel": 50
+    }
+  ],
+  "respawnZones": [
+    {
+      "id": "uuid", 
+      "name": "Safe Zone",
+      "centerLat": 34.7654,
+      "centerLng": 32.4247,
+      "radius": 50,
+      "respawnTimeSeconds": 300
+    }
+  ],
+  "radiationUpdate": {
+    "currentRadiation": 25,
+    "inRadiationZone": true,
+    "zoneName": "Grim House"
+  },
+  "respawnUpdate": {
+    "inRespawnZone": true,
+    "zoneName": "Safe Zone",
+    "resurrectionProgress": 120,
+    "resurrectionRequired": 300
+  }
+}
+```
 
 ---
 
-## Deployment Steps
+## Deployment Commands
 
 ```bash
-# 1. Database migration
-mysql -h <RDS_HOST> -u pda_admin -p pda_zone < database/migrations/008_radiation_system.sql
-
-# 2. Backend (sam sync)
+# Backend
+cd /var/www/stalker/stalkerpda
 source .env.local
-./sync.sh
-# Wait for auto-deploy
+sam build --template infrastructure/template.yaml
+sam deploy --template-file .aws-sam/build/template.yaml \
+  --stack-name pda-zone-dev --region eu-north-1 --profile stalker \
+  --no-confirm-changeset --resolve-s3 --capabilities CAPABILITY_IAM
 
-# 3. Frontend
-cd frontend
-npm install react-qr-reader
-npm run build
-make deploy-fe ENVIRONMENT=dev
-aws cloudfront create-invalidation --distribution-id E1LX6WLS4JUEVL --paths "/*" --profile stalker
+# Frontend
+cd frontend && npm run build
+cd .. && make deploy-fe ENVIRONMENT=dev
 
-# 4. Admin
-cd admin
-npm run build
-make deploy-admin ENVIRONMENT=dev
-aws cloudfront create-invalidation --distribution-id E3FHC7M1Y2KICX --paths "/*" --profile stalker
-
-# 5. Verify
-./tests/integration/test_radiation_flow.sh
+# Admin
+cd admin && npm run build
+cd .. && make deploy-admin ENVIRONMENT=dev
 ```
 
 ---
 
-## AWS Free Tier Usage
+## Known Issues & Notes
 
-**EventBridge Cron:**
-- 1 invocation/minute = 43,200/month
-- Free tier: 1M events/month
-- **Cost: $0**
-
-**Lambda:**
-- 43,200 invocations/month
-- ~100ms execution time
-- Free tier: 1M requests + 400,000 GB-seconds
-- **Cost: $0**
-
-**RDS:**
-- Additional queries: ~43,200/month
-- Indexed queries: <10ms each
-- **Cost: $0 (within free tier)**
+1. **CORS:** All new admin handlers must include `handle_cors(event)` at the start
+2. **Database columns:** Use `active` not `is_active` for zone status
+3. **Geolocation:** Admin panel shows status under title for debugging
+4. **QR codes:** Existing players need migration script to generate QR codes
 
 ---
 
-## Rollback Plan
+## Files Changed (Git Commit)
 
-```bash
-# 1. Disable cron
-aws events disable-rule --name pda-zone-radiation-tick-dev --profile stalker
+```
+30 files changed, 5161 insertions(+), 335 deletions(-)
 
-# 2. Revert database
-mysql -h <RDS_HOST> -u pda_admin -p pda_zone < database/migrations/008_radiation_system_rollback.sql
+New files:
+- backend/src/utils/qr.py
+- backend/src/utils/radiation.py
+- database/migrations/008_radiation_system.sql
+- database/migrations/008_radiation_system_rollback.sql
+- frontend/src/pages/LootingPage.tsx
+- handlers/qr.py
+- specs/radiation-system-*.md
 
-# 3. Revert code
-git revert <commit-hash>
-sam build && sam deploy
-cd frontend && npm run build && make deploy-fe
-cd admin && npm run build && make deploy-admin
+Modified files:
+- admin/src/pages/ZonesPage.tsx
+- backend/requirements.txt
+- backend/src/handlers/admin.py
+- backend/src/handlers/auth.py
+- backend/src/handlers/location.py
+- backend/src/handlers/players.py
+- backend/src/utils/respawn.py
+- backend/src/utils/responses.py
+- frontend/src/App.tsx
+- frontend/src/components/layout/PDAFooter.tsx
+- frontend/src/components/layout/PDAHeader.tsx
+- frontend/src/components/map/StalkerMap.tsx
+- frontend/src/hooks/useLocationTracking.ts
+- frontend/src/pages/MapPage.tsx
+- frontend/src/pages/ProfilePage.tsx
+- infrastructure/template.yaml
+- layer/requirements.txt
+- layer/src/utils/auth.py
+- layer/src/utils/auth_simple.py
 ```
 
 ---
 
-## Success Metrics
+## Next Steps (TODO)
 
-- [ ] Radiation accumulates at correct rate
-- [ ] Death triggers at 100 radiation
-- [ ] Respawn timer works
-- [ ] Looting works (QR scan)
-- [ ] No performance degradation (<500ms API response)
-- [ ] Cron runs without errors (check CloudWatch logs)
-
----
-
-## Time Estimate
-
-- **Week 1:** Database + Backend (radiation, death, respawn)
-- **Week 2:** Frontend PDA (UI, QR, looting)
-- **Week 3:** Admin Panel + Testing + Deployment
-
-**Total: 2-3 weeks**
+1. [ ] Test radiation accumulation in real zones
+2. [ ] Test death trigger at 100%
+3. [ ] Test respawn timer in respawn zones
+4. [ ] Test looting flow (QR scan)
+5. [ ] Implement item loss on death
+6. [ ] Implement artifact pickup radiation
+7. [ ] Add EventBridge cron for offline radiation
 
 ---
 
-## Questions Resolved
-
-1. ✅ Resist only from equipped items (armor + 2 addons + artifact)
-2. ✅ Death loss: 1-10% all items, Looting: additional 1-5% equipment, 1-3% artifacts
-3. ✅ Keep `wounded` enum for future, default wounds = 1
-4. ✅ Add 6 fields to `players` (snake_case naming)
-5. ✅ Radiation zones (not respawn zones) have time window + respawn
-6. ✅ `pickup_radiation` on artifact spawn level (±30% variance)
-7. ✅ Separate cache keys: `radiation_zones`, `respawn_zones`
-8. ✅ Full implementation: Backend + Frontend + Admin
-9. ✅ EventBridge cron for offline radiation (free tier)
-10. ✅ No special GM debug commands (manage via admin UI)
-
----
-
-**Ready to start implementation!** 🚀
+**Implementation Complete!** 🚀
