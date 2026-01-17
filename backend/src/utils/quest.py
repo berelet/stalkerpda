@@ -10,8 +10,26 @@ from typing import Optional, Dict, Any, List
 def update_artifact_collection_progress(quest_data: Dict, artifact_type_id: str) -> tuple[Dict, bool]:
     """
     Update artifact collection quest progress when player picks up artifact.
+    Supports multiple artifact types with individual target counts.
     Returns (updated_quest_data, is_completed)
     """
+    # New format: multiple types with target_counts dict
+    if 'target_counts' in quest_data:
+        target_counts = quest_data.get('target_counts', {})
+        if artifact_type_id not in target_counts:
+            return quest_data, False
+        
+        current_counts = quest_data.setdefault('current_counts', {})
+        current_counts[artifact_type_id] = current_counts.get(artifact_type_id, 0) + 1
+        
+        # Check if ALL types have reached their targets
+        completed = all(
+            current_counts.get(type_id, 0) >= count
+            for type_id, count in target_counts.items()
+        )
+        return quest_data, completed
+    
+    # Legacy format: single artifact_type_id
     if quest_data.get('artifact_type_id') != artifact_type_id:
         return quest_data, False
     
