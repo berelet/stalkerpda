@@ -165,6 +165,7 @@ def spawn_artifact_handler(event, context):
         }
 
 @require_gm
+@require_gm
 def create_radiation_zone_handler(event, context):
     """POST /api/admin/zones/radiation - Create radiation zone"""
     try:
@@ -176,15 +177,25 @@ def create_radiation_zone_handler(event, context):
                 zone_id = str(uuid.uuid4())
                 cursor.execute(
                     """INSERT INTO radiation_zones 
-                    (id, name, center_lat, center_lng, radius, radiation_level, created_by)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                    (id, name, center_lat, center_lng, radius, radiation_level, 
+                     active_from, active_to, respawn_enabled, respawn_delay_seconds, 
+                     respawn_radius_meters, created_by)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (zone_id, body['name'], body['centerLat'], body['centerLng'],
-                     body['radius'], body['radiationLevel'], player_id)
+                     body['radius'], body['radiationLevel'], 
+                     body.get('activeFrom'), body.get('activeTo'),
+                     body.get('respawnEnabled', False), body.get('respawnDelaySeconds'),
+                     body.get('respawnRadiusMeters'), player_id)
+                )
+                
+                # Invalidate cache
+                cursor.execute(
+                    "UPDATE cache_versions SET version = version + 1 WHERE cache_key = 'radiation_zones'"
                 )
         
         return {
             'statusCode': 201,
-            'headers': {'Content-Type': 'application/json'},
+            'headers': cors_headers(),
             'body': json.dumps({
                 'id': zone_id,
                 'name': body['name'],
@@ -195,7 +206,7 @@ def create_radiation_zone_handler(event, context):
     except Exception as e:
         return {
             'statusCode': 500,
-            'headers': {'Content-Type': 'application/json'},
+            'headers': cors_headers(),
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
@@ -585,5 +596,91 @@ def remove_and_reset_artifact_handler(event, context):
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
+            'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
+        }
+
+
+@require_gm
+def create_respawn_zone_handler(event, context):
+    """POST /api/admin/zones/respawn - Create respawn zone"""
+    try:
+        player_id = event['player']['player_id']
+        body = json.loads(event.get('body', '{}'))
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                zone_id = str(uuid.uuid4())
+                cursor.execute(
+                    """INSERT INTO respawn_zones 
+                    (id, name, center_lat, center_lng, radius, respawn_time_seconds,
+                     active_from, active_to, respawn_enabled, respawn_delay_seconds,
+                     respawn_radius_meters, created_by)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (zone_id, body['name'], body['centerLat'], body['centerLng'],
+                     body['radius'], body['respawnTimeSeconds'],
+                     body.get('activeFrom'), body.get('activeTo'),
+                     body.get('respawnEnabled', False), body.get('respawnDelaySeconds'),
+                     body.get('respawnRadiusMeters'), player_id)
+                )
+                
+                # Invalidate cache
+                cursor.execute(
+                    "UPDATE cache_versions SET version = version + 1 WHERE cache_key = 'respawn_zones'"
+                )
+        
+        return {
+            'statusCode': 201,
+            'headers': cors_headers(),
+            'body': json.dumps({
+                'id': zone_id,
+                'name': body['name'],
+                'active': True
+            })
+        }
+    
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': cors_headers(),
+            'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
+        }
+
+
+@require_gm
+def resurrect_player_handler(event, context):
+    """POST /api/admin/players/{id}/resurrect - GM resurrect player"""
+    try:
+        player_id = event['pathParameters']['id']
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                # Resurrect player
+                cursor.execute("""
+                    UPDATE players
+                    SET status = 'alive',
+                        resurrection_progress_seconds = 0,
+                        dead_at = NULL
+                    WHERE id = %s
+                """, (player_id,))
+                
+                # Create event
+                cursor.execute("""
+                    INSERT INTO game_events (type, player_id, data)
+                    VALUES ('gm_resurrection', %s, %s)
+                """, (player_id, json.dumps({'by_gm': True})))
+        
+        return {
+            'statusCode': 200,
+            'headers': cors_headers(),
+            'body': json.dumps({
+                'success': True,
+                'message': 'Player resurrected'
+            })
+        }
+    
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': cors_headers(),
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }

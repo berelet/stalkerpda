@@ -120,6 +120,7 @@ def register_handler(event, context):
 def me_handler(event, context):
     """GET /api/auth/me"""
     from src.middleware.auth import get_current_player
+    from src.utils.qr import generate_qr_code
     
     try:
         player = get_current_player(event)
@@ -133,6 +134,7 @@ def me_handler(event, context):
                 cursor.execute(
                     """SELECT id, nickname, email, faction, status, balance, reputation,
                     current_lives, current_radiation, qr_code,
+                    resurrection_progress_seconds,
                     total_kills, total_deaths, total_artifacts_found, total_contracts_completed
                     FROM players WHERE id = %s""",
                     (player_id,)
@@ -158,6 +160,9 @@ def me_handler(event, context):
             elif roles_data.get('is_bartender'):
                 role = 'bartender'
         
+        # Generate QR code image
+        qr_code_image = generate_qr_code(player_id)
+        
         response = {
             'id': player_data['id'],
             'nickname': player_data['nickname'],
@@ -168,7 +173,11 @@ def me_handler(event, context):
             'reputation': player_data['reputation'],
             'currentLives': player_data['current_lives'],
             'currentRadiation': player_data['current_radiation'],
-            'qrCode': player_data['qr_code'],
+            'qrCode': qr_code_image,
+            'resurrectionProgress': {
+                'seconds': player_data['resurrection_progress_seconds'] or 0,
+                'percent': 0
+            },
             'role': role,
             'stats': {
                 'kills': player_data['total_kills'],

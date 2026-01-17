@@ -4,9 +4,8 @@ import { useAuthStore } from '../../stores/authStore'
 import { api } from '../../services/api'
 
 interface PlayerData {
-  lives: number
-  max_lives: number
-  radiation: number
+  currentLives: number
+  currentRadiation: number
   balance: number
 }
 
@@ -43,9 +42,9 @@ export default function PDAHeader() {
   }, [fetchPlayer])
 
   const getRadiationColor = (rad: number) => {
-    if (rad < 50) return 'text-pda-phosphor'
-    if (rad < 80) return 'text-pda-amber'
-    return 'text-pda-danger'
+    if (rad <= 20) return 'text-green-400'
+    if (rad <= 70) return 'text-yellow-400'
+    return 'text-red-500'
   }
 
   return (
@@ -72,10 +71,10 @@ export default function PDAHeader() {
         <div className="flex items-center justify-between mt-2 text-xs">
           <div className="flex items-center gap-3">
             <span className="text-pda-danger">
-              ❤️ {player.lives}/{player.max_lives}
+              ❤️ {player.currentLives}
             </span>
-            <span className={getRadiationColor(player.radiation)}>
-              ☢️ {player.radiation}
+            <span className={getRadiationColor(player.currentRadiation)}>
+              ☢️ {Math.round(player.currentRadiation)}%
             </span>
           </div>
           <div className="text-pda-amber">

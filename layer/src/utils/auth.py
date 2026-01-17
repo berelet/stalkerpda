@@ -32,8 +32,33 @@ def decode_jwt_token(token: str) -> Optional[dict]:
         return None
 
 def generate_qr_code(player_id: str) -> str:
-    """Generate unique QR code for player"""
-    import hashlib
-    import time
-    data = f"{player_id}:{time.time()}"
-    return hashlib.sha256(data.encode()).hexdigest()[:16]
+    """Generate QR code SVG and upload to S3, return URL"""
+    import qrcode
+    import qrcode.image.svg
+    import io
+    import boto3
+    import os
+    
+    qr_data = f"STALKER_LOOT:{player_id}"
+    
+    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+    
+    factory = qrcode.image.svg.SvgImage
+    img = qr.make_image(image_factory=factory)
+    
+    buffer = io.BytesIO()
+    img.save(buffer)
+    svg_bytes = buffer.getvalue()
+    
+    # Upload to S3
+    s3 = boto3.client('s3')
+    bucket = os.environ.get('S3_BUCKET', 'pda-zone-frontend-dev-707694916945')
+    key = f"qr/{player_id}.svg"
+    
+    s3.put_object(Bucket=bucket, Key=key, Body=svg_bytes, ContentType='image/svg+xml')
+    
+    # Return CloudFront URL
+    cf_domain = os.environ.get('CLOUDFRONT_DOMAIN', 'd384azcb4go67w.cloudfront.net')
+    return f"https://{cf_domain}/{key}"

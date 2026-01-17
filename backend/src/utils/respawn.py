@@ -1,10 +1,12 @@
 """
-Artifact respawn utilities
+Artifact and zone respawn utilities
 """
 import math
 import random
+import json
 from datetime import datetime, timedelta
 from typing import Tuple
+from src.utils.geo import point_in_circle
 
 def random_point_in_radius(center_lat: float, center_lng: float, 
                           radius_meters: int) -> Tuple[float, float]:
@@ -97,3 +99,137 @@ def activate_respawned_artifacts(cursor) -> int:
           AND (expires_at IS NULL OR expires_at > NOW())
     """)
     return cursor.rowcount
+
+
+# ============================================
+# Respawn Zones
+# ============================================
+
+# Global cache for respawn zones
+_respawn_zones_cache = {
+    'data': None,
+    'version': None
+}
+
+
+def get_active_respawn_zones(cursor, now):
+    """Get active respawn zones with cache"""
+    global _respawn_zones_cache
+    
+    # Check cache version
+    cursor.execute("SELECT version FROM cache_versions WHERE cache_key = 'respawn_zones'")
+    result = cursor.fetchone()
+    current_version = result['version'] if result else 0
+    
+    # Return cached if valid
+    if (_respawn_zones_cache['data'] is not None and 
+        _respawn_zones_cache['version'] == current_version):
+        return _respawn_zones_cache['data']
+    
+    # Query active zones
+    cursor.execute("""
+        SELECT id, name, center_lat, center_lng, radius, respawn_time_seconds
+        FROM respawn_zones
+        WHERE active = TRUE
+          AND (active_from IS NULL OR active_from <= %s)
+          AND (active_to IS NULL OR active_to > %s)
+    """, (now, now))
+    
+    zones = cursor.fetchall()
+    
+    # Update cache
+    _respawn_zones_cache['data'] = zones
+    _respawn_zones_cache['version'] = current_version
+    
+    return zones
+
+
+def update_resurrection_progress(cursor, player, location, now):
+    """
+    Update resurrection timer for dead players
+    
+    Args:
+        cursor: Database cursor
+        player: Player dict with resurrection fields
+        location: Current location dict {'lat': float, 'lng': float}
+        now: Current datetime
+        
+    Returns:
+        Dict with resurrection progress info
+    """
+    # Get active respawn zones
+    zones = get_active_respawn_zones(cursor, now)
+    
+    # Check if inside any zone
+    inside_zone = None
+    for zone in zones:
+        if point_in_circle(
+            location['lat'], location['lng'],
+            float(zone['center_lat']), float(zone['center_lng']),
+            zone['radius']
+        ):
+            inside_zone = zone
+            break
+    
+    # Calculate delta time
+    if player['last_resurrection_calc_at']:
+        delta_t = (now - player['last_resurrection_calc_at']).total_seconds()
+    else:
+        delta_t = 0
+    
+    # Update progress
+    new_progress = player['resurrection_progress_seconds']
+    resurrected = False
+    zone_name = None
+    
+    if inside_zone:
+        new_progress += delta_t
+        
+        # Check completion
+        if new_progress >= inside_zone['respawn_time_seconds']:
+            # Resurrect!
+            cursor.execute("""
+                UPDATE players
+                SET status = 'alive',
+                    resurrection_progress_seconds = 0,
+                    dead_at = NULL,
+                    last_resurrection_calc_at = %s
+                WHERE id = %s
+            """, (now, player['id']))
+            
+            # Create event
+            cursor.execute("""
+                INSERT INTO game_events (type, player_id, data)
+                VALUES ('resurrection', %s, %s)
+            """, (player['id'], json.dumps({
+                'zone_id': inside_zone['id'],
+                'zone_name': inside_zone['name']
+            })))
+            
+            resurrected = True
+            new_progress = 0
+            zone_name = inside_zone['name']
+        else:
+            # Update progress
+            cursor.execute("""
+                UPDATE players
+                SET resurrection_progress_seconds = %s,
+                    last_resurrection_calc_at = %s
+                WHERE id = %s
+            """, (new_progress, now, player['id']))
+    else:
+        # Not inside zone - just update timestamp
+        cursor.execute("""
+            UPDATE players
+            SET last_resurrection_calc_at = %s
+            WHERE id = %s
+        """, (now, player['id']))
+    
+    return {
+        'progress': round(new_progress, 1),
+        'required': inside_zone['respawn_time_seconds'] if inside_zone else None,
+        'insideZone': inside_zone is not None,
+        'resurrected': resurrected,
+        'zoneName': zone_name,
+        'progressPercent': round((new_progress / inside_zone['respawn_time_seconds'] * 100), 1) if inside_zone else 0
+    }
