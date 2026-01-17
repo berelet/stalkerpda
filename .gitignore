@@ -12,3 +12,14 @@ backend/package/
 backend-upload/package/
 layer/python/
 *.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
