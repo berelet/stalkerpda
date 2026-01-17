@@ -345,6 +345,13 @@ Resources:
       FunctionName: !Sub pda-zone-register-${Environment}
       Handler: auth.register_handler
       CodeUri: ../handlers/
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref FrontendBucket
+      Environment:
+        Variables:
+          S3_BUCKET: !Ref FrontendBucket
+          CLOUDFRONT_DOMAIN: "d384azcb4go67w.cloudfront.net"
       Events:
         Register:
           Type: Api
