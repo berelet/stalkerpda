@@ -38,24 +38,25 @@
 {
   "type": "artifact_collection",
   "artifact_type_ids": ["uuid-moonlight", "uuid-flash"],  // Multiple types allowed
-  "target_count": 5,
-  "current_count": 0
+  "target_counts": {"uuid-moonlight": 2, "uuid-flash": 3},  // Per-type requirements
+  "current_counts": {"uuid-moonlight": 0, "uuid-flash": 0}
 }
 ```
 - Tracks artifact pickups automatically (counter increments on pickup)
-- **Multiple artifact types:** Admin can select multiple artifact types; player can collect ANY of the specified types
+- **Multiple artifact types:** Admin can select multiple artifact types; player shall collect ALL of the specified types
+- Each type has its own target count requirement
 - Player does NOT need to keep artifacts in inventory (can sell/drop after pickup)
-- Progress: `current_count / target_count`
-- Completion: When `current_count >= target_count` + confirmation
+- Progress: All type counts must reach their targets
+- Completion: When ALL `current_counts >= target_counts` + confirmation
 - **Map marker:** 50m radius circle around artifact spawn (not exact location)
 - **Respawn integration:** If artifact has respawn enabled, marker disappears when picked up, reappears when respawned at new location (see `artifact-respawn-spec.md`)
 
 **Admin Panel - Artifact Type Selection:**
 - Fetch available artifact types via `GET /api/admin/artifact-types`
-- Display as multi-select dropdown or checkbox list
+- Display as list with checkboxes and count inputs
 - Show artifact name, rarity, and icon
-- Allow selecting 1+ artifact types for the quest
-- Store as array in `quest_data.artifact_type_ids`
+- For each selected type, specify target count
+- Store as object in `quest_data.target_counts`
 
 #### Delivery
 ```json
@@ -604,15 +605,14 @@ def calculate_commission_discount(player_id, trader_id):
 
 **Artifact Collection:**
 ```
-Artifact Types: [Multi-select dropdown]
-  ☑ Moonlight (Rare)
-  ☐ Flash (Common)
-  ☐ Gravi (Legendary)
-  ☑ Electra (Uncommon)
+Artifact Types: [Checkboxes with count inputs]
+  ☑ Moonlight (Rare) 🌙      Count: [2]
+  ☐ Flash (Common) ⚡         Count: [_]
+  ☐ Gravi (Legendary) 🌀     Count: [_]
+  ☑ Electra (Uncommon) 💫    Count: [3]
   
-Quantity: [3]
-
-Note: Player can collect ANY of the selected artifact types
+Note: Player must collect ALL selected types with specified counts
+Example: 2 Moonlight AND 3 Electra required
 ```
 
 **Delivery:**

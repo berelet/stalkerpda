@@ -116,10 +116,10 @@ POST   /api/admin/quests/{id}/confirm // Confirm & reward
 
 **Requirements:**
 1. Fetch artifact types: `GET /api/admin/artifact-types`
-2. Display multi-select UI (checkboxes or dropdown)
+2. Display list with checkboxes and count inputs
 3. Show artifact name, rarity, icon
-4. Allow selecting 1+ types
-5. Store as array: `quest_data.artifact_type_ids`
+4. For each selected type, specify target count
+5. Store as object: `quest_data.target_counts`
 
 **Example Quest Data:**
 ```json
@@ -128,16 +128,23 @@ POST   /api/admin/quests/{id}/confirm // Confirm & reward
   "title": "Collect Rare Artifacts",
   "questData": {
     "artifact_type_ids": ["uuid-moonlight", "uuid-electra"],
-    "target_count": 5,
-    "current_count": 0
+    "target_counts": {
+      "uuid-moonlight": 2,
+      "uuid-electra": 3
+    },
+    "current_counts": {
+      "uuid-moonlight": 0,
+      "uuid-electra": 0
+    }
   }
 }
 ```
 
 **Player Experience:**
-- Can collect ANY of the specified artifact types
-- Progress: 2 Moonlight + 3 Electra = 5/5 complete ✓
-- Map shows markers for all matching artifact types
+- Must collect ALL specified artifact types with their counts
+- Progress: 2/2 Moonlight ✓, 1/3 Electra ⏳ = Incomplete
+- Quest completes when ALL types reach target counts
+- Map shows markers for all required artifact types
 
 ---
 

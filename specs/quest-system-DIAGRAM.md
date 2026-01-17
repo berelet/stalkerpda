@@ -401,14 +401,14 @@ Examples:
 │  Issuer: [Sidorovich (NPC) ▼]                              │
 │                                                              │
 │  --- Objectives ---                                         │
-│  Artifact Types: [Multi-select]                            │
-│    ☑ Moonlight (Rare) 🌙                                   │
-│    ☐ Flash (Common) ⚡                                      │
-│    ☑ Electra (Uncommon) 💫                                 │
-│    ☐ Gravi (Legendary) 🌀                                  │
+│  Artifact Types: [Checkboxes with counts]                  │
+│    ☑ Moonlight (Rare) 🌙       Count: [2]                 │
+│    ☐ Flash (Common) ⚡          Count: [_]                 │
+│    ☑ Electra (Uncommon) 💫     Count: [3]                 │
+│    ☐ Gravi (Legendary) 🌀      Count: [_]                 │
 │                                                              │
-│  Collect Count: [3]                                         │
-│  Note: Player can collect ANY of selected types             │
+│  Note: Player must collect ALL selected types               │
+│        (2 Moonlight AND 3 Electra required)                 │
 │                                                              │
 │  --- Rewards ---                                            │
 │  Money: [1500] credits                                      │
