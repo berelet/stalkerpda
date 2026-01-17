@@ -11,7 +11,7 @@
         │                  │                  │
 ┌───────▼────────┐ ┌──────▼──────┐ ┌────────▼────────┐
 │  Quest Types   │ │ Reputation  │ │ Artifact Respawn│
-│  (5 types)     │ │ System      │ │ (optional)      │
+│  (4 types)     │ │ System      │ │ (optional)      │
 └───────┬────────┘ └──────┬──────┘ └────────┬────────┘
         │                  │                  │
         └──────────────────┼──────────────────┘
@@ -92,9 +92,6 @@
 ```
 ┌──────────────┬─────────────┬──────────────┬────────────┬─────────────┐
 │ Quest Type   │ Objective   │ Auto-Track   │ Map Marker │ Completion  │
-├──────────────┼─────────────┼──────────────┼────────────┼─────────────┤
-│ Elimination  │ Kill N      │ ✅ Loot QR   │ None       │ Manual      │
-│              │ players     │              │            │ confirm     │
 ├──────────────┼─────────────┼──────────────┼────────────┼─────────────┤
 │ Artifact     │ Collect N   │ ✅ Pickup    │ 50m circle │ Manual      │
 │ Collection   │ artifacts   │              │            │ confirm     │
@@ -220,8 +217,8 @@ Examples:
 │                        contracts                             │
 ├─────────────────────────────────────────────────────────────┤
 │ id (PK)                                                      │
-│ type (elimination, escort, delivery, ...)                   │
-│ quest_type (elimination, artifact_collection, ...) ← NEW    │
+│ type (escort, delivery, ...)                                │
+│ quest_type (artifact_collection, ...) ← NEW                 │
 │ quest_data (JSON) ← NEW                                      │
 │ auto_complete (BOOLEAN) ← NEW                               │
 │ failed (BOOLEAN) ← NEW                                       │
@@ -297,17 +294,17 @@ Examples:
                 │ progress()       │
                 └──────────┬───────┘
                            │
-        ┌──────────────────┼──────────────────┐
-        │                  │                  │
-        ▼                  ▼                  ▼
-┌───────────────┐  ┌──────────────┐  ┌──────────────┐
-│ Elimination   │  │  Artifact    │  │ Patrol/Visit │
-│ Quest         │  │  Collection  │  │ Quest        │
-│ (increment)   │  │  Quest       │  │ (check       │
-│               │  │  (increment) │  │  location)   │
-└───────┬───────┘  └──────┬───────┘  └──────┬───────┘
-        │                  │                  │
-        └──────────────────┼──────────────────┘
+        ┌──────────────────┴──────────────────┐
+        │                                     │
+        ▼                                     ▼
+┌──────────────┐                      ┌──────────────┐
+│  Artifact    │                      │ Patrol/Visit │
+│  Collection  │                      │ Quest        │
+│  Quest       │                      │ (check       │
+│  (increment) │                      │  location)   │
+└──────┬───────┘                      └──────┬───────┘
+        │                                     │
+        └──────────────────┬──────────────────┘
                            │
                            ▼
                 ┌──────────────────┐
@@ -396,7 +393,7 @@ Examples:
 ┌─────────────────────────────────────────────────────────────┐
 │                   Create Quest Form                          │
 ├─────────────────────────────────────────────────────────────┤
-│  Quest Type: [Elimination ▼]                                │
+│  Quest Type: [Artifact Collection ▼]                        │
 │                                                              │
 │  Title: [_______________________________]                   │
 │  Description: [________________________]                    │
@@ -404,8 +401,8 @@ Examples:
 │  Issuer: [Sidorovich (NPC) ▼]                              │
 │                                                              │
 │  --- Objectives ---                                         │
-│  Target Faction: [Bandit ▼]                                │
-│  Kill Count: [5]                                            │
+│  Artifact Type: [Moonlight ▼]                              │
+│  Collect Count: [3]                                         │
 │                                                              │
 │  --- Rewards ---                                            │
 │  Money: [1500] credits                                      │

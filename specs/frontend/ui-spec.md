@@ -346,7 +346,6 @@ interface CreateContractFormProps {
 - Description
 - Reward (with balance check)
 - Type-specific fields:
-  - Elimination: Target player selector
   - Escort: Destination picker (map)
   - Delivery: From/To players, item
   - Artifact: Artifact type

@@ -59,7 +59,6 @@ export default function TraderQuestsPage() {
 
   const getQuestTypeIcon = (type: string) => {
     const icons: Record<string, string> = {
-      elimination: '💀',
       artifact_collection: '💎',
       delivery: '📦',
       protection: '🛡️',
@@ -73,7 +72,6 @@ export default function TraderQuestsPage() {
 
   const getQuestTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      elimination: 'Elimination',
       artifact_collection: 'Collect Artifacts',
       delivery: 'Delivery',
       protection: 'Protection',

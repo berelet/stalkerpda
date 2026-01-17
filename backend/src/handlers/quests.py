@@ -373,9 +373,7 @@ def create_handler(event, context):
                 
                 # Build quest_data based on type
                 quest_data = {}
-                if quest_type == 'elimination':
-                    quest_data = {'target_faction': body.get('targetFaction'), 'target_count': body.get('targetCount', 1), 'current_count': 0}
-                elif quest_type == 'artifact_collection':
+                if quest_type == 'artifact_collection':
                     quest_data = {'artifact_type_id': body.get('artifactTypeId'), 'target_count': body.get('targetCount', 1), 'current_count': 0}
                 elif quest_type == 'visit':
                     quest_data = {'target_lat': body.get('targetLat'), 'target_lng': body.get('targetLng'), 'target_radius': body.get('targetRadius', 20), 'visited': False}
@@ -448,12 +446,8 @@ def admin_create_handler(event, context):
                 
                 quest_data = body.get('questData', {})
                 
-                # For elimination with specific target
-                target_player_id = body.get('targetPlayerId')
-                if quest_type == 'elimination' and target_player_id:
-                    quest_data['target_player_id'] = target_player_id
-                
                 # For protection quest
+                target_player_id = body.get('targetPlayerId')
                 if quest_type == 'protection':
                     quest_data['protected_player_id'] = body.get('targetPlayerId')
                 

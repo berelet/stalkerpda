@@ -35,7 +35,7 @@ interface Checkpoint {
   radius: number
 }
 
-const QUEST_TYPES = ['elimination', 'artifact_collection', 'visit', 'patrol', 'protection', 'manual']
+const QUEST_TYPES = ['artifact_collection', 'visit', 'patrol', 'protection', 'manual']
 const FACTIONS = ['stalker', 'bandit', 'mercenary', 'duty', 'freedom', 'loner']
 
 export default function QuestsPage() {
@@ -47,7 +47,7 @@ export default function QuestsPage() {
   
   // Form state
   const [form, setForm] = useState({
-    questType: 'elimination',
+    questType: 'artifact_collection',
     title: '',
     description: '',
     reward: 1000,
@@ -93,7 +93,7 @@ export default function QuestsPage() {
   }, [])
 
   const resetForm = () => {
-    setForm({ questType: 'elimination', title: '', description: '', reward: 1000, targetFaction: 'bandit', excludeFaction: '', factionMode: 'target', targetCount: 3, expiresInHours: 24, allowedFactions: [] })
+    setForm({ questType: 'artifact_collection', title: '', description: '', reward: 1000, targetFaction: 'bandit', excludeFaction: '', factionMode: 'target', targetCount: 3, expiresInHours: 24, allowedFactions: [] })
     setCheckpoints([])
     setEditingQuest(null)
   }
@@ -129,15 +129,7 @@ export default function QuestsPage() {
     setCreating(true)
     try {
       let questData: any = {}
-      if (form.questType === 'elimination') {
-        questData = { 
-          target_count: form.targetCount, 
-          current_count: editingQuest?.questData?.current_count || 0,
-          ...(form.factionMode === 'target' 
-            ? { target_faction: form.targetFaction }
-            : { exclude_faction: form.excludeFaction })
-        }
-      } else if (form.questType === 'artifact_collection') {
+      if (form.questType === 'artifact_collection') {
         questData = { target_count: form.targetCount, current_count: editingQuest?.questData?.current_count || 0 }
       } else if (form.questType === 'visit') {
         questData = { target_lat: visitLat, target_lng: visitLng, target_radius: visitRadius, visited: editingQuest?.questData?.visited || false }
@@ -384,51 +376,6 @@ export default function QuestsPage() {
                   ))}
                 </div>
               </div>
-              {form.questType === 'elimination' && (
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, factionMode: 'target' })}
-                      className={`flex-1 px-3 py-2 rounded text-sm ${form.factionMode === 'target' ? 'bg-[#00ff88] text-black' : 'bg-[#1a2836] text-[#91b3ca] border border-[#233948]'}`}
-                    >
-                      Kill specific faction
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, factionMode: 'exclude' })}
-                      className={`flex-1 px-3 py-2 rounded text-sm ${form.factionMode === 'exclude' ? 'bg-[#00ff88] text-black' : 'bg-[#1a2836] text-[#91b3ca] border border-[#233948]'}`}
-                    >
-                      Kill anyone except
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[#91b3ca] text-sm mb-1">
-                        {form.factionMode === 'target' ? 'Target Faction' : 'Exclude Faction'}
-                      </label>
-                      <select
-                        value={form.factionMode === 'target' ? form.targetFaction : form.excludeFaction}
-                        onChange={e => setForm({ ...form, [form.factionMode === 'target' ? 'targetFaction' : 'excludeFaction']: e.target.value })}
-                        className="w-full bg-[#1a2836] border border-[#233948] rounded px-3 py-2 text-white"
-                      >
-                        {['stalker', 'bandit', 'mercenary', 'duty', 'freedom', 'loner'].map(f => (
-                          <option key={f} value={f}>{f}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[#91b3ca] text-sm mb-1">Kill Count</label>
-                      <input
-                        type="number"
-                        value={form.targetCount}
-                        onChange={e => setForm({ ...form, targetCount: parseInt(e.target.value) || 1 })}
-                        className="w-full bg-[#1a2836] border border-[#233948] rounded px-3 py-2 text-white"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
               {form.questType === 'artifact_collection' && (
                 <div>
                   <label className="block text-[#91b3ca] text-sm mb-1">Artifact Count</label>

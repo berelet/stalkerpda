@@ -1,4 +1,4 @@
-export type QuestType = 'elimination' | 'artifact_collection' | 'delivery' | 'patrol' | 'visit'
+export type QuestType = 'artifact_collection' | 'delivery' | 'patrol' | 'visit' | 'protection'
 export type QuestStatus = 'available' | 'accepted' | 'in_progress' | 'completed' | 'failed'
 
 export interface QuestIssuer {

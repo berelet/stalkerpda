@@ -10,7 +10,6 @@ ADD COLUMN reward_reputation INT DEFAULT 0 COMMENT 'Reputation points reward' AF
 -- 2. Add new quest types: protection, manual, item_delivery
 ALTER TABLE contracts
 MODIFY COLUMN quest_type ENUM(
-  'elimination', 
   'artifact_collection', 
   'delivery', 
   'patrol', 

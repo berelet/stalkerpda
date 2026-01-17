@@ -82,7 +82,7 @@ export interface ControlPoint {
 
 export interface Contract {
   id: string;
-  type: 'elimination' | 'escort' | 'delivery' | 'artifact_extraction' | 'zone_control';
+  type: 'escort' | 'delivery' | 'artifact_extraction' | 'zone_control';
   title: string;
   description: string;
   reward: number;

@@ -159,25 +159,11 @@ def death_handler(event, context):
                 )
                 
                 # Fail all active quests on death
-                from src.utils.quest import fail_player_quests, fail_protection_quests, complete_elimination_quest_for_target
+                from src.utils.quest import fail_player_quests, fail_protection_quests
                 failed_quests_count = fail_player_quests(cursor, player_id, 'player_death')
                 
                 # Fail protection quests where this player was being protected
                 fail_protection_quests(cursor, player_id)
-                
-                # Complete elimination quests targeting this player
-                completed_eliminations = complete_elimination_quest_for_target(cursor, player_id)
-                for q in completed_eliminations:
-                    # Pay reward to quest holder
-                    if q['reward']:
-                        cursor.execute("UPDATE players SET balance = balance + %s WHERE id = %s",
-                                      (q['reward'], q['accepted_by']))
-                    if q['reward_reputation']:
-                        cursor.execute("""
-                            INSERT INTO npc_reputation (id, player_id, faction, reputation)
-                            VALUES (%s, %s, 'loner', %s)
-                            ON DUPLICATE KEY UPDATE reputation = reputation + %s
-                        """, (str(uuid.uuid4()), q['accepted_by'], q['reward_reputation'], q['reward_reputation']))
         
         response = {
             'success': True,
@@ -370,29 +356,6 @@ def loot_handler(event, context):
                      json.dumps([a['id'] for a in looted_artifacts]),
                      victim_qr_code)
                 )
-                
-                # Update quest progress for elimination quests
-                cursor.execute("SELECT faction FROM players WHERE id = %s", (victim_id,))
-                victim_faction = cursor.fetchone()['faction']
-                
-                from src.utils.quest import update_elimination_progress, log_quest_event
-                
-                cursor.execute("""
-                    SELECT id, quest_data, auto_complete FROM contracts
-                    WHERE accepted_by = %s AND status = 'accepted' AND failed = 0
-                      AND quest_type = 'elimination'
-                """, (looter_id,))
-                
-                for quest in cursor.fetchall():
-                    quest_data = json.loads(quest['quest_data']) if quest['quest_data'] else {}
-                    updated_data, completed = update_elimination_progress(quest_data, victim_faction)
-                    
-                    if updated_data != quest_data:
-                        cursor.execute(
-                            "UPDATE contracts SET quest_data = %s WHERE id = %s",
-                            (json.dumps(updated_data), quest['id'])
-                        )
-                        log_quest_event(cursor, quest['id'], looter_id, 'progress', updated_data, 'player_kill')
                 
                 # Get looter's new balance
                 cursor.execute(

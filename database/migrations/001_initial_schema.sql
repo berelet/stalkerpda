@@ -209,7 +209,7 @@ CREATE TABLE control_points (
 -- Contracts
 CREATE TABLE contracts (
     id VARCHAR(36) PRIMARY KEY,
-    type ENUM('elimination', 'escort', 'delivery', 'artifact_extraction', 'zone_control') NOT NULL,
+    type ENUM('escort', 'delivery', 'artifact_extraction', 'zone_control') NOT NULL,
     
     -- Parties
     issuer_id VARCHAR(36) NOT NULL,

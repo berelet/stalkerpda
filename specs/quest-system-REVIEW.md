@@ -10,7 +10,7 @@
 ### Specifications (3 files)
 1. ✅ `specs/quest-system-spec.md` (50+ pages)
    - Complete quest system specification
-   - 5 quest types with detailed mechanics
+   - 4 quest types with detailed mechanics
    - Database schema changes
    - API endpoints
    - UI/UX mockups
@@ -42,7 +42,6 @@ All critical questions answered:
 |----------|--------|
 | Patrol time tracking | Total across ALL checkpoints |
 | Artifact collection | Just pick up (can sell after) |
-| Elimination tracking | Must LOOT victim (QR scan) |
 | Reputation scale | -10,000 to +10,000 (1% per 100 rep) |
 | Max active quests | 5 per player |
 | Quest expiration | Fails, no penalty |
@@ -83,14 +82,13 @@ Deferred to post-MVP:
 ## 🚨 Critical for MVP
 
 ### Must Have:
-1. ✅ Elimination quests (kill tracking)
-2. ✅ Artifact collection quests (pickup tracking)
-3. ✅ Visit quests (location tracking)
-4. ✅ Death fails all quests
-5. ✅ Reputation system (NPC + faction)
-6. ✅ Artifact respawn (for repeatable quests)
-7. ✅ Bartender quest creation (PDA)
-8. ✅ GM quest management (Admin)
+1. ✅ Artifact collection quests (pickup tracking)
+2. ✅ Visit quests (location tracking)
+3. ✅ Death fails all quests
+4. ✅ Reputation system (NPC + faction)
+5. ✅ Artifact respawn (for repeatable quests)
+6. ✅ Bartender quest creation (PDA)
+7. ✅ GM quest management (Admin)
 
 ### Nice to Have (can defer):
 - ⏳ Delivery quests (manual confirmation)
@@ -148,21 +146,21 @@ discount_pct = min(100, reputation / 100)
 
 ## 🎮 Example Gameplay Flow
 
-### Scenario: "Hunt the Bandits" Quest
+### Scenario: "Collect Artifacts" Quest
 
 1. **GM creates quest:**
-   - Type: Elimination
-   - Target: Bandit faction
-   - Count: 5 kills
+   - Type: Artifact Collection
+   - Target: Moonlight artifacts
+   - Count: 3
    - Reward: 1,500 credits + 100 reputation (Loner faction)
 
 2. **Player accepts quest:**
    - Quest appears in "Active Quests"
-   - Progress: 0/5
+   - Progress: 0/3
 
-3. **Player kills bandits:**
-   - Kill 1 → Loot QR code → Progress: 1/5
-   - Kill 2 → Loot QR code → Progress: 2/5
+3. **Player collects artifacts:**
+   - Pickup 1 → Progress: 1/3
+   - Pickup 2 → Progress: 2/3
    - Kill 3 → Loot QR code → Progress: 3/5
 
 4. **Player dies:**
@@ -211,7 +209,7 @@ If you approve the specs, we can start with:
 - Death handler integration
 
 **Phase 3: Simple Quest Test (2 hours)**
-- Implement elimination quest
+- Implement artifact collection quest
 - Test full lifecycle
 - Verify death fails quest
 

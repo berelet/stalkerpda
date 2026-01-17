@@ -8,7 +8,6 @@
 
 ALTER TABLE contracts
 ADD COLUMN quest_type ENUM(
-  'elimination', 
   'artifact_collection', 
   'delivery', 
   'patrol', 

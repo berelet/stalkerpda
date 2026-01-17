@@ -445,7 +445,6 @@ expires_at TIMESTAMP NULL  -- When artifact becomes inactive
 - ✅ Artifact respawn utilities (src/utils/respawn.py)
 - ✅ Quest handlers (src/handlers/quests.py) - 12 endpoints
 - ✅ Integration with death handler (fail quests on death)
-- ✅ Integration with loot handler (elimination quest progress)
 - ✅ Integration with artifact pickup (collection quest progress)
 - ✅ Integration with location update (patrol/visit quest progress + respawn activation)
 - ✅ Admin spawn artifact with respawn settings

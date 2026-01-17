@@ -105,11 +105,10 @@ POST   /api/admin/quests/{id}/confirm // Confirm & reward
 
 ## Quest Types
 
-1. **elimination** - Kill N players of faction X
-2. **artifact_collection** - Collect N artifacts of type Y
-3. **delivery** - Deliver item to NPC/coordinates
-4. **patrol** - Visit N checkpoints + spend M minutes
-5. **visit** - Reach specific coordinates once
+1. **artifact_collection** - Collect N artifacts of type Y
+2. **delivery** - Deliver item to NPC/coordinates
+3. **patrol** - Visit N checkpoints + spend M minutes
+4. **visit** - Reach specific coordinates once
 
 ---
 
@@ -129,19 +128,6 @@ POST   /api/admin/quests/{id}/confirm // Confirm & reward
     "current_count": 1  // Progress!
   },
   "status": "accepted"
-}
-```
-
-**Elimination:**
-```json
-{
-  "questType": "elimination",
-  "title": "Hunt Bandits",
-  "questData": {
-    "target_faction": "bandit",
-    "target_count": 5,
-    "current_count": 2
-  }
 }
 ```
 

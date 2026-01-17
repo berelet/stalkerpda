@@ -114,7 +114,6 @@ export default function QuestsPage() {
 
   const getQuestIcon = (type: string) => {
     switch (type) {
-      case 'elimination': return '🎯'
       case 'artifact_collection': return '💎'
       case 'delivery': return '📦'
       case 'patrol': return '🚶'
@@ -260,14 +259,6 @@ export default function QuestsPage() {
               {selectedQuest.questData && (
                 <div className="bg-pda-case-dark p-2 mb-3 text-sm">
                   <div className="text-pda-highlight text-xs mb-1">OBJECTIVES:</div>
-                  {selectedQuest.questType === 'elimination' && (
-                    <div className="text-pda-text">
-                      {selectedQuest.questData.target_faction 
-                        ? `Kill ${selectedQuest.questData.target_count} ${selectedQuest.questData.target_faction}s`
-                        : `Kill ${selectedQuest.questData.target_count} players (except ${selectedQuest.questData.exclude_faction}s)`}
-                      {tab === 'active' && <span className="text-pda-phosphor ml-2">({selectedQuest.questData.current_count || 0}/{selectedQuest.questData.target_count})</span>}
-                    </div>
-                  )}
                   {selectedQuest.questType === 'artifact_collection' && (
                     <div className="text-pda-text">
                       Collect {selectedQuest.questData.target_count} artifacts

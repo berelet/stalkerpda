@@ -133,7 +133,6 @@ export default function WikiPage() {
             
             <h3 className="text-pda-amber">📝 Types</h3>
             <ul className="list-disc list-inside space-y-1 ml-2">
-              <li><span className="text-red-400">Elimination</span> - Kill target player</li>
               <li><span className="text-blue-400">Escort</span> - Protect client to destination</li>
               <li><span className="text-green-400">Delivery</span> - Transfer item between players</li>
               <li><span className="text-purple-400">Artifact</span> - Extract specific artifact</li>
