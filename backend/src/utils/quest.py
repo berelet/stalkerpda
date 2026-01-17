@@ -6,30 +6,30 @@ import uuid
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
-def update_elimination_progress(quest_data: Dict, victim_faction: str) -> tuple[Dict, bool]:
-    """
-    Update elimination quest progress when player kills someone.
-    Returns (updated_quest_data, is_completed)
-    """
-    target_faction = quest_data.get('target_faction')
-    exclude_faction = quest_data.get('exclude_faction')
-    
-    # Check if kill counts
-    if target_faction and target_faction != victim_faction:
-        return quest_data, False
-    if exclude_faction and exclude_faction == victim_faction:
-        return quest_data, False
-    
-    quest_data['current_count'] = quest_data.get('current_count', 0) + 1
-    completed = quest_data['current_count'] >= quest_data.get('target_count', 1)
-    return quest_data, completed
-
 
 def update_artifact_collection_progress(quest_data: Dict, artifact_type_id: str) -> tuple[Dict, bool]:
     """
     Update artifact collection quest progress when player picks up artifact.
+    Supports multiple artifact types with individual target counts.
     Returns (updated_quest_data, is_completed)
     """
+    # New format: multiple types with target_counts dict
+    if 'target_counts' in quest_data:
+        target_counts = quest_data.get('target_counts', {})
+        if artifact_type_id not in target_counts:
+            return quest_data, False
+        
+        current_counts = quest_data.setdefault('current_counts', {})
+        current_counts[artifact_type_id] = current_counts.get(artifact_type_id, 0) + 1
+        
+        # Check if ALL types have reached their targets
+        completed = all(
+            current_counts.get(type_id, 0) >= count
+            for type_id, count in target_counts.items()
+        )
+        return quest_data, completed
+    
+    # Legacy format: single artifact_type_id
     if quest_data.get('artifact_type_id') != artifact_type_id:
         return quest_data, False
     
@@ -176,30 +176,3 @@ def fail_protection_quests(cursor, dead_player_id: str):
           AND target_player_id = %s
     """, (dead_player_id,))
     return cursor.rowcount
-
-
-def complete_elimination_quest_for_target(cursor, dead_player_id: str):
-    """
-    Complete elimination quests targeting specific player when they die.
-    Returns list of (quest_id, player_id, reward) for reward distribution.
-    """
-    cursor.execute("""
-        SELECT id, accepted_by, reward, reward_item_id, reward_reputation
-        FROM contracts 
-        WHERE quest_type = 'elimination'
-          AND status = 'accepted'
-          AND failed = 0
-          AND target_player_id = %s
-    """, (dead_player_id,))
-    quests = cursor.fetchall()
-    
-    completed = []
-    for q in quests:
-        cursor.execute("""
-            UPDATE contracts 
-            SET status = 'completed', completed_at = NOW()
-            WHERE id = %s
-        """, (q['id'],))
-        completed.append(q)
-    
-    return completed

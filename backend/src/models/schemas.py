@@ -31,7 +31,6 @@ class ArtifactState(str, Enum):
     LOST = "lost"
 
 class ContractType(str, Enum):
-    ELIMINATION = "elimination"
     ESCORT = "escort"
     DELIVERY = "delivery"
     ARTIFACT_EXTRACTION = "artifact_extraction"

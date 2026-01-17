@@ -9,7 +9,7 @@
 ## 🎯 What is Quest System?
 
 **Quests = Enhanced Contracts** with:
-- ✅ Multiple objective types (kill, collect, patrol, deliver, visit)
+- ✅ Multiple objective types (collect, patrol, deliver, visit)
 - ✅ Automatic progress tracking
 - ✅ Reputation rewards (NPC/Faction-based)
 - ✅ Item rewards
@@ -20,11 +20,10 @@
 
 ---
 
-## 📊 Quest Types (5 total)
+## 📊 Quest Types (4 total)
 
 | Type | Objective | Example | Auto-track | Map Marker |
 |------|-----------|---------|------------|------------|
-| **elimination** | Kill N players of faction X | "Kill 5 bandits" | ✅ Loot events | None |
 | **artifact_collection** | Collect N artifacts of type Y | "Collect 3 Moonlight" | ✅ Pickup events | 50m radius circle |
 | **delivery** | Deliver item to NPC/coords | "Bring medkit to Sidorovich" | ❌ Manual | Exact coords |
 | **patrol** | Visit N checkpoints + spend M min | "Patrol 3 points for 15 min" | ✅ Location | Multiple circles (30m) |
@@ -37,7 +36,7 @@
 ### Extend `contracts` table:
 ```sql
 ALTER TABLE contracts
-ADD COLUMN quest_type ENUM('elimination', 'artifact_collection', 'delivery', 'patrol', 'visit') NULL,
+ADD COLUMN quest_type ENUM('artifact_collection', 'delivery', 'patrol', 'visit') NULL,
 ADD COLUMN quest_data JSON NULL,
 ADD COLUMN auto_complete BOOLEAN DEFAULT FALSE,
 ADD COLUMN failed BOOLEAN DEFAULT FALSE,
@@ -131,6 +130,7 @@ discount_pct = min(100, reputation / 100)
 - 50m radius circle (not exact location)
 - Disappears when artifact picked up
 - Reappears when artifact respawns (if respawn enabled)
+- **Multiple types:** Shows markers for ALL required artifact types
 
 **Patrol:**
 - Multiple circles (30m radius each)
@@ -140,6 +140,38 @@ discount_pct = min(100, reputation / 100)
 **Visit/Delivery:**
 - Exact coordinates with radius
 - Single marker
+
+---
+
+## 🎯 Artifact Collection Quest Details
+
+**Admin Panel Creation:**
+1. Select "Artifact Collection" quest type
+2. Choose artifact types with individual counts:
+   - Fetched from `GET /api/admin/artifact-types`
+   - Shows name, rarity, icon for each type
+   - Check type + enter count for each
+3. Player must collect ALL specified types with their counts
+
+**Example:**
+- Quest: "Collect rare artifacts"
+- Requirements: 2 Moonlight AND 3 Electra
+- Player progress: 2/2 Moonlight ✓, 1/3 Electra ⏳ = Incomplete
+
+**Quest Data Structure:**
+```json
+{
+  "artifact_type_ids": ["uuid-moonlight", "uuid-electra"],
+  "target_counts": {
+    "uuid-moonlight": 2,
+    "uuid-electra": 3
+  },
+  "current_counts": {
+    "uuid-moonlight": 2,
+    "uuid-electra": 1
+  }
+}
+```
 
 ---
 
@@ -269,16 +301,7 @@ cursor.execute("""
 """, (player_id,))
 ```
 
-### 2. Elimination Quest Tracking
-```python
-# In src/handlers/players.py::loot_handler
-# After successful loot, check elimination quests:
-update_quest_progress(killer_id, 'player_kill', {
-    'victim_faction': victim_faction
-})
-```
-
-### 3. Artifact Quest Tracking
+### 2. Artifact Quest Tracking
 ```python
 # In src/handlers/artifacts.py::pickup_handler
 # After successful pickup, check artifact quests:

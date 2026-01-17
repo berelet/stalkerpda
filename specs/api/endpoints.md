@@ -347,7 +347,7 @@ Get available contracts
 
 **Query params:**
 - `status` - available|accepted|completed (default: available)
-- `type` - elimination|escort|delivery|artifact_extraction|zone_control
+- `type` - escort|delivery|artifact_extraction|zone_control
 
 **Response:** `200 OK`
 ```json
@@ -355,9 +355,9 @@ Get available contracts
   "contracts": [
     {
       "id": "uuid",
-      "type": "elimination",
-      "title": "Eliminate Bandit Leader",
-      "description": "Target: Scarface",
+      "type": "escort",
+      "title": "Escort Scientist",
+      "description": "Target: Dr. Sakharov",
       "reward": 5000,
       "issuer": {
         "id": "uuid",
@@ -365,8 +365,8 @@ Get available contracts
       },
       "targetPlayer": {
         "id": "uuid",
-        "nickname": "Scarface",
-        "faction": "bandit"
+        "nickname": "Sakharov",
+        "faction": "ecologist"
       },
       "status": "available",
       "factionRestriction": "mercenary",

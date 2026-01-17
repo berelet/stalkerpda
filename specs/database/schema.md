@@ -245,7 +245,7 @@ CREATE TABLE control_points (
 ```sql
 CREATE TABLE contracts (
     id VARCHAR(36) PRIMARY KEY,
-    type ENUM('elimination', 'escort', 'delivery', 'artifact_extraction', 'zone_control') NOT NULL,
+    type ENUM('escort', 'delivery', 'artifact_extraction', 'zone_control') NOT NULL,
     
     -- Parties
     issuer_id VARCHAR(36) NOT NULL,
@@ -257,7 +257,7 @@ CREATE TABLE contracts (
     reward DECIMAL(10, 2) NOT NULL,
     
     -- Type-specific data (JSON)
-    target_player_id VARCHAR(36),      -- elimination, escort
+    target_player_id VARCHAR(36),      -- escort
     target_artifact_id VARCHAR(36),    -- artifact_extraction
     target_zone_id VARCHAR(36),        -- zone_control
     delivery_from VARCHAR(36),         -- delivery

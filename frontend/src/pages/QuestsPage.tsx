@@ -114,7 +114,6 @@ export default function QuestsPage() {
 
   const getQuestIcon = (type: string) => {
     switch (type) {
-      case 'elimination': return '🎯'
       case 'artifact_collection': return '💎'
       case 'delivery': return '📦'
       case 'patrol': return '🚶'
@@ -125,11 +124,17 @@ export default function QuestsPage() {
 
   const getProgress = (q: Quest) => {
     if (!q.questData) return null
-    const { current_count, target_count, checkpoints, accumulated_time_seconds, required_time_minutes, visited } = q.questData
+    const { current_count, target_count, target_counts, current_counts, checkpoints, accumulated_time_seconds, required_time_minutes, visited } = q.questData
     
+    // Multiple artifact types
+    if (target_counts && current_counts) {
+      const total = Object.values(target_counts as Record<string, number>).reduce((a, b) => a + b, 0)
+      const current = Object.values(current_counts as Record<string, number>).reduce((a, b) => a + b, 0)
+      return `${current}/${total}`
+    }
     if (target_count) return `${current_count || 0}/${target_count}`
     if (checkpoints) {
-      const visitedCount = checkpoints.filter(c => c.visited).length
+      const visitedCount = checkpoints.filter((c: any) => c.visited).length
       const timeProgress = Math.floor((accumulated_time_seconds || 0) / 60)
       return `${visitedCount}/${checkpoints.length} pts, ${timeProgress}/${required_time_minutes}min`
     }
@@ -260,15 +265,17 @@ export default function QuestsPage() {
               {selectedQuest.questData && (
                 <div className="bg-pda-case-dark p-2 mb-3 text-sm">
                   <div className="text-pda-highlight text-xs mb-1">OBJECTIVES:</div>
-                  {selectedQuest.questType === 'elimination' && (
-                    <div className="text-pda-text">
-                      {selectedQuest.questData.target_faction 
-                        ? `Kill ${selectedQuest.questData.target_count} ${selectedQuest.questData.target_faction}s`
-                        : `Kill ${selectedQuest.questData.target_count} players (except ${selectedQuest.questData.exclude_faction}s)`}
-                      {tab === 'active' && <span className="text-pda-phosphor ml-2">({selectedQuest.questData.current_count || 0}/{selectedQuest.questData.target_count})</span>}
+                  {selectedQuest.questType === 'artifact_collection' && selectedQuest.questData.target_counts && (
+                    <div className="text-pda-text space-y-1">
+                      {Object.entries(selectedQuest.questData.target_counts as Record<string, number>).map(([typeId, count]) => (
+                        <div key={typeId}>
+                          Collect {count} artifacts (type)
+                          {tab === 'active' && <span className="text-pda-phosphor ml-2">({selectedQuest.questData.current_counts?.[typeId] || 0}/{count})</span>}
+                        </div>
+                      ))}
                     </div>
                   )}
-                  {selectedQuest.questType === 'artifact_collection' && (
+                  {selectedQuest.questType === 'artifact_collection' && !selectedQuest.questData.target_counts && (
                     <div className="text-pda-text">
                       Collect {selectedQuest.questData.target_count} artifacts
                       {tab === 'active' && <span className="text-pda-phosphor ml-2">({selectedQuest.questData.current_count || 0}/{selectedQuest.questData.target_count})</span>}

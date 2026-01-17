@@ -12,15 +12,14 @@
 
 ### Key Features
 
-1. **5 Quest Types:**
-   - Elimination (kill N players of faction X)
+1. **4 Quest Types:**
    - Artifact Collection (collect N artifacts of type Y)
    - Delivery (deliver item to NPC/coordinates)
    - Patrol (visit N checkpoints + spend M minutes)
    - Visit (reach specific coordinates)
 
 2. **Automatic Progress Tracking:**
-   - System tracks kills, pickups, location visits
+   - System tracks pickups, location visits
    - Real-time progress updates
    - Quest markers on map
 
@@ -62,10 +61,9 @@
 
 1. ✅ **Patrol time:** Total time across ALL checkpoints (not per checkpoint)
 2. ✅ **Artifact collection:** Just pick up (can sell/drop after)
-3. ✅ **Elimination:** Must LOOT victim (QR scan required)
-4. ✅ **Reputation scale:** -10,000 to +10,000 (1% per 100 rep)
-5. ✅ **Bartender creation:** Live bartenders can create; NPCs cannot
-6. ✅ **Artifact respawn:** Enabled per spawn, configurable delay/radius
+3. ✅ **Reputation scale:** -10,000 to +10,000 (1% per 100 rep)
+4. ✅ **Bartender creation:** Live bartenders can create; NPCs cannot
+5. ✅ **Artifact respawn:** Enabled per spawn, configurable delay/radius
 
 ---
 

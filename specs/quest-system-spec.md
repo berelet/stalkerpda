@@ -9,7 +9,7 @@
 ## 1. Overview
 
 **Quest System = Enhanced Contracts with:**
-- Multiple objective types (kill, collect, patrol, deliver)
+- Multiple objective types (collect, patrol, deliver)
 - Progress tracking (automatic)
 - Reputation rewards (NPC/Faction-based)
 - Item rewards (equipment, artifacts, consumables)
@@ -26,7 +26,6 @@
 
 | Type | Objective | Auto-tracking | Completion |
 |------|-----------|---------------|------------|
-| **elimination** | Kill N players of faction X | ✅ Death events | GM/Bartender confirms |
 | **artifact_collection** | Collect N artifacts of type Y | ✅ Artifact pickups | GM/Bartender confirms |
 | **delivery** | Deliver item to NPC/coordinates | ❌ Manual | GM/Bartender confirms |
 | **patrol** | Visit N checkpoints, spend M minutes total | ✅ Location tracking | Auto-complete |
@@ -34,35 +33,30 @@
 
 ### 2.2 Objective Details
 
-#### Elimination
-```json
-{
-  "type": "elimination",
-  "target_faction": "bandit",
-  "target_count": 3,
-  "current_count": 0
-}
-```
-- Tracks kills via death events (when player loots victim's QR code)
-- Progress: `current_count / target_count`
-- Completion: When `current_count >= target_count` + confirmation
-- **Note:** Kill counts only when killer loots the victim (QR scan required)
-
 #### Artifact Collection
 ```json
 {
   "type": "artifact_collection",
-  "artifact_type_id": "uuid-moonlight",
-  "target_count": 5,
-  "current_count": 0
+  "artifact_type_ids": ["uuid-moonlight", "uuid-flash"],  // Multiple types allowed
+  "target_counts": {"uuid-moonlight": 2, "uuid-flash": 3},  // Per-type requirements
+  "current_counts": {"uuid-moonlight": 0, "uuid-flash": 0}
 }
 ```
 - Tracks artifact pickups automatically (counter increments on pickup)
+- **Multiple artifact types:** Admin can select multiple artifact types; player shall collect ALL of the specified types
+- Each type has its own target count requirement
 - Player does NOT need to keep artifacts in inventory (can sell/drop after pickup)
-- Progress: `current_count / target_count`
-- Completion: When `current_count >= target_count` + confirmation
+- Progress: All type counts must reach their targets
+- Completion: When ALL `current_counts >= target_counts` + confirmation
 - **Map marker:** 50m radius circle around artifact spawn (not exact location)
 - **Respawn integration:** If artifact has respawn enabled, marker disappears when picked up, reappears when respawned at new location (see `artifact-respawn-spec.md`)
+
+**Admin Panel - Artifact Type Selection:**
+- Fetch available artifact types via `GET /api/admin/artifact-types`
+- Display as list with checkboxes and count inputs
+- Show artifact name, rarity, and icon
+- For each selected type, specify target count
+- Store as object in `quest_data.target_counts`
 
 #### Delivery
 ```json
@@ -128,7 +122,6 @@
 ```sql
 ALTER TABLE contracts
 ADD COLUMN quest_type ENUM(
-  'elimination', 
   'artifact_collection', 
   'delivery', 
   'patrol', 
@@ -248,7 +241,7 @@ ADD COLUMN faction ENUM('stalker', 'bandit', 'mercenary', 'duty', 'freedom', 'lo
 
 **Live Bartender creation flow (PDA):**
 1. Open "Create Quest" page (only visible if player has `is_bartender` role)
-2. Select type from dropdown (elimination, artifact_collection, delivery, patrol, visit)
+2. Select type from dropdown (artifact_collection, delivery, patrol, visit)
 3. Fill simple form:
    - Title, description
    - Reward (money, items, reputation)
@@ -301,7 +294,6 @@ WHERE id = :quest_id
 
 | Event | Quest Types Affected | Action |
 |-------|---------------------|--------|
-| **Player death (looting)** | elimination | Increment `current_count` if victim matches `target_faction` |
 | **Artifact pickup** | artifact_collection | Increment `current_count` if artifact matches `artifact_type_id` |
 | **Location update** | patrol, visit | Check if player entered checkpoint/target radius |
 | **Location update** | patrol | Accumulate time spent in checkpoint areas |
@@ -581,7 +573,6 @@ def calculate_commission_discount(player_id, trader_id):
 │ Create New Quest                    │
 ├─────────────────────────────────────┤
 │ Quest Type:                         │
-│ ○ Elimination                       │
 │ ○ Artifact Collection               │
 │ ○ Delivery                          │
 │ ○ Patrol                            │
@@ -612,16 +603,16 @@ def calculate_commission_discount(player_id, trader_id):
 
 **Type-specific fields:**
 
-**Elimination:**
-```
-Target Faction: [Bandit ▼]
-Kill Count: [5]
-```
-
 **Artifact Collection:**
 ```
-Artifact Type: [Moonlight ▼]
-Quantity: [3]
+Artifact Types: [Checkboxes with count inputs]
+  ☑ Moonlight (Rare) 🌙      Count: [2]
+  ☐ Flash (Common) ⚡         Count: [_]
+  ☐ Gravi (Legendary) 🌀     Count: [_]
+  ☑ Electra (Uncommon) 💫    Count: [3]
+  
+Note: Player must collect ALL selected types with specified counts
+Example: 2 Moonlight AND 3 Electra required
 ```
 
 **Delivery:**
@@ -703,6 +694,27 @@ PUT    /api/admin/quests/{id}         # Edit quest
 DELETE /api/admin/quests/{id}         # Delete quest
 POST   /api/admin/quests/{id}/confirm # Confirm completion
 GET    /api/admin/quests/{id}/progress # Get progress for all players
+GET    /api/admin/artifact-types      # List artifact types for quest creation
+```
+
+**GET /api/admin/artifact-types** - Returns list of all artifact types for quest creation:
+```json
+{
+  "artifactTypes": [
+    {
+      "id": "uuid-moonlight",
+      "name": "Moonlight",
+      "rarity": "rare",
+      "icon": "🌙"
+    },
+    {
+      "id": "uuid-flash",
+      "name": "Flash",
+      "rarity": "common",
+      "icon": "⚡"
+    }
+  ]
+}
 ```
 
 ### 7.3 Internal (Progress Tracking)
@@ -739,11 +751,10 @@ update_quest_progress(player_id, 'location_update', {
 4. ✅ API endpoints (player + admin)
 
 ### Phase 2: Quest Types (Week 2)
-1. ✅ Elimination quests (simplest)
-2. ✅ Artifact collection quests
-3. ✅ Visit quests (auto-complete)
-4. ⏳ Delivery quests
-5. ⏳ Patrol quests (most complex)
+1. ✅ Artifact collection quests
+2. ✅ Visit quests (auto-complete)
+3. ⏳ Delivery quests
+4. ⏳ Patrol quests (most complex)
 
 ### Phase 3: UI (Week 3)
 1. ✅ Player PDA: Quests page (tabs, list, details)
@@ -765,7 +776,7 @@ update_quest_progress(player_id, 'location_update', {
 
 1. **Quests vs Contracts:** Quests ARE contracts (same table, UI term difference)
 2. **Stages:** Not in MVP (single-objective quests only)
-3. **Auto-tracking:** Yes for elimination, artifact, patrol, visit
+3. **Auto-tracking:** Yes for artifact, patrol, visit
 4. **Failure on death:** Yes, all active quests fail
 5. **Reputation:** NPC-specific or faction-wide, affects trading commissions
 6. **Bartender creation:** Yes, simplified UI in PDA
@@ -776,9 +787,7 @@ update_quest_progress(player_id, 'location_update', {
 
 2. ✅ **Artifact collection:** Just pick up (counter increments, can sell/drop after)
 
-3. ✅ **Elimination:** Must LOOT victim (QR scan) to count kill
-
-4. ✅ **Quest rewards:** Can include any item_id (GM creates item first if needed)
+3. ✅ **Quest rewards:** Can include any item_id (GM creates item first if needed)
 
 5. ✅ **Max active quests:** 5 active quests max per player (configurable)
 
@@ -844,7 +853,7 @@ update_quest_progress(player_id, 'location_update', {
 
 ### Frontend Changes
 - Rename "Contracts" → "Quests" in UI
-- Add quest type icons (🎯 elimination, 📦 collection, 🚶 patrol, etc.)
+- Add quest type icons (📦 collection, 🚶 patrol, 📍 visit, etc.)
 - Add map markers for quest objectives
 - Add "Create Quest" page for bartenders
 

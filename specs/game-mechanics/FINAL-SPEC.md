@@ -278,16 +278,6 @@ priceMultiplier = 1 + (reputation / 100) * 0.3;
 
 ### 7.1 Contract Types
 
-**Elimination:**
-```typescript
-{
-  type: 'elimination',
-  target: playerId,
-  reward: number,
-  verification: 'manual' // Photo/word of honor
-}
-```
-
 **Escort:**
 ```typescript
 {
@@ -455,7 +445,7 @@ priceMultiplier = 1 + (reputation / 100) * 0.3;
 - Bartender trading (QR-based)
 
 ✅ **Contracts:**
-- All 5 types (elimination, escort, delivery, artifact, zone control)
+- All 4 types (escort, delivery, artifact, zone control)
 - Creation, acceptance, completion flow
 - Escrow system
 
