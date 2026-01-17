@@ -8,10 +8,14 @@ export interface QuestIssuer {
 
 export interface QuestObjective {
   artifact_type_id?: string
+  artifact_type_ids?: string[]
   target_faction?: string
+  exclude_faction?: string
   target_player_id?: string
   target_count?: number
   current_count?: number
+  target_counts?: Record<string, number>
+  current_counts?: Record<string, number>
   target_lat?: number
   target_lng?: number
   target_radius?: number

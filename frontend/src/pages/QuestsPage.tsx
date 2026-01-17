@@ -13,7 +13,10 @@ interface Quest {
     exclude_faction?: string
     target_count?: number
     current_count?: number
+    target_counts?: Record<string, number>
+    current_counts?: Record<string, number>
     artifact_type_id?: string
+    artifact_type_ids?: string[]
     target_lat?: number
     target_lng?: number
     target_radius?: number
@@ -265,12 +268,12 @@ export default function QuestsPage() {
               {selectedQuest.questData && (
                 <div className="bg-pda-case-dark p-2 mb-3 text-sm">
                   <div className="text-pda-highlight text-xs mb-1">OBJECTIVES:</div>
-                  {selectedQuest.questType === 'artifact_collection' && selectedQuest.questData.target_counts && (
+                  {selectedQuest.questType === 'artifact_collection' && selectedQuest.questData?.target_counts && (
                     <div className="text-pda-text space-y-1">
                       {Object.entries(selectedQuest.questData.target_counts as Record<string, number>).map(([typeId, count]) => (
                         <div key={typeId}>
                           Collect {count} artifacts (type)
-                          {tab === 'active' && <span className="text-pda-phosphor ml-2">({selectedQuest.questData.current_counts?.[typeId] || 0}/{count})</span>}
+                          {tab === 'active' && <span className="text-pda-phosphor ml-2">({selectedQuest.questData?.current_counts?.[typeId] || 0}/{count})</span>}
                         </div>
                       ))}
                     </div>
