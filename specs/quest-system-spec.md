@@ -37,17 +37,25 @@
 ```json
 {
   "type": "artifact_collection",
-  "artifact_type_id": "uuid-moonlight",
+  "artifact_type_ids": ["uuid-moonlight", "uuid-flash"],  // Multiple types allowed
   "target_count": 5,
   "current_count": 0
 }
 ```
 - Tracks artifact pickups automatically (counter increments on pickup)
+- **Multiple artifact types:** Admin can select multiple artifact types; player can collect ANY of the specified types
 - Player does NOT need to keep artifacts in inventory (can sell/drop after pickup)
 - Progress: `current_count / target_count`
 - Completion: When `current_count >= target_count` + confirmation
 - **Map marker:** 50m radius circle around artifact spawn (not exact location)
 - **Respawn integration:** If artifact has respawn enabled, marker disappears when picked up, reappears when respawned at new location (see `artifact-respawn-spec.md`)
+
+**Admin Panel - Artifact Type Selection:**
+- Fetch available artifact types via `GET /api/admin/artifact-types`
+- Display as multi-select dropdown or checkbox list
+- Show artifact name, rarity, and icon
+- Allow selecting 1+ artifact types for the quest
+- Store as array in `quest_data.artifact_type_ids`
 
 #### Delivery
 ```json
@@ -596,8 +604,15 @@ def calculate_commission_discount(player_id, trader_id):
 
 **Artifact Collection:**
 ```
-Artifact Type: [Moonlight ▼]
+Artifact Types: [Multi-select dropdown]
+  ☑ Moonlight (Rare)
+  ☐ Flash (Common)
+  ☐ Gravi (Legendary)
+  ☑ Electra (Uncommon)
+  
 Quantity: [3]
+
+Note: Player can collect ANY of the selected artifact types
 ```
 
 **Delivery:**
@@ -679,6 +694,27 @@ PUT    /api/admin/quests/{id}         # Edit quest
 DELETE /api/admin/quests/{id}         # Delete quest
 POST   /api/admin/quests/{id}/confirm # Confirm completion
 GET    /api/admin/quests/{id}/progress # Get progress for all players
+GET    /api/admin/artifact-types      # List artifact types for quest creation
+```
+
+**GET /api/admin/artifact-types** - Returns list of all artifact types for quest creation:
+```json
+{
+  "artifactTypes": [
+    {
+      "id": "uuid-moonlight",
+      "name": "Moonlight",
+      "rarity": "rare",
+      "icon": "🌙"
+    },
+    {
+      "id": "uuid-flash",
+      "name": "Flash",
+      "rarity": "common",
+      "icon": "⚡"
+    }
+  ]
+}
 ```
 
 ### 7.3 Internal (Progress Tracking)

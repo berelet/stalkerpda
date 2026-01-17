@@ -130,6 +130,7 @@ discount_pct = min(100, reputation / 100)
 - 50m radius circle (not exact location)
 - Disappears when artifact picked up
 - Reappears when artifact respawns (if respawn enabled)
+- **Multiple types:** If quest accepts multiple artifact types, shows markers for ALL matching artifacts
 
 **Patrol:**
 - Multiple circles (30m radius each)
@@ -139,6 +140,33 @@ discount_pct = min(100, reputation / 100)
 **Visit/Delivery:**
 - Exact coordinates with radius
 - Single marker
+
+---
+
+## 🎯 Artifact Collection Quest Details
+
+**Admin Panel Creation:**
+1. Select "Artifact Collection" quest type
+2. Choose artifact types from multi-select dropdown:
+   - Fetched from `GET /api/admin/artifact-types`
+   - Shows name, rarity, icon for each type
+   - Can select 1 or more types
+3. Set target count (how many artifacts total)
+4. Player can collect ANY of the selected types to progress
+
+**Example:**
+- Quest: "Collect 5 rare artifacts"
+- Selected types: Moonlight, Electra, Gravi
+- Player picks up: 2 Moonlight + 3 Electra = 5/5 complete ✓
+
+**Quest Data Structure:**
+```json
+{
+  "artifact_type_ids": ["uuid-moonlight", "uuid-electra", "uuid-gravi"],
+  "target_count": 5,
+  "current_count": 0
+}
+```
 
 ---
 
