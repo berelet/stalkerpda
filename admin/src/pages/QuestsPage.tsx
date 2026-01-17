@@ -35,6 +35,17 @@ interface Checkpoint {
   radius: number
 }
 
+interface ArtifactType {
+  id: string
+  name: string
+  rarity: string
+}
+
+interface SelectedArtifact {
+  id: string
+  count: number
+}
+
 const QUEST_TYPES = ['artifact_collection', 'visit', 'patrol', 'protection', 'manual']
 const FACTIONS = ['stalker', 'bandit', 'mercenary', 'duty', 'freedom', 'loner']
 
@@ -67,6 +78,16 @@ export default function QuestsPage() {
   const [patrolTime, setPatrolTime] = useState(15)
   const [mapCenter, setMapCenter] = useState<[number, number]>([50.45, 30.52])
 
+  // Artifact types state
+  const [artifactTypes, setArtifactTypes] = useState<ArtifactType[]>([])
+  const [selectedArtifacts, setSelectedArtifacts] = useState<SelectedArtifact[]>([])
+
+  useEffect(() => {
+    api.get('/api/admin/artifact-types').then(({ data }) => {
+      setArtifactTypes(data.artifacts || [])
+    }).catch(() => {})
+  }, [])
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(pos => {
@@ -95,6 +116,7 @@ export default function QuestsPage() {
   const resetForm = () => {
     setForm({ questType: 'artifact_collection', title: '', description: '', reward: 1000, targetFaction: 'bandit', excludeFaction: '', factionMode: 'target', targetCount: 3, expiresInHours: 24, allowedFactions: [] })
     setCheckpoints([])
+    setSelectedArtifacts([])
     setEditingQuest(null)
   }
 
@@ -122,6 +144,9 @@ export default function QuestsPage() {
       setCheckpoints(qd.checkpoints.map((cp: any) => ({ lat: cp.lat, lng: cp.lng, radius: cp.radius || 30 })))
       setPatrolTime(qd.required_time_minutes || 15)
     }
+    if (quest.questType === 'artifact_collection' && qd.target_counts) {
+      setSelectedArtifacts(Object.entries(qd.target_counts).map(([id, count]) => ({ id, count: count as number })))
+    }
     setShowCreate(true)
   }
 
@@ -130,7 +155,15 @@ export default function QuestsPage() {
     try {
       let questData: any = {}
       if (form.questType === 'artifact_collection') {
-        questData = { target_count: form.targetCount, current_count: editingQuest?.questData?.current_count || 0 }
+        if (selectedArtifacts.length > 0) {
+          questData = {
+            artifact_type_ids: selectedArtifacts.map(a => a.id),
+            target_counts: Object.fromEntries(selectedArtifacts.map(a => [a.id, a.count])),
+            current_counts: Object.fromEntries(selectedArtifacts.map(a => [a.id, editingQuest?.questData?.current_counts?.[a.id] || 0]))
+          }
+        } else {
+          questData = { target_count: form.targetCount, current_count: editingQuest?.questData?.current_count || 0 }
+        }
       } else if (form.questType === 'visit') {
         questData = { target_lat: visitLat, target_lng: visitLng, target_radius: visitRadius, visited: editingQuest?.questData?.visited || false }
       } else if (form.questType === 'patrol') {
@@ -377,14 +410,40 @@ export default function QuestsPage() {
                 </div>
               </div>
               {form.questType === 'artifact_collection' && (
-                <div>
-                  <label className="block text-[#91b3ca] text-sm mb-1">Artifact Count</label>
-                  <input
-                    type="number"
-                    value={form.targetCount}
-                    onChange={e => setForm({ ...form, targetCount: parseInt(e.target.value) || 1 })}
-                    className="w-full bg-[#1a2836] border border-[#233948] rounded px-3 py-2 text-white"
-                  />
+                <div className="space-y-2">
+                  <label className="block text-[#91b3ca] text-sm mb-1">Artifact Types (select and set count)</label>
+                  <div className="max-h-48 overflow-y-auto bg-[#1a2836] border border-[#233948] rounded p-2 space-y-1">
+                    {artifactTypes.map(at => {
+                      const selected = selectedArtifacts.find(s => s.id === at.id)
+                      return (
+                        <div key={at.id} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={!!selected}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                setSelectedArtifacts([...selectedArtifacts, { id: at.id, count: 1 }])
+                              } else {
+                                setSelectedArtifacts(selectedArtifacts.filter(s => s.id !== at.id))
+                              }
+                            }}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-white flex-1">{at.name} <span className="text-[#91b3ca] text-xs">({at.rarity})</span></span>
+                          {selected && (
+                            <input
+                              type="number"
+                              min="1"
+                              value={selected.count}
+                              onChange={e => setSelectedArtifacts(selectedArtifacts.map(s => s.id === at.id ? { ...s, count: parseInt(e.target.value) || 1 } : s))}
+                              className="w-16 bg-[#0d1117] border border-[#233948] rounded px-2 py-1 text-white text-sm"
+                            />
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  {selectedArtifacts.length === 0 && <p className="text-[#91b3ca] text-xs">Select at least one artifact type</p>}
                 </div>
               )}
               {form.questType === 'visit' && (
