@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from src.database import get_db
 from src.middleware.auth import require_auth
-from src.utils.geo import haversine_distance
+from src.utils.geo import haversine_distance, get_effective_radius
 
 CORS_HEADERS = {
     'Content-Type': 'application/json',
@@ -31,6 +31,7 @@ def start_session_handler(event, context):
         trader_id = body.get('trader_id')
         player_lat = body.get('latitude')
         player_lon = body.get('longitude')
+        accuracy = body.get('accuracy') or 0
         
         if not trader_id:
             return {
@@ -80,17 +81,19 @@ def start_session_handler(event, context):
                         float(trader['latitude']), float(trader['longitude'])
                     )
                     
-                    # TODO: Remove this temporary override for testing
-                    test_radius = 1000  # 1km for testing with laptop GPS
+                    # Use trader's interaction_radius with GPS accuracy compensation
+                    effective_radius = get_effective_radius(
+                        trader['interaction_radius'], accuracy, 'zone'
+                    )
                     
-                    if distance > test_radius:
+                    if distance > effective_radius:
                         return {
                             'statusCode': 403,
                             'headers': CORS_HEADERS,
                             'body': json.dumps({
                                 'error': 'TRADER_TOO_FAR',
                                 'distance': round(distance, 2),
-                                'max_distance': test_radius
+                                'max_distance': effective_radius
                             })
                         }
                 
@@ -1064,7 +1067,7 @@ def get_trader_quests_handler(event, context):
                 
                 # Get player location and faction
                 cursor.execute("""
-                    SELECT p.faction, pl.latitude, pl.longitude 
+                    SELECT p.faction, pl.latitude, pl.longitude, pl.accuracy 
                     FROM players p
                     LEFT JOIN player_locations pl ON p.id = pl.player_id
                     WHERE p.id = %s
@@ -1074,18 +1077,21 @@ def get_trader_quests_handler(event, context):
                 
                 # Check distance if trader has location
                 if trader['latitude'] and trader['longitude'] and player['latitude']:
-                    from src.utils.geo import haversine_distance
+                    accuracy = player.get('accuracy') or 0
                     distance = haversine_distance(
                         float(player['latitude']), float(player['longitude']),
                         float(trader['latitude']), float(trader['longitude'])
                     )
-                    if distance > trader['interaction_radius']:
+                    effective_radius = get_effective_radius(
+                        trader['interaction_radius'], accuracy, 'zone'
+                    )
+                    if distance > effective_radius:
                         return {
                             'statusCode': 403,
                             'headers': CORS_HEADERS,
                             'body': json.dumps({
                                 'error': 'TOO_FAR',
-                                'message': f'Too far from trader ({int(distance)}m, need ≤{trader["interaction_radius"]}m)'
+                                'message': f'Too far from trader ({int(distance)}m, need ≤{int(effective_radius)}m)'
                             })
                         }
                 
