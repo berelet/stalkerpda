@@ -2,7 +2,7 @@ import json
 from datetime import datetime, timedelta
 from src.database import get_db
 from src.middleware.auth import require_auth
-from src.utils.geo import haversine_distance
+from src.utils.geo import haversine_distance, get_effective_radius
 from src.config import config
 
 @require_auth
@@ -70,6 +70,7 @@ def capture_handler(event, context):
         
         lat = body.get('latitude')
         lng = body.get('longitude')
+        accuracy = body.get('accuracy') or 0
         
         with get_db() as conn:
             with conn.cursor() as cursor:
@@ -88,14 +89,15 @@ def capture_handler(event, context):
                         'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Control point not found'}})
                     }
                 
-                # Check distance
+                # Check distance with GPS accuracy compensation
+                effective_radius = get_effective_radius(cp['capture_radius'], accuracy, 'control_point')
                 distance = haversine_distance(lat, lng, float(cp['latitude']), float(cp['longitude']))
                 
-                if distance > cp['capture_radius']:
+                if distance > effective_radius:
                     return {
                         'statusCode': 400,
             'headers': {'Content-Type': 'application/json'},
-                        'body': json.dumps({'error': {'code': 'TOO_FAR', 'message': f'Too far ({distance:.1f}m)'}})
+                        'body': json.dumps({'error': {'code': 'TOO_FAR', 'message': f'Too far ({distance:.1f}m, need ≤{effective_radius:.0f}m)'}})
                     }
                 
                 # Start capture

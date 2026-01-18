@@ -144,7 +144,7 @@ def get_active_respawn_zones(cursor, now):
     return zones
 
 
-def update_resurrection_progress(cursor, player, location, now):
+def update_resurrection_progress(cursor, player, location, now, accuracy=0):
     """
     Update resurrection timer for dead players
     
@@ -153,6 +153,7 @@ def update_resurrection_progress(cursor, player, location, now):
         player: Player dict with resurrection fields
         location: Current location dict {'lat': float, 'lng': float}
         now: Current datetime
+        accuracy: GPS accuracy in meters
         
     Returns:
         Dict with resurrection progress info
@@ -166,7 +167,8 @@ def update_resurrection_progress(cursor, player, location, now):
         if point_in_circle(
             location['lat'], location['lng'],
             float(zone['center_lat']), float(zone['center_lng']),
-            zone['radius']
+            zone['radius'],
+            accuracy, 'zone'
         ):
             inside_zone = zone
             break

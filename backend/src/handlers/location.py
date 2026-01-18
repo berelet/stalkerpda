@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from src.database import get_db
 from src.middleware.auth import require_auth
-from src.utils.geo import haversine_distance, point_in_circle
+from src.utils.geo import haversine_distance, point_in_circle, get_effective_radius
 from src.config import config
 
 # Global cache for active artifacts (Lambda container reuse)
@@ -56,7 +56,7 @@ def update_handler(event, context):
         # Simple validation
         latitude = body.get('latitude')
         longitude = body.get('longitude')
-        accuracy = body.get('accuracy')
+        accuracy = body.get('accuracy') or 0
         
         if not latitude or not longitude:
             return {
@@ -128,7 +128,7 @@ def update_handler(event, context):
                 if player['status'] == 'dead' and player['current_lives'] > 0:
                     from src.utils.respawn import update_resurrection_progress
                     respawn_update = update_resurrection_progress(
-                        cursor, player, P1, now
+                        cursor, player, P1, now, accuracy
                     )
                 
                 # === UPDATE LOCATION ===
@@ -150,7 +150,7 @@ def update_handler(event, context):
                     (player_id, latitude, longitude, accuracy)
                 )
                 
-                # Check radiation zones
+                # Check radiation zones (with accuracy compensation)
                 cursor.execute(
                     """SELECT id, name, center_lat, center_lng, radius, radiation_level
                     FROM radiation_zones 
@@ -166,7 +166,8 @@ def update_handler(event, context):
                     if point_in_circle(
                         latitude, longitude,
                         float(zone['center_lat']), float(zone['center_lng']),
-                        zone['radius']
+                        zone['radius'],
+                        accuracy, 'zone'
                     ):
                         current_radiation_zones.append({
                             'id': zone['id'],
@@ -175,7 +176,7 @@ def update_handler(event, context):
                             'insideZone': True
                         })
                 
-                # Check respawn zones
+                # Check respawn zones (with accuracy compensation)
                 cursor.execute(
                     """SELECT id, name, center_lat, center_lng, radius, respawn_time_seconds
                     FROM respawn_zones 
@@ -191,7 +192,8 @@ def update_handler(event, context):
                     inside = point_in_circle(
                         latitude, longitude,
                         float(zone['center_lat']), float(zone['center_lng']),
-                        zone['radius']
+                        zone['radius'],
+                        accuracy, 'zone'
                     )
                     respawn_zones.append({
                         'id': zone['id'],
@@ -203,7 +205,7 @@ def update_handler(event, context):
                         'insideZone': inside
                     })
                 
-                # Check control points
+                # Check control points (with accuracy compensation)
                 cursor.execute(
                     """SELECT id, name, latitude, longitude, capture_radius,
                     controlled_by_faction, controlled_by_player
@@ -225,8 +227,10 @@ def update_handler(event, context):
                             'distance': round(distance, 1)
                         })
                 
-                # Find nearby artifacts (within detection radius)
+                # Find nearby artifacts (with accuracy compensation)
                 artifacts = get_active_artifacts(cursor)
+                detection_radius = get_effective_radius(config.ARTIFACT_DETECTION_RADIUS, accuracy, 'artifact_detection')
+                pickup_radius = get_effective_radius(config.ARTIFACT_PICKUP_RADIUS, accuracy, 'artifact_pickup')
                 
                 nearby_artifacts = []
                 for art in artifacts:
@@ -234,7 +238,7 @@ def update_handler(event, context):
                         latitude, longitude,
                         float(art['latitude']), float(art['longitude'])
                     )
-                    if distance <= config.ARTIFACT_DETECTION_RADIUS:
+                    if distance <= detection_radius:
                         # Build effects object
                         effects = {}
                         if art['bonus_lives']:
@@ -256,7 +260,7 @@ def update_handler(event, context):
                             'latitude': float(art['latitude']),
                             'longitude': float(art['longitude']),
                             'distance': round(distance, 1),
-                            'canPickup': distance <= 2.0
+                            'canPickup': distance <= pickup_radius
                         })
                         
                         # Update artifact state to visible
@@ -286,9 +290,9 @@ def update_handler(event, context):
                     quest_data = json.loads(quest['quest_data']) if quest['quest_data'] else {}
                     
                     if quest['quest_type'] == 'visit':
-                        updated_data, completed = update_visit_progress(quest_data, latitude, longitude)
+                        updated_data, completed = update_visit_progress(quest_data, latitude, longitude, accuracy)
                     else:  # patrol
-                        updated_data, completed = update_patrol_progress(quest_data, latitude, longitude, delta_time)
+                        updated_data, completed = update_patrol_progress(quest_data, latitude, longitude, delta_time, accuracy)
                     
                     if updated_data != quest_data:
                         cursor.execute(

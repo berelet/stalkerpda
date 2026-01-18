@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime, timedelta
 from src.database import get_db
 from src.middleware.auth import require_auth
-from src.utils.geo import haversine_distance
+from src.utils.geo import haversine_distance, get_effective_radius
 from src.config import config
 
 def invalidate_artifacts_cache(cursor):
@@ -95,7 +95,7 @@ def start_extraction_handler(event, context):
             with conn.cursor() as cursor:
                 # Get player location
                 cursor.execute(
-                    "SELECT latitude, longitude FROM player_locations WHERE player_id = %s",
+                    "SELECT latitude, longitude, accuracy FROM player_locations WHERE player_id = %s",
                     (player_id,)
                 )
                 player_loc = cursor.fetchone()
@@ -183,20 +183,24 @@ def start_extraction_handler(event, context):
                         'body': json.dumps({'error': {'code': 'ARTIFACT_NOT_AVAILABLE', 'message': 'Artifact not available'}})
                     }
                 
-                # Check distance (5m for pickup - GPS accuracy tolerance)
+                # Check distance with GPS accuracy compensation
+                accuracy = player_loc.get('accuracy') or 0
+                pickup_radius = get_effective_radius(config.ARTIFACT_PICKUP_RADIUS, accuracy, 'artifact_pickup')
+                
                 distance = haversine_distance(
                     float(player_loc['latitude']), float(player_loc['longitude']),
                     float(artifact['latitude']), float(artifact['longitude'])
                 )
                 
-                if distance > 5.0:
+                if distance > pickup_radius:
                     return {
                         'statusCode': 400,
                         'headers': {
                             'Content-Type': 'application/json',
                             'Access-Control-Allow-Origin': '*'
                         },
-                        'body': json.dumps({'error': {'code': 'TOO_FAR', 'message': f'Too far from artifact ({distance:.1f}m, need ≤5m)'}})
+                        'body': json.dumps({'error': {'code': 'TOO_FAR', 'message': f'Too far from artifact ({distance:.1f}m, need ≤{pickup_radius:.0f}m)'}})
+                    }
                     }
                 
                 # Start extraction
@@ -269,7 +273,7 @@ def complete_extraction_handler(event, context):
             with conn.cursor() as cursor:
                 # Get player location
                 cursor.execute(
-                    "SELECT latitude, longitude FROM player_locations WHERE player_id = %s",
+                    "SELECT latitude, longitude, accuracy FROM player_locations WHERE player_id = %s",
                     (player_id,)
                 )
                 player_loc = cursor.fetchone()

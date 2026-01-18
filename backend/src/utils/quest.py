@@ -38,7 +38,8 @@ def update_artifact_collection_progress(quest_data: Dict, artifact_type_id: str)
     return quest_data, completed
 
 
-def update_visit_progress(quest_data: Dict, player_lat: float, player_lng: float) -> tuple[Dict, bool]:
+def update_visit_progress(quest_data: Dict, player_lat: float, player_lng: float,
+                         accuracy: float = 0) -> tuple[Dict, bool]:
     """
     Update visit quest progress when player reaches target location.
     Returns (updated_quest_data, is_completed)
@@ -52,7 +53,7 @@ def update_visit_progress(quest_data: Dict, player_lat: float, player_lng: float
     target_lng = quest_data.get('target_lng')
     radius = quest_data.get('target_radius', 20)
     
-    if is_within_radius(player_lat, player_lng, target_lat, target_lng, radius):
+    if is_within_radius(player_lat, player_lng, target_lat, target_lng, radius, accuracy, 'quest_point'):
         quest_data['visited'] = True
         quest_data['visited_at'] = datetime.utcnow().isoformat() + 'Z'
         return quest_data, True
@@ -61,7 +62,7 @@ def update_visit_progress(quest_data: Dict, player_lat: float, player_lng: float
 
 
 def update_patrol_progress(quest_data: Dict, player_lat: float, player_lng: float, 
-                          delta_time_seconds: int) -> tuple[Dict, bool]:
+                          delta_time_seconds: int, accuracy: float = 0) -> tuple[Dict, bool]:
     """
     Update patrol quest progress.
     Returns (updated_quest_data, is_completed)
@@ -74,7 +75,7 @@ def update_patrol_progress(quest_data: Dict, player_lat: float, player_lng: floa
     # Check if player is in any checkpoint
     in_checkpoint = False
     for i, cp in enumerate(checkpoints):
-        if is_within_radius(player_lat, player_lng, cp['lat'], cp['lng'], cp.get('radius', 30)):
+        if is_within_radius(player_lat, player_lng, cp['lat'], cp['lng'], cp.get('radius', 30), accuracy, 'quest_point'):
             in_checkpoint = True
             if not cp.get('visited'):
                 cp['visited'] = True
