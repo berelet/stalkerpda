@@ -813,13 +813,30 @@ aws s3api put-bucket-policy --bucket BUCKET_NAME --policy '{
 - Password hashing with SHA256 (temporary - use bcrypt for production)
 - JWT token generation/validation
 - QR code generation for players
-- Distance calculations (Haversine) - 15m detection, 2m pickup radius
+- Distance calculations (Haversine) with GPS accuracy compensation
 - Loot probability calculations (1-50% money, 1-5% equipment, 1-3% artifacts)
 - Reputation-based pricing
 - Radiation system (0-100 scale)
 - Zone capture mechanics
 - Artifact extraction with time delays
 - Contract system with confirmation flow
+
+### GPS Accuracy Compensation
+All distance-based mechanics use dynamic radius adjustment:
+```
+effective_radius = base_radius + min(gps_accuracy, max_buffer)
+```
+
+| Mechanic | Base | Max Buffer | Effective |
+|----------|------|------------|-----------|
+| Artifact detection | 15m | 15m | 15-30m |
+| Artifact pickup | 2m | 5m | 2-7m |
+| Control point | 2m | 10m | 2-12m |
+| Zone entry/exit | radius | 15m | +0-15m |
+| Quest points | radius | 10m | +0-10m |
+
+Frontend sends `accuracy` from `navigator.geolocation.coords.accuracy`.
+See `specs/game-mechanics/FINAL-SPEC.md` section 11 for details.
 
 ### Database Connection
 - Connection pooling via context managers

@@ -50,7 +50,7 @@ CREATE TABLE player_locations (
     player_id VARCHAR(36) PRIMARY KEY,
     latitude DECIMAL(10, 8) NOT NULL,
     longitude DECIMAL(11, 8) NOT NULL,
-    accuracy FLOAT,
+    accuracy FLOAT,  -- GPS accuracy in meters, used for dynamic radius compensation
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
@@ -58,6 +58,12 @@ CREATE TABLE player_locations (
     SPATIAL INDEX idx_location (latitude, longitude)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
+
+**GPS Accuracy Usage:**
+The `accuracy` field stores device-reported GPS accuracy in meters. Used to compensate for GPS drift:
+- `effective_radius = base_radius + min(accuracy, max_buffer)`
+- Max buffers: artifact detection 15m, artifact pickup 5m, control points 10m, zones 15m
+- See `specs/game-mechanics/FINAL-SPEC.md` section 11 for full details
 
 ```sql
 CREATE TABLE location_history (

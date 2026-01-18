@@ -487,6 +487,44 @@ priceMultiplier = 1 + (reputation / 100) * 0.3;
   - Control point range: 2m
   - Quest highlight: 100m
 
+### GPS Accuracy Compensation
+
+**Problem:** Real GPS accuracy varies significantly:
+- Ideal conditions: ±3-5m
+- Forest/near buildings: ±10-30m
+- Indoors: ±50m or no signal
+
+**Solution:** Dynamic radius adjustment based on device-reported accuracy.
+
+**Formula:**
+```
+effective_radius = base_radius + min(gps_accuracy, max_buffer)
+```
+
+**Max buffers per mechanic:**
+| Mechanic | Base Radius | Max Buffer | Effective Range |
+|----------|-------------|------------|-----------------|
+| Artifact detection | 15m | 15m | 15-30m |
+| Artifact pickup | 2m | 5m | 2-7m |
+| Control point capture | 2m | 10m | 2-12m |
+| Zone entry/exit | zone radius | 15m | radius + 0-15m |
+| Quest patrol points | point radius | 10m | radius + 0-10m |
+
+**Implementation:**
+1. Frontend sends `accuracy` (meters) with every location update
+2. Backend stores accuracy in `player_locations` table
+3. All distance checks use: `distance <= base_radius + min(accuracy, max_buffer)`
+
+**Accuracy field:**
+- Source: `navigator.geolocation` → `coords.accuracy`
+- Type: float (meters)
+- Required: Yes (default to 0 if unavailable)
+
+**Edge cases:**
+- If accuracy > 100m: location update accepted but logged as low quality
+- If accuracy unavailable: treat as 0 (no buffer added)
+- Spoofing protection: accuracy comes from device, not user input
+
 ### Timers
 - Artifact pickup: 30 seconds (hold button)
 - Control point capture: 30 seconds (hold button)
