@@ -449,6 +449,21 @@ Resources:
             Path: /api/players/{id}
             Method: PUT
 
+  # Lambda - Player Respawn
+  PlayerRespawnFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub pda-zone-player-respawn-${Environment}
+      Handler: src.handlers.players.respawn_handler
+      CodeUri: ../backend/
+      Events:
+        Respawn:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /api/player/respawn
+            Method: POST
+
   # Lambda - Location
   LocationUpdateFunction:
     Type: AWS::Serverless::Function

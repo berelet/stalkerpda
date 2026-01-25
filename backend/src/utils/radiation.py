@@ -60,17 +60,17 @@ def get_player_radiation_resist(cursor, player_id):
         SELECT et.radiation_resist
         FROM player_equipment pe
         JOIN equipment_types et ON pe.equipment_type_id = et.id
-        WHERE pe.player_id = %s AND pe.slot_type IN ('armor', 'addon1', 'addon2')
+        WHERE pe.player_id = %s AND pe.slot_type IN ('armor', 'addon', 'addon1', 'addon2')
     """, (player_id,))
     
     equipment_resist = sum(row['radiation_resist'] or 0 for row in cursor.fetchall())
     
-    # Get equipped artifact
+    # Get equipped artifact from player_inventory
     cursor.execute("""
         SELECT at.radiation_resist
-        FROM artifacts a
-        JOIN artifact_types at ON a.type_id = at.id
-        WHERE a.owner_id = %s AND a.slot_type = 'artifact'
+        FROM player_inventory pi
+        JOIN artifact_types at ON pi.item_id = at.id
+        WHERE pi.player_id = %s AND pi.item_type = 'artifact' AND pi.slot_type = 'artifact'
     """, (player_id,))
     
     artifact = cursor.fetchone()

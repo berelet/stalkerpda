@@ -26,7 +26,7 @@ const traderIcon = new Icon({
   popupAnchor: [0, -32]
 })
 
-export default function TraderMarkers() {
+export default function TraderMarkers({ playerDead = false }: { playerDead?: boolean }) {
   const [traders, setTraders] = useState<Trader[]>([])
   const navigate = useNavigate()
 
@@ -57,20 +57,26 @@ export default function TraderMarkers() {
                 {trader.type === 'npc' ? 'NPC Trader' : 'Bartender'}
               </div>
               
-              <div className="space-y-2">
-                <button
-                  onClick={() => navigate(`/trade?trader=${trader.id}`)}
-                  className="w-full px-3 py-2 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700 flex items-center justify-center gap-2"
-                >
-                  <span>💰</span> TRADE
-                </button>
-                <button
-                  onClick={() => navigate(`/trader-quests?trader=${trader.id}&name=${encodeURIComponent(trader.name)}`)}
-                  className="w-full px-3 py-2 bg-green-600 text-white text-xs rounded hover:bg-green-700 flex items-center justify-center gap-2"
-                >
-                  <span>📜</span> QUESTS
-                </button>
-              </div>
+              {playerDead ? (
+                <div className="text-red-500 text-xs text-center py-2 border border-red-500 rounded">
+                  ☠️ Available after respawn
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <button
+                    onClick={() => navigate(`/trade?trader=${trader.id}`)}
+                    className="w-full px-3 py-2 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700 flex items-center justify-center gap-2"
+                  >
+                    <span>💰</span> TRADE
+                  </button>
+                  <button
+                    onClick={() => navigate(`/trader-quests?trader=${trader.id}&name=${encodeURIComponent(trader.name)}`)}
+                    className="w-full px-3 py-2 bg-green-600 text-white text-xs rounded hover:bg-green-700 flex items-center justify-center gap-2"
+                  >
+                    <span>📜</span> QUESTS
+                  </button>
+                </div>
+              )}
             </div>
           </Popup>
         </Marker>

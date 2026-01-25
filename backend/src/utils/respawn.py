@@ -181,44 +181,25 @@ def update_resurrection_progress(cursor, player, location, now, accuracy=0):
     
     # Update progress
     new_progress = player['resurrection_progress_seconds']
-    resurrected = False
     zone_name = None
+    can_respawn = False
     
     if inside_zone:
         new_progress += delta_t
+        zone_name = inside_zone['name']
         
-        # Check completion
+        # Check if can respawn (progress complete)
         if new_progress >= inside_zone['respawn_time_seconds']:
-            # Resurrect!
-            cursor.execute("""
-                UPDATE players
-                SET status = 'alive',
-                    resurrection_progress_seconds = 0,
-                    dead_at = NULL,
-                    last_resurrection_calc_at = %s
-                WHERE id = %s
-            """, (now, player['id']))
-            
-            # Create event
-            cursor.execute("""
-                INSERT INTO game_events (type, player_id, data)
-                VALUES ('resurrection', %s, %s)
-            """, (player['id'], json.dumps({
-                'zone_id': inside_zone['id'],
-                'zone_name': inside_zone['name']
-            })))
-            
-            resurrected = True
-            new_progress = 0
-            zone_name = inside_zone['name']
-        else:
-            # Update progress
-            cursor.execute("""
-                UPDATE players
-                SET resurrection_progress_seconds = %s,
-                    last_resurrection_calc_at = %s
-                WHERE id = %s
-            """, (new_progress, now, player['id']))
+            can_respawn = True
+            new_progress = inside_zone['respawn_time_seconds']  # Cap at max
+        
+        # Update progress
+        cursor.execute("""
+            UPDATE players
+            SET resurrection_progress_seconds = %s,
+                last_resurrection_calc_at = %s
+            WHERE id = %s
+        """, (new_progress, now, player['id']))
     else:
         # Not inside zone - just update timestamp
         cursor.execute("""
@@ -231,7 +212,7 @@ def update_resurrection_progress(cursor, player, location, now, accuracy=0):
         'progress': round(new_progress, 1),
         'required': inside_zone['respawn_time_seconds'] if inside_zone else None,
         'insideZone': inside_zone is not None,
-        'resurrected': resurrected,
+        'canRespawn': can_respawn,
         'zoneName': zone_name,
         'progressPercent': round((new_progress / inside_zone['respawn_time_seconds'] * 100), 1) if inside_zone else 0
     }

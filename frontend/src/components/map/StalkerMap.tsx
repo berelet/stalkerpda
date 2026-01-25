@@ -15,6 +15,7 @@ interface MapProps {
   zoom?: number
   nearbyArtifacts?: NearbyArtifact[]
   respawnZones?: any[]
+  playerDead?: boolean
 }
 
 const playerIcon = new Icon({
@@ -47,7 +48,8 @@ export default function StalkerMap({
   accuracy, 
   zoom = 16, 
   nearbyArtifacts = [],
-  respawnZones = []
+  respawnZones = [],
+  playerDead = false
 }: MapProps) {
   const [selectedArtifact, setSelectedArtifact] = useState<NearbyArtifact | null>(null)
   const [hiddenArtifacts, setHiddenArtifacts] = useState<Set<string>>(new Set())
@@ -100,7 +102,7 @@ export default function StalkerMap({
         )}
 
         {/* Trader markers */}
-        <TraderMarkers />
+        <TraderMarkers playerDead={playerDead} />
 
         {/* Quest markers */}
         <QuestMarkers markers={questMarkers} />
@@ -112,19 +114,20 @@ export default function StalkerMap({
             center={[zone.centerLat, zone.centerLng]}
             radius={zone.radius}
             pathOptions={{
-              color: '#00ff00',
-              fillColor: '#00ff00',
-              fillOpacity: 0.2,
-              weight: 2
+              color: '#22c55e',
+              fillColor: '#22c55e',
+              fillOpacity: 0.15,
+              weight: 3,
+              dashArray: '10, 10'
             }}
           >
             <Popup>
               <div className="text-xs">
-                <div className="font-bold text-green-600">RESPAWN ZONE</div>
+                <div className="font-bold text-green-600">🔄 RESPAWN ZONE</div>
                 <div>{zone.name}</div>
                 <div>Respawn time: {zone.respawnTimeSeconds}s</div>
                 {zone.insideZone && (
-                  <div className="text-green-600 font-bold mt-1">YOU ARE INSIDE</div>
+                  <div className="text-green-600 font-bold mt-1">✓ YOU ARE INSIDE</div>
                 )}
               </div>
             </Popup>

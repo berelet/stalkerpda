@@ -80,6 +80,14 @@ export const useLocationTracking = (location: LocationData | null, enabled = tru
         setRadiationUpdate(data.radiationUpdate || null)
         setResurrectionUpdate(data.resurrectionUpdate || null)
         
+        // Debug logging
+        if (data.radiationUpdate) {
+          console.log('[RADIATION]', data.radiationUpdate)
+        }
+        
+        // Refresh header stats
+        window.dispatchEvent(new CustomEvent('refreshPlayerData'))
+        
         // Handle death
         if (data.death?.died) {
           // Reload player data

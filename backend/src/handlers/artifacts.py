@@ -93,6 +93,16 @@ def start_extraction_handler(event, context):
         
         with get_db() as conn:
             with conn.cursor() as cursor:
+                # Check if player is alive
+                cursor.execute("SELECT status FROM players WHERE id = %s", (player_id,))
+                player = cursor.fetchone()
+                if player and player['status'] == 'dead':
+                    return {
+                        'statusCode': 403,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': {'code': 'PLAYER_DEAD', 'message': 'Cannot pickup artifacts while dead'}})
+                    }
+                
                 # Get player location
                 cursor.execute(
                     "SELECT latitude, longitude, accuracy FROM player_locations WHERE player_id = %s",

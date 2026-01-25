@@ -177,3 +177,9 @@ def fail_protection_quests(cursor, dead_player_id: str):
           AND target_player_id = %s
     """, (dead_player_id,))
     return cursor.rowcount
+
+
+def complete_elimination_quest_for_target(cursor, dead_player_id: str) -> list:
+    """Complete elimination quests targeting this player (stub for MVP)"""
+    # TODO: Implement elimination quests
+    return []

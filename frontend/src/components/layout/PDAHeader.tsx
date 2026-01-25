@@ -29,7 +29,7 @@ export default function PDAHeader() {
 
   useEffect(() => {
     fetchPlayer()
-    const interval = setInterval(fetchPlayer, 30000)
+    const interval = setInterval(fetchPlayer, 15000) // Match location tick
     
     // Listen for refresh events
     const handleRefresh = () => fetchPlayer()
@@ -70,7 +70,7 @@ export default function PDAHeader() {
       {player && (
         <div className="flex items-center justify-between mt-2 text-xs">
           <div className="flex items-center gap-3">
-            <span className="text-pda-danger">
+            <span className="text-red-500">
               ❤️ {player.currentLives}
             </span>
             <span className={getRadiationColor(player.currentRadiation)}>

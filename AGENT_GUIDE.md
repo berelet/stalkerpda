@@ -816,7 +816,7 @@ aws s3api put-bucket-policy --bucket BUCKET_NAME --policy '{
 - Distance calculations (Haversine) with GPS accuracy compensation
 - Loot probability calculations (1-50% money, 1-5% equipment, 1-3% artifacts)
 - Reputation-based pricing
-- Radiation system (0-100 scale)
+- Radiation system (0-100 scale) with death/respawn mechanics
 - Zone capture mechanics
 - Artifact extraction with time delays
 - Contract system with confirmation flow
@@ -842,6 +842,35 @@ See `specs/game-mechanics/FINAL-SPEC.md` section 11 for details.
 - Connection pooling via context managers
 - Auto-commit on success, rollback on error
 - DictCursor for easy result handling
+
+### Radiation & Death/Respawn System
+
+**Radiation Accumulation:**
+- Player accumulates radiation when inside a radiation zone
+- Formula: `zone_level / 300 * time_in_zone * (1 - resist%)`
+- Radiation resist from equipped artifacts (max 80% cap)
+- Location updates every 15 seconds calculate radiation delta
+- Key file: `backend/src/utils/radiation.py`
+
+**Death:**
+- At 100% radiation → player dies automatically
+- Status set to `dead`, radiation resets to 0, loses 1 life
+- Dead players cannot: pick up artifacts, trade, do quests
+- Death triggered in `backend/src/handlers/location.py` via `trigger_death()`
+
+**Respawn:**
+- Dead player must physically go to a green respawn zone
+- Progress fills while in zone (based on zone's `respawn_time_seconds`)
+- When progress reaches 100%, "RESPAWN" button appears
+- Manual button click required - no automatic resurrection
+- Respawn resets radiation to 0
+- Endpoint: `POST /api/player/respawn`
+
+**UI Elements:**
+- Header shows lives (❤️) and radiation (☢️) with color coding
+- Yellow banner when in radiation zone: `☢️ RADIATION +X rad • ZoneName`
+- Full-screen death banner with restrictions list
+- Respawn zones shown as green dashed circles on map
 
 ### Key Tables
 - `players` - user accounts (18 columns)

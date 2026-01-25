@@ -27,6 +27,11 @@ export default function MapPage() {
   const [playerStatus, setPlayerStatus] = useState<'alive' | 'dead'>('alive')
   const [playerLives, setPlayerLives] = useState(0)
 
+  // Debug geolocation
+  useEffect(() => {
+    console.log('[GEO]', { latitude, longitude, accuracy, error, loading })
+  }, [latitude, longitude, accuracy, error, loading])
+
   // Check if user is GM and get player status
   useEffect(() => {
     const checkGM = async () => {
@@ -46,10 +51,15 @@ export default function MapPage() {
   }, [])
 
   // Send location to server every 15 seconds (always, even in GM mode)
-  const { nearbyArtifacts, respawnZones, resurrectionUpdate } = useLocationTracking(
+  const { nearbyArtifacts, respawnZones, resurrectionUpdate, radiationUpdate } = useLocationTracking(
     latitude && longitude ? { latitude, longitude, accuracy } : null,
     true
   )
+
+  // Debug radiation
+  useEffect(() => {
+    console.log('[RADIATION STATE]', radiationUpdate)
+  }, [radiationUpdate])
 
   // Fetch all players for GM
   useEffect(() => {
@@ -125,38 +135,86 @@ export default function MapPage() {
         </div>
       </div>
 
-      <div className="relative h-[500px] border border-pda-primary/30">
-        {/* Death Banner */}
-        {playerStatus === 'dead' && !gmMode && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-black/90 border-2 border-red-500 rounded-lg p-4 min-w-[300px] text-center shadow-lg shadow-red-500/50">
-            <h2 className="text-red-500 text-2xl font-bold mb-2">
-              YOU ARE DEAD
-            </h2>
-            
-            {playerLives > 0 ? (
-              <>
-                <p className="text-yellow-400 mb-1">
-                  Lives remaining: {playerLives}
-                </p>
-                <p className="text-gray-300 text-sm">
-                  Go to respawn zone to resurrect
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-red-400 mb-1">
-                  No lives remaining
-                </p>
-                <p className="text-gray-300 text-sm mb-1">
-                  You can only trade with Barman
-                </p>
-                <p className="text-xs text-gray-400">
-                  Equip items with bonus lives to become eligible for respawn
-                </p>
-              </>
-            )}
+      {/* Death Banner - show when dead */}
+      {playerStatus === 'dead' && !gmMode && (
+        <div className="bg-black/95 border-2 border-red-600 rounded-lg p-4 mb-2">
+          <div className="text-center mb-3">
+            <div className="text-4xl mb-2">💀</div>
+            <h2 className="text-red-500 text-2xl font-bold">YOU ARE DEAD</h2>
+            <p className="text-gray-400 text-sm">Respawn at a resurrection zone</p>
           </div>
-        )}
+          
+          <div className="bg-gray-900/80 border border-gray-700 rounded p-3 mb-3 text-xs">
+            <div className="text-gray-400 mb-2">While dead, the following is disabled:</div>
+            <ul className="text-gray-500 space-y-1 ml-2">
+              <li>• Artifact pickup</li>
+              <li>• Trading</li>
+              <li>• Quest interactions</li>
+              <li>• Zone capture</li>
+            </ul>
+            <div className="text-gray-400 mt-2">Only respawn is available.</div>
+          </div>
+          
+          {playerLives > 0 ? (
+            <div className="text-center space-y-3">
+              <div className="text-yellow-400">Lives remaining: {playerLives} ❤️</div>
+              
+              {resurrectionUpdate?.insideZone ? (
+                resurrectionUpdate?.canRespawn ? (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await api.post('/api/player/respawn')
+                        setPlayerStatus('alive')
+                        window.dispatchEvent(new CustomEvent('refreshPlayerData'))
+                      } catch (err: any) {
+                        alert(err.response?.data?.message || 'Respawn failed')
+                      }
+                    }}
+                    className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg text-lg transition-colors"
+                  >
+                    🔄 RESPAWN
+                  </button>
+                ) : (
+                  <div className="text-yellow-400 text-sm">
+                    ⏳ Respawn progress: {resurrectionUpdate?.progressPercent || 0}%
+                  </div>
+                )
+              ) : (
+                <div className="text-gray-500 text-sm">📍 Go to a green respawn zone</div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="text-red-400">No lives remaining ☠️</div>
+              <div className="text-gray-500 text-xs mt-1">Equip items with bonus lives to respawn</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Radiation Alert Banner - show when in radiation zone */}
+      {radiationUpdate && radiationUpdate.zoneName && !gmMode && playerStatus === 'alive' && (
+        <div className="bg-red-900/90 border border-red-500 rounded px-3 py-2 mb-2 animate-pulse">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">☢️</span>
+            <div className="flex-1">
+              <div className="text-red-300 text-sm font-bold">RADIATION CONTAMINATION</div>
+              <div className="text-red-400 text-xs">
+                +{radiationUpdate.delta.toFixed(1)} rad • {radiationUpdate.zoneName}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-red-200 text-lg font-bold">{Math.round(radiationUpdate.current)}%</div>
+              {radiationUpdate.resist > 0 && (
+                <div className="text-green-400 text-xs">-{radiationUpdate.resist}% resist</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="relative h-[500px] border border-pda-primary/30">
         
         {gmMode ? (
           loadingPlayers ? (
@@ -192,27 +250,10 @@ export default function MapPage() {
                   latitude={latitude} 
                   longitude={longitude} 
                   accuracy={accuracy || undefined}
-                  nearbyArtifacts={nearbyArtifacts}
+                  nearbyArtifacts={playerStatus === 'dead' ? [] : nearbyArtifacts}
                   respawnZones={respawnZones || []}
+                  playerDead={playerStatus === 'dead'}
                 />
-                
-                {/* Resurrection Progress */}
-                {playerStatus === 'dead' && playerLives > 0 && resurrectionUpdate?.insideZone && (
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-black/90 border border-green-500 rounded-lg p-3 min-w-[250px]">
-                    <h3 className="text-green-400 text-sm font-bold mb-2 text-center">
-                      RESURRECTION PROGRESS
-                    </h3>
-                    <div className="w-full h-5 bg-gray-800 rounded overflow-hidden mb-1">
-                      <div 
-                        className="h-full bg-gradient-to-r from-green-600 to-green-400 transition-all duration-300"
-                        style={{ width: `${resurrectionUpdate.progressPercent}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-300 text-center">
-                      {Math.round(resurrectionUpdate.progress)}s / {resurrectionUpdate.required}s
-                    </p>
-                  </div>
-                )}
               </>
             )}
           </>

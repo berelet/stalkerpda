@@ -42,6 +42,16 @@ def start_session_handler(event, context):
         
         with get_db() as conn:
             with conn.cursor() as cursor:
+                # Check if player is alive
+                cursor.execute("SELECT status FROM players WHERE id = %s", (player_id,))
+                player = cursor.fetchone()
+                if player and player['status'] == 'dead':
+                    return {
+                        'statusCode': 403,
+                        'headers': CORS_HEADERS,
+                        'body': json.dumps({'error': 'PLAYER_DEAD', 'message': 'Cannot trade while dead'})
+                    }
+                
                 # Get trader info
                 cursor.execute("""
                     SELECT id, name, type, latitude, longitude, 

@@ -41,8 +41,8 @@ def trigger_death(cursor, player_id, reason='radiation_zone'):
     # Decrement lives
     new_lives = max(0, player['current_lives'] - 1)
     
-    # Set status
-    new_status = 'dead' if new_lives == 0 else 'alive'
+    # Player is dead until respawn (regardless of remaining lives)
+    new_status = 'dead'
     
     # Reset radiation and update player
     cursor.execute("""
@@ -370,3 +370,105 @@ def loot_handler(event, context):
             'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
         }
 
+
+
+@require_auth
+def respawn_handler(event, context):
+    """POST /api/player/respawn - Respawn player"""
+    try:
+        player_id = event['player']['player_id']
+        
+        with get_db() as conn:
+            with conn.cursor() as cursor:
+                # Get player status
+                cursor.execute("""
+                    SELECT status, current_lives FROM players WHERE id = %s
+                """, (player_id,))
+                player = cursor.fetchone()
+                
+                if not player:
+                    return {
+                        'statusCode': 404,
+                        'headers': cors_headers(),
+                        'body': json.dumps({'error': {'code': 'NOT_FOUND', 'message': 'Player not found'}})
+                    }
+                
+                if player['status'] != 'dead':
+                    return {
+                        'statusCode': 400,
+                        'headers': cors_headers(),
+                        'body': json.dumps({'error': {'code': 'NOT_DEAD', 'message': 'Player is not dead'}})
+                    }
+                
+                if player['current_lives'] <= 0:
+                    return {
+                        'statusCode': 400,
+                        'headers': cors_headers(),
+                        'body': json.dumps({'error': {'code': 'NO_LIVES', 'message': 'No lives remaining'}})
+                    }
+                
+                # Check if player is in respawn zone
+                cursor.execute("""
+                    SELECT pl.latitude, pl.longitude, pl.accuracy
+                    FROM player_locations pl
+                    WHERE pl.player_id = %s
+                """, (player_id,))
+                location = cursor.fetchone()
+                
+                if not location:
+                    return {
+                        'statusCode': 400,
+                        'headers': cors_headers(),
+                        'body': json.dumps({'error': {'code': 'NO_LOCATION', 'message': 'Location unknown'}})
+                    }
+                
+                # Get active respawn zones
+                now = datetime.utcnow()
+                cursor.execute("""
+                    SELECT id, center_lat, center_lng, radius
+                    FROM respawn_zones
+                    WHERE active = TRUE
+                      AND (active_from IS NULL OR active_from <= %s)
+                      AND (active_to IS NULL OR active_to > %s)
+                """, (now, now))
+                
+                from src.utils.geo import point_in_circle
+                in_zone = False
+                for zone in cursor.fetchall():
+                    if point_in_circle(
+                        float(location['latitude']), float(location['longitude']),
+                        float(zone['center_lat']), float(zone['center_lng']),
+                        zone['radius'],
+                        location['accuracy'] or 0, 'zone'
+                    ):
+                        in_zone = True
+                        break
+                
+                if not in_zone:
+                    return {
+                        'statusCode': 400,
+                        'headers': cors_headers(),
+                        'body': json.dumps({'error': {'code': 'NOT_IN_ZONE', 'message': 'Not in respawn zone'}})
+                    }
+                
+                # Respawn player
+                cursor.execute("""
+                    UPDATE players
+                    SET status = 'alive',
+                        current_radiation = 0,
+                        resurrection_progress_seconds = 0
+                    WHERE id = %s
+                """, (player_id,))
+        
+        return {
+            'statusCode': 200,
+            'headers': cors_headers(),
+            'body': json.dumps({'success': True, 'message': 'Respawned successfully'})
+        }
+    
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': cors_headers(),
+            'body': json.dumps({'error': {'code': 'INTERNAL_ERROR', 'message': str(e)}})
+        }
