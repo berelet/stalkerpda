@@ -16,9 +16,9 @@ interface Trader {
 
 const traderIcon = new Icon({
   iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2">
       <circle cx="12" cy="12" r="10"/>
-      <text x="12" y="16" text-anchor="middle" fill="#FFD700" font-size="12" font-weight="bold">$</text>
+      <text x="12" y="16" text-anchor="middle" fill="#a855f7" font-size="12" font-weight="bold">$</text>
     </svg>
   `),
   iconSize: [32, 32],

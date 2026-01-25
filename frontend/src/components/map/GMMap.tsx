@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet'
 import { DivIcon } from 'leaflet'
 import { FACTION_CONFIG, Faction } from '../../utils/factions'
 import TraderMarkers from './TraderMarkers'
@@ -20,17 +20,21 @@ interface GMMapProps {
   players: Player[]
   center?: [number, number]
   zoom?: number
+  radiationZones?: any[]
+  respawnZones?: any[]
 }
 
-const createFactionIcon = (faction: Faction) => {
+const createFactionIcon = (faction: Faction, isDead: boolean = false) => {
   const config = FACTION_CONFIG[faction]
+  const color = isDead ? '#6b7280' : config.color
   return new DivIcon({
     html: `<div style="
-      color: ${config.color};
+      color: ${color};
       font-size: 24px;
-      text-shadow: 0 0 3px #000, 0 0 5px ${config.color};
+      text-shadow: 0 0 3px #000, 0 0 5px ${color};
       line-height: 1;
       text-align: center;
+      ${isDead ? 'opacity: 0.6;' : ''}
     ">${config.icon}</div>`,
     className: '',
     iconSize: [24, 24],
@@ -39,7 +43,7 @@ const createFactionIcon = (faction: Faction) => {
   })
 }
 
-export default function GMMap({ players, center, zoom = 14 }: GMMapProps) {
+export default function GMMap({ players, center, zoom = 14, radiationZones = [], respawnZones = [] }: GMMapProps) {
   const playersWithLocation = players.filter(p => p.location?.latitude && p.location?.longitude)
   
   console.log('GMMap render:', { 
@@ -70,15 +74,16 @@ export default function GMMap({ players, center, zoom = 14 }: GMMapProps) {
       
       {playersWithLocation.map(player => {
         const config = FACTION_CONFIG[player.faction]
+        const isDead = (player as any).status === 'dead'
         return (
           <Marker
             key={player.id}
             position={[player.location.latitude, player.location.longitude]}
-            icon={createFactionIcon(player.faction)}
+            icon={createFactionIcon(player.faction, isDead)}
           >
             <Popup>
-              <div className="text-xs" style={{ color: config.color }}>
-                <div className="font-bold text-sm mb-1">{config.icon} {player.nickname}</div>
+              <div className="text-xs" style={{ color: isDead ? '#6b7280' : config.color }}>
+                <div className="font-bold text-sm mb-1">{config.icon} {player.nickname} {isDead ? '💀' : ''}</div>
                 <div className="text-gray-300">Faction: {config.name}</div>
                 <div className="text-gray-300">Lives: {player.lives}</div>
                 <div className="text-gray-300">Radiation: {player.radiation}</div>
@@ -93,6 +98,51 @@ export default function GMMap({ players, center, zoom = 14 }: GMMapProps) {
 
       {/* Trader markers */}
       <TraderMarkers />
+
+      {/* Radiation zones */}
+      {radiationZones.map(zone => (
+        <Circle
+          key={zone.id}
+          center={[zone.centerLat, zone.centerLng]}
+          radius={zone.radius}
+          pathOptions={{
+            color: '#eab308',
+            fillColor: '#eab308',
+            fillOpacity: 0.2,
+            weight: 2
+          }}
+        >
+          <Popup>
+            <div className="text-xs">
+              <div className="font-bold text-yellow-600">☢️ {zone.name}</div>
+              <div>Level: {zone.radiationLevel}</div>
+            </div>
+          </Popup>
+        </Circle>
+      ))}
+
+      {/* Respawn zones */}
+      {respawnZones.map(zone => (
+        <Circle
+          key={zone.id}
+          center={[zone.centerLat, zone.centerLng]}
+          radius={zone.radius}
+          pathOptions={{
+            color: '#22c55e',
+            fillColor: '#22c55e',
+            fillOpacity: 0.15,
+            weight: 2,
+            dashArray: '10, 10'
+          }}
+        >
+          <Popup>
+            <div className="text-xs">
+              <div className="font-bold text-green-600">🔄 {zone.name}</div>
+              <div>Respawn: {zone.respawnTimeSeconds}s</div>
+            </div>
+          </Popup>
+        </Circle>
+      ))}
     </MapContainer>
   )
 }

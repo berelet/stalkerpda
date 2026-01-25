@@ -15,6 +15,7 @@ interface MapProps {
   zoom?: number
   nearbyArtifacts?: NearbyArtifact[]
   respawnZones?: any[]
+  radiationZones?: any[]
   playerDead?: boolean
 }
 
@@ -49,6 +50,7 @@ export default function StalkerMap({
   zoom = 16, 
   nearbyArtifacts = [],
   respawnZones = [],
+  radiationZones = [],
   playerDead = false
 }: MapProps) {
   const [selectedArtifact, setSelectedArtifact] = useState<NearbyArtifact | null>(null)
@@ -106,6 +108,29 @@ export default function StalkerMap({
 
         {/* Quest markers */}
         <QuestMarkers markers={questMarkers} />
+
+        {/* Radiation zones */}
+        {radiationZones.map(zone => (
+          <Circle
+            key={zone.id}
+            center={[zone.centerLat || zone.center_lat, zone.centerLng || zone.center_lng]}
+            radius={zone.radius}
+            pathOptions={{
+              color: '#eab308',
+              fillColor: '#eab308',
+              fillOpacity: 0.2,
+              weight: 2
+            }}
+          >
+            <Popup>
+              <div className="text-xs">
+                <div className="font-bold text-yellow-600">☢️ RADIATION ZONE</div>
+                <div>{zone.name}</div>
+                <div>Level: {zone.radiationLevel || zone.radiation_level}</div>
+              </div>
+            </Popup>
+          </Circle>
+        ))}
 
         {/* Respawn zones */}
         {respawnZones.map(zone => (

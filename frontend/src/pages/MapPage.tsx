@@ -61,30 +61,36 @@ export default function MapPage() {
     console.log('[RADIATION STATE]', radiationUpdate)
   }, [radiationUpdate])
 
-  // Fetch all players for GM
+  // GM mode zones
+  const [gmRadiationZones, setGmRadiationZones] = useState<any[]>([])
+  const [gmRespawnZones, setGmRespawnZones] = useState<any[]>([])
+
+  // Fetch all players and zones for GM
   useEffect(() => {
     if (!gmMode) return
 
-    const fetchPlayers = async () => {
+    const fetchGmData = async () => {
       try {
-        const { data } = await api.get('/api/admin/locations')
-        console.log('Fetched players:', data.players)
-        console.log('Players with location:', data.players.filter((p: any) => p.location?.latitude))
-        setPlayers(data.players || [])
+        const [playersRes, radZonesRes, respawnZonesRes] = await Promise.all([
+          api.get('/api/admin/locations'),
+          api.get('/api/admin/zones/radiation'),
+          api.get('/api/admin/zones/respawn')
+        ])
+        setPlayers(playersRes.data.players || [])
+        setGmRadiationZones(radZonesRes.data.zones || [])
+        setGmRespawnZones(respawnZonesRes.data.zones || [])
+        console.log('[GM ZONES]', { rad: radZonesRes.data.zones, respawn: respawnZonesRes.data.zones })
         setLoadingPlayers(false)
       } catch (err) {
-        console.error('Failed to fetch players:', err)
+        console.error('Failed to fetch GM data:', err)
         setLoadingPlayers(false)
       }
     }
 
-    // Initial load
     setLoadingPlayers(true)
-    fetchPlayers()
+    fetchGmData()
     
-    // Update every 30s without showing loading
-    const interval = setInterval(fetchPlayers, 30000)
-
+    const interval = setInterval(fetchGmData, 30000)
     return () => clearInterval(interval)
   }, [gmMode])
 
@@ -225,6 +231,8 @@ export default function MapPage() {
             <GMMap 
               players={players}
               center={latitude && longitude ? [latitude, longitude] : undefined}
+              radiationZones={gmRadiationZones}
+              respawnZones={gmRespawnZones}
             />
           )
         ) : (
@@ -251,7 +259,8 @@ export default function MapPage() {
                   longitude={longitude} 
                   accuracy={accuracy || undefined}
                   nearbyArtifacts={playerStatus === 'dead' ? [] : nearbyArtifacts}
-                  respawnZones={respawnZones || []}
+                  respawnZones={gmMode ? gmRespawnZones : (respawnZones || [])}
+                  radiationZones={gmMode ? gmRadiationZones : []}
                   playerDead={playerStatus === 'dead'}
                 />
               </>
@@ -265,27 +274,64 @@ export default function MapPage() {
           <div className="text-pda-highlight">ACTIVE PLAYERS: {players.length}</div>
           <div className="grid grid-cols-2 gap-2">
             {Object.entries({
-              stalker: players.filter(p => p.faction === 'stalker').length,
-              bandit: players.filter(p => p.faction === 'bandit').length,
-              mercenary: players.filter(p => p.faction === 'mercenary').length,
-              duty: players.filter(p => p.faction === 'duty').length,
-              freedom: players.filter(p => p.faction === 'freedom').length,
-            }).map(([faction, count]) => (
-              <div key={faction} className="text-pda-text capitalize">
-                {faction}: {count}
+              stalker: { count: players.filter(p => p.faction === 'stalker').length, icon: '🔰', color: '#22c55e' },
+              bandit: { count: players.filter(p => p.faction === 'bandit').length, icon: '💀', color: '#ef4444' },
+              mercenary: { count: players.filter(p => p.faction === 'mercenary').length, icon: '💰', color: '#3b82f6' },
+              duty: { count: players.filter(p => p.faction === 'duty').length, icon: '🛡️', color: '#dc2626' },
+              freedom: { count: players.filter(p => p.faction === 'freedom').length, icon: '✊', color: '#22d3ee' },
+            }).map(([faction, { count, icon, color }]) => (
+              <div key={faction} className="flex items-center gap-1">
+                <span style={{ color }}>{icon}</span>
+                <span className="text-pda-text capitalize">{faction}: {count}</span>
               </div>
             ))}
+          </div>
+          <div className="border-t border-pda-primary/30 pt-2 mt-2">
+            <div className="text-pda-highlight mb-1">ZONES & MARKERS</div>
+            <div className="flex flex-wrap gap-3">
+              <div className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded-full bg-yellow-500/50 border border-yellow-500"></span>
+                <span className="text-pda-text">Radiation ({gmRadiationZones.length})</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded-full bg-green-500/30 border border-green-500 border-dashed"></span>
+                <span className="text-pda-text">Respawn ({gmRespawnZones.length})</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-purple-400 text-sm font-bold">$</span>
+                <span className="text-pda-text">Traders</span>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
         latitude && longitude && (
-          <div className="bg-pda-case-dark/90 border border-pda-primary/30 p-3 text-xs space-y-1">
-            <div className="text-pda-highlight">COORDINATES</div>
-            <div className="text-pda-text">LAT: {latitude.toFixed(6)}</div>
-            <div className="text-pda-text">LNG: {longitude.toFixed(6)}</div>
-            <div className="flex items-center justify-between">
-              <span className="text-pda-text/70">ACCURACY:</span>
-              <span className={signal.color}>±{accuracy?.toFixed(0)}m</span>
+          <div className="bg-pda-case-dark/90 border border-pda-primary/30 p-3 text-xs space-y-2">
+            <div>
+              <div className="text-pda-highlight">COORDINATES</div>
+              <div className="text-pda-text">LAT: {latitude.toFixed(6)}</div>
+              <div className="text-pda-text">LNG: {longitude.toFixed(6)}</div>
+              <div className="flex items-center justify-between">
+                <span className="text-pda-text/70">ACCURACY:</span>
+                <span className={signal.color}>±{accuracy?.toFixed(0)}m</span>
+              </div>
+            </div>
+            <div className="border-t border-pda-primary/30 pt-2">
+              <div className="text-pda-highlight mb-1">LEGEND</div>
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center gap-1">
+                  <span className="text-yellow-400">◆</span>
+                  <span className="text-pda-text">Artifacts</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-purple-400 font-bold">$</span>
+                  <span className="text-pda-text">Traders</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="w-3 h-3 rounded-full bg-green-500/30 border border-green-500 border-dashed"></span>
+                  <span className="text-pda-text">Respawn</span>
+                </div>
+              </div>
             </div>
           </div>
         )
