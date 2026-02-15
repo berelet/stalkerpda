@@ -127,7 +127,7 @@ export default function QuestsPage() {
 
   const getProgress = (q: Quest) => {
     if (!q.questData) return null
-    const { current_count, target_count, target_counts, current_counts, checkpoints, accumulated_time_seconds, required_time_minutes, visited } = q.questData
+    const { current_count, target_count, target_counts, current_counts, checkpoints, visited } = q.questData
     
     // Multiple artifact types
     if (target_counts && current_counts) {
@@ -138,8 +138,7 @@ export default function QuestsPage() {
     if (target_count) return `${current_count || 0}/${target_count}`
     if (checkpoints) {
       const visitedCount = checkpoints.filter((c: any) => c.visited).length
-      const timeProgress = Math.floor((accumulated_time_seconds || 0) / 60)
-      return `${visitedCount}/${checkpoints.length} pts, ${timeProgress}/${required_time_minutes}min`
+      return `${visitedCount}/${checkpoints.length} checkpoints`
     }
     if (visited !== undefined) return visited ? '✓ Visited' : 'Not visited'
     return null
