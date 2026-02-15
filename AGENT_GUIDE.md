@@ -3,15 +3,26 @@
 ## ⚠️ REQUIRED READING
 
 **Before working on this project, you MUST read:**
+
+### Step 1: Workflow & Needs System (ОБОВ'ЯЗКОВО)
+- `docs/CLAUDE_CODE_INSTRUCTIONS.md` - Інструкція для AI-асистента (сценарії роботи A/B/C/D)
+- `docs/needs/WORKFLOW.md` - Повний workflow розробки (8 етапів з апрув-гейтами)
+- `docs/needs/INDEX.md` - Реєстр всіх потреб (перевірити поточний стан)
+- `docs/needs/GLOSSARY.md` - Терміни проекту
+
+### Step 2: Game Specs (за потребою, при роботі з ігровими механіками)
 - `specs/game-mechanics/FINAL-SPEC.md` - Complete game mechanics specification
 - `specs/inventory-system-spec.md` - Inventory system v2.0 specification (2026-01-03)
-- `specs/quest-system-spec.md` - **NEW** Quest system specification (2026-01-11)
-- `specs/artifact-respawn-spec.md` - **NEW** Artifact respawn mechanics (2026-01-11)
+- `specs/quest-system-spec.md` - Quest system specification (2026-01-11)
+- `specs/artifact-respawn-spec.md` - Artifact respawn mechanics (2026-01-11)
 
 **Quick reference:**
 - `specs/quest-system-SUMMARY.md` - Quest system implementation checklist
+- `docs/needs/templates/` - Шаблони для створення нових потреб
 
-This document contains all game rules, formulas, and mechanics that must be followed.
+### ⚠️ Для нових фіч — слідувати WORKFLOW.md!
+Будь-яка нова функціональність оформлюється як NEED в `docs/needs/NEED-XXX-назва/`.
+Quickfix-и (баги, дрібні зміни) — як QUICKFIX в `docs/needs/QUICKFIX-XXX-назва/`.
 
 ## AWS Configuration
 
