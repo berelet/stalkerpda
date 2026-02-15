@@ -10,6 +10,7 @@ export interface QuestMarker {
   lng: number
   radius: number
   visited?: boolean
+  isNext?: boolean
   checkpointIndex?: number
 }
 
@@ -42,8 +43,9 @@ export function useActiveQuests() {
             })
           }
           
-          // Patrol quest - multiple checkpoints
+          // Patrol quest - multiple checkpoints (sequential)
           if (quest.questType === 'patrol' && quest.questData.checkpoints) {
+            const firstUnvisited = quest.questData.checkpoints.findIndex((cp: any) => !cp.visited)
             quest.questData.checkpoints.forEach((cp: any, idx: number) => {
               newMarkers.push({
                 questId: quest.id,
@@ -54,6 +56,7 @@ export function useActiveQuests() {
                 lng: cp.lng,
                 radius: cp.radius || 30,
                 visited: cp.visited,
+                isNext: idx === firstUnvisited,
                 checkpointIndex: idx + 1
               })
             })

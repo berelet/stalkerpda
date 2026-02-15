@@ -30,10 +30,6 @@ def login_handler(event, context):
         if not player or not verify_password(password, player['password_hash']):
             return error_response('Invalid credentials', 401, 'UNAUTHORIZED')
         
-        # Check if player is inactive (dead status = banned/disabled)
-        if player['status'] == 'dead':
-            return error_response('Account is inactive. Contact administrator.', 403, 'ACCOUNT_INACTIVE')
-        
         token = create_jwt_token(player['id'])
         
         response_data = {

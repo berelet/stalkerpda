@@ -51,7 +51,7 @@ export default function MapPage() {
   }, [])
 
   // Send location to server every 15 seconds (always, even in GM mode)
-  const { nearbyArtifacts, respawnZones, resurrectionUpdate, radiationUpdate } = useLocationTracking(
+  const { nearbyArtifacts, respawnZones, resurrectionUpdate, radiationUpdate, questCompleted, dismissQuestCompleted } = useLocationTracking(
     latitude && longitude ? { latitude, longitude, accuracy } : null,
     true
   )
@@ -335,6 +335,34 @@ export default function MapPage() {
             </div>
           </div>
         )
+      )}
+      {/* Quest Completed Popup */}
+      {questCompleted.length > 0 && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
+          <div className="bg-gray-900 border-2 border-green-500 rounded-lg p-6 mx-4 max-w-sm w-full text-center">
+            <div className="text-4xl mb-3">✅</div>
+            <h2 className="text-green-400 text-xl font-bold mb-4">QUEST COMPLETED!</h2>
+            {questCompleted.map(q => (
+              <div key={q.questId} className="mb-4">
+                <div className="text-pda-text text-lg mb-3">📜 {q.title}</div>
+                <div className="text-sm space-y-1">
+                  {q.reward > 0 && (
+                    <div className="text-yellow-400">💰 {q.reward.toLocaleString()}</div>
+                  )}
+                  {q.rewardReputation > 0 && (
+                    <div className="text-blue-400">⭐ +{q.rewardReputation} reputation</div>
+                  )}
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={dismissQuestCompleted}
+              className="mt-2 px-8 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded transition-colors"
+            >
+              OK
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

@@ -11,6 +11,7 @@
 | NEED-007 | [Radiation, Death & Respawn](NEED-007-radiation-death-respawn/README.md) | ✅ done |
 | NEED-008 | [Admin Panel (GM Dashboard)](NEED-008-admin-panel/README.md) | ✅ done |
 | NEED-009 | [Quest System](NEED-009-quest-system/README.md) | 🟡 done (backend) / pending (frontend) |
+| NEED-010 | [Patrol Quest v2 (Sequential Checkpoints)](NEED-010-patrol-quest-v2/README.md) | ✅ done |
 
 ## Бэклог
 Повний список бажаних фіч: [BACKLOG.md](./BACKLOG.md)

@@ -20,14 +20,19 @@ const visitedIcon = new Icon({
   popupAnchor: [0, -12]
 })
 
-function createCheckpointIcon(index: number, visited: boolean) {
-  const color = visited ? '#00ff00' : '#00bfff'
-  const strokeColor = visited ? '#008000' : '#0080ff'
+function createCheckpointIcon(index: number, status: 'visited' | 'active' | 'future') {
+  const colors = {
+    visited: { bg: '#00ff00', border: '#008000' },
+    active:  { bg: '#ffcc00', border: '#cc8800' },
+    future:  { bg: '#555555', border: '#333333' }
+  }
+  const { bg, border } = colors[status]
+  const label = status === 'visited' ? '✓' : index
   return new DivIcon({
     html: `<div style="
       width: 24px; height: 24px; 
-      background: ${color}; 
-      border: 2px solid ${strokeColor}; 
+      background: ${bg}; 
+      border: 2px solid ${border}; 
       border-radius: 50%; 
       display: flex; 
       align-items: center; 
@@ -35,7 +40,8 @@ function createCheckpointIcon(index: number, visited: boolean) {
       color: white;
       font-weight: bold;
       font-size: 12px;
-    ">${index}</div>`,
+      opacity: ${status === 'future' ? '0.5' : '1'};
+    ">${label}</div>`,
     iconSize: [24, 24],
     iconAnchor: [12, 12],
     className: ''
@@ -52,10 +58,10 @@ export default function QuestMarkers({ markers }: Props) {
             center={[marker.lat, marker.lng]}
             radius={marker.radius}
             pathOptions={{
-              color: marker.visited ? '#00ff00' : '#00bfff',
-              fillColor: marker.visited ? '#00ff00' : '#00bfff',
-              fillOpacity: 0.15,
-              weight: 2,
+              color: marker.visited ? '#00ff00' : marker.isNext ? '#ffcc00' : '#555555',
+              fillColor: marker.visited ? '#00ff00' : marker.isNext ? '#ffcc00' : '#555555',
+              fillOpacity: marker.isNext ? 0.2 : 0.1,
+              weight: marker.isNext ? 3 : 2,
               dashArray: marker.visited ? undefined : '5, 5'
             }}
           />
@@ -65,7 +71,10 @@ export default function QuestMarkers({ markers }: Props) {
             position={[marker.lat, marker.lng]}
             icon={
               marker.type === 'patrol_checkpoint'
-                ? createCheckpointIcon(marker.checkpointIndex || 0, marker.visited || false)
+                ? createCheckpointIcon(
+                    marker.checkpointIndex || 0,
+                    marker.visited ? 'visited' : marker.isNext ? 'active' : 'future'
+                  )
                 : marker.visited ? visitedIcon : questIcon
             }
           >

@@ -272,11 +272,14 @@ def accept_handler(event, context):
                 player_quest_id = str(uuid.uuid4())
                 cursor.execute("""
                     INSERT INTO contracts (id, type, quest_type, issuer_id, title, description, reward,
+                                          reward_reputation, reward_item_id,
                                           escrow_amount, quest_data, auto_complete, faction_restriction,
                                           status, accepted_by, accepted_at, expires_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, 0, %s, %s, %s, 'accepted', %s, NOW(), %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 0, %s, %s, %s, 'accepted', %s, NOW(), %s)
                 """, (player_quest_id, quest['quest_type'], quest['quest_type'], quest['issuer_id'],
-                      quest['title'], quest['description'], quest['reward'], json.dumps(quest_data),
+                      quest['title'], quest['description'], quest['reward'],
+                      quest['reward_reputation'], quest['reward_item_id'],
+                      json.dumps(quest_data),
                       quest['auto_complete'], quest['faction_restriction'], player_id, quest['expires_at']))
                 
                 log_quest_event(cursor, player_quest_id, player_id, 'accepted')
@@ -388,7 +391,7 @@ def create_handler(event, context):
                 elif quest_type == 'visit':
                     quest_data = {'target_lat': body.get('targetLat'), 'target_lng': body.get('targetLng'), 'target_radius': body.get('targetRadius', 20), 'visited': False}
                 elif quest_type == 'patrol':
-                    quest_data = {'checkpoints': body.get('checkpoints', []), 'required_time_minutes': body.get('requiredTimeMinutes', 15), 'accumulated_time_seconds': 0, 'checkpoint_visits': []}
+                    quest_data = {'checkpoints': body.get('checkpoints', []), 'checkpoint_visits': []}
                 elif quest_type == 'delivery':
                     quest_data = {'item_id': body.get('itemId'), 'delivery_lat': body.get('deliveryLat'), 'delivery_lng': body.get('deliveryLng'), 'delivery_radius': body.get('deliveryRadius', 10)}
                 

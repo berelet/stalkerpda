@@ -75,7 +75,6 @@ export default function QuestsPage() {
   const [visitLng, setVisitLng] = useState(30.52)
   const [visitRadius, setVisitRadius] = useState(20)
   const [checkpoints, setCheckpoints] = useState<Checkpoint[]>([])
-  const [patrolTime, setPatrolTime] = useState(15)
   const [mapCenter, setMapCenter] = useState<[number, number]>([50.45, 30.52])
 
   // Artifact types state
@@ -142,7 +141,6 @@ export default function QuestsPage() {
     }
     if (quest.questType === 'patrol' && qd.checkpoints) {
       setCheckpoints(qd.checkpoints.map((cp: any) => ({ lat: cp.lat, lng: cp.lng, radius: cp.radius || 30 })))
-      setPatrolTime(qd.required_time_minutes || 15)
     }
     if (quest.questType === 'artifact_collection' && qd.target_counts) {
       setSelectedArtifacts(Object.entries(qd.target_counts).map(([id, count]) => ({ id, count: count as number })))
@@ -169,8 +167,6 @@ export default function QuestsPage() {
       } else if (form.questType === 'patrol') {
         questData = { 
           checkpoints: checkpoints.map(cp => ({ lat: cp.lat, lng: cp.lng, radius: cp.radius, visited: false })),
-          required_time_minutes: patrolTime,
-          accumulated_time_seconds: editingQuest?.questData?.accumulated_time_seconds || 0,
           checkpoint_visits: editingQuest?.questData?.checkpoint_visits || []
         }
       }
@@ -493,15 +489,6 @@ export default function QuestsPage() {
                         <button type="button" onClick={() => setCheckpoints(checkpoints.slice(0, -1))} className="text-xs text-red-400 hover:text-red-300">Remove last</button>
                       )}
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-[#91b3ca] text-sm mb-1">Required Time (minutes)</label>
-                    <input
-                      type="number"
-                      value={patrolTime}
-                      onChange={e => setPatrolTime(parseInt(e.target.value) || 15)}
-                      className="w-full bg-[#1a2836] border border-[#233948] rounded px-3 py-2 text-white"
-                    />
                   </div>
                 </div>
               )}

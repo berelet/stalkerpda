@@ -276,30 +276,48 @@ def update_handler(event, context):
                 
                 # Update quest progress for patrol/visit quests
                 from src.utils.quest import update_patrol_progress, update_visit_progress, log_quest_event
+                from src.utils.reputation import add_reputation
                 
                 cursor.execute("""
-                    SELECT id, quest_type, quest_data, auto_complete FROM contracts
-                    WHERE accepted_by = %s AND status = 'accepted' AND failed = 0
-                      AND quest_type IN ('patrol', 'visit')
+                    SELECT c.id, c.quest_type, c.quest_data, c.auto_complete,
+                           c.reward, c.reward_reputation, c.reward_item_id, c.title,
+                           c.issuer_id, t.faction as trader_faction
+                    FROM contracts c
+                    LEFT JOIN traders t ON c.issuer_id = t.id
+                    WHERE c.accepted_by = %s AND c.status = 'accepted' AND c.failed = 0
+                      AND c.quest_type IN ('patrol', 'visit')
                 """, (player_id,))
                 
-                # Estimate delta time (assume 15 sec between updates)
-                delta_time = 15
+                quest_updates = []
+                quest_completed_list = []
                 
                 for quest in cursor.fetchall():
                     quest_data = json.loads(quest['quest_data']) if quest['quest_data'] else {}
+                    old_data = json.dumps(quest_data)
                     
                     if quest['quest_type'] == 'visit':
                         updated_data, completed = update_visit_progress(quest_data, latitude, longitude, accuracy)
                     else:  # patrol
-                        updated_data, completed = update_patrol_progress(quest_data, latitude, longitude, delta_time, accuracy)
+                        updated_data, completed = update_patrol_progress(quest_data, latitude, longitude, accuracy)
                     
-                    if updated_data != quest_data:
+                    if json.dumps(updated_data) != old_data:
                         cursor.execute(
                             "UPDATE contracts SET quest_data = %s WHERE id = %s",
                             (json.dumps(updated_data), quest['id'])
                         )
                         log_quest_event(cursor, quest['id'], player_id, 'progress', updated_data, 'location_update')
+                        
+                        # Track checkpoint progress for response
+                        if quest['quest_type'] == 'patrol':
+                            cps = updated_data.get('checkpoints', [])
+                            visited_count = sum(1 for c in cps if c.get('visited'))
+                            quest_updates.append({
+                                'questId': quest['id'],
+                                'type': 'checkpoint_reached',
+                                'checkpointIndex': visited_count - 1,
+                                'totalCheckpoints': len(cps),
+                                'visitedCount': visited_count
+                            })
                         
                         # Auto-complete if enabled and objectives met
                         if completed and quest['auto_complete']:
@@ -307,7 +325,31 @@ def update_handler(event, context):
                                 "UPDATE contracts SET status = 'completed', completed_at = NOW() WHERE id = %s",
                                 (quest['id'],)
                             )
+                            # Pay rewards
+                            reward_money = float(quest['reward'] or 0)
+                            if reward_money:
+                                cursor.execute("UPDATE players SET balance = balance + %s WHERE id = %s",
+                                              (reward_money, player_id))
+                            if quest['reward_reputation']:
+                                faction = quest['trader_faction'] or 'loner'
+                                add_reputation(cursor, player_id, quest['reward_reputation'], faction=faction)
+                            if quest['reward_item_id']:
+                                cursor.execute("""
+                                    INSERT INTO player_items (id, player_id, item_def_id, quantity)
+                                    VALUES (%s, %s, %s, 1)
+                                    ON DUPLICATE KEY UPDATE quantity = quantity + 1
+                                """, (str(uuid.uuid4()), player_id, quest['reward_item_id']))
+                            cursor.execute(
+                                "UPDATE players SET total_contracts_completed = total_contracts_completed + 1 WHERE id = %s",
+                                (player_id,))
                             log_quest_event(cursor, quest['id'], player_id, 'completed', updated_data, 'auto_complete')
+                            
+                            quest_completed_list.append({
+                                'questId': quest['id'],
+                                'title': quest['title'],
+                                'reward': reward_money,
+                                'rewardReputation': quest['reward_reputation'] or 0
+                            })
         
         response = {
             'success': True,
@@ -319,7 +361,9 @@ def update_handler(event, context):
             'nearbyArtifacts': nearby_artifacts,
             'radiationUpdate': radiation_update,
             'resurrectionUpdate': respawn_update,
-            'death': death_event
+            'death': death_event,
+            'questUpdates': quest_updates if quest_updates else None,
+            'questCompleted': quest_completed_list if quest_completed_list else None
         }
         
         return {

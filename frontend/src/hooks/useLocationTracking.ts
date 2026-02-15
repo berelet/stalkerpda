@@ -26,6 +26,21 @@ export interface NearbyArtifact {
   canPickup: boolean
 }
 
+interface QuestUpdate {
+  questId: string
+  type: string
+  checkpointIndex: number
+  totalCheckpoints: number
+  visitedCount: number
+}
+
+interface QuestCompleted {
+  questId: string
+  title: string
+  reward: number
+  rewardReputation: number
+}
+
 interface LocationResponse {
   success: boolean
   nearbyArtifacts: NearbyArtifact[]
@@ -49,6 +64,8 @@ interface LocationResponse {
     died: boolean
     reason?: string
   }
+  questUpdates?: QuestUpdate[]
+  questCompleted?: QuestCompleted[]
 }
 
 export const useLocationTracking = (location: LocationData | null, enabled = true) => {
@@ -59,6 +76,7 @@ export const useLocationTracking = (location: LocationData | null, enabled = tru
   const [controlPoints, setControlPoints] = useState<any[]>([])
   const [radiationUpdate, setRadiationUpdate] = useState<any>(null)
   const [resurrectionUpdate, setResurrectionUpdate] = useState<any>(null)
+  const [questCompleted, setQuestCompleted] = useState<QuestCompleted[]>([])
 
   useEffect(() => {
     if (!enabled || !location?.latitude || !location?.longitude) {
@@ -79,6 +97,11 @@ export const useLocationTracking = (location: LocationData | null, enabled = tru
         setControlPoints(data.currentZones?.controlPoints || [])
         setRadiationUpdate(data.radiationUpdate || null)
         setResurrectionUpdate(data.resurrectionUpdate || null)
+        
+        // Quest completed popup
+        if (data.questCompleted?.length) {
+          setQuestCompleted(data.questCompleted)
+        }
         
         // Debug logging
         if (data.radiationUpdate) {
@@ -114,12 +137,16 @@ export const useLocationTracking = (location: LocationData | null, enabled = tru
     }
   }, [location?.latitude, location?.longitude, location?.accuracy, enabled])
 
+  const dismissQuestCompleted = () => setQuestCompleted([])
+
   return { 
     nearbyArtifacts, 
     radiationZones, 
     respawnZones,
     controlPoints,
     radiationUpdate,
-    resurrectionUpdate
+    resurrectionUpdate,
+    questCompleted,
+    dismissQuestCompleted
   }
 }

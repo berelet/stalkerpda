@@ -61,40 +61,35 @@ def update_visit_progress(quest_data: Dict, player_lat: float, player_lng: float
     return quest_data, False
 
 
-def update_patrol_progress(quest_data: Dict, player_lat: float, player_lng: float, 
-                          delta_time_seconds: int, accuracy: float = 0) -> tuple[Dict, bool]:
+def update_patrol_progress(quest_data: Dict, player_lat: float, player_lng: float,
+                          accuracy: float = 0) -> tuple[Dict, bool]:
     """
-    Update patrol quest progress.
+    Update patrol quest progress (sequential checkpoints).
+    Only the next unvisited checkpoint can be activated.
     Returns (updated_quest_data, is_completed)
     """
     from src.utils.geo import is_within_radius
-    
+
     checkpoints = quest_data.get('checkpoints', [])
-    required_time = quest_data.get('required_time_minutes', 0) * 60
-    
-    # Check if player is in any checkpoint
-    in_checkpoint = False
-    for i, cp in enumerate(checkpoints):
-        if is_within_radius(player_lat, player_lng, cp['lat'], cp['lng'], cp.get('radius', 30), accuracy, 'quest_point'):
-            in_checkpoint = True
-            if not cp.get('visited'):
-                cp['visited'] = True
-                visits = quest_data.setdefault('checkpoint_visits', [])
-                visits.append({
-                    'checkpoint_index': i,
-                    'visited_at': datetime.utcnow().isoformat() + 'Z'
-                })
-            break
-    
-    # Accumulate time if in any checkpoint
-    if in_checkpoint:
-        quest_data['accumulated_time_seconds'] = quest_data.get('accumulated_time_seconds', 0) + delta_time_seconds
-    
-    # Check completion
+    if not checkpoints:
+        return quest_data, False
+
+    # Find first unvisited checkpoint
+    next_idx = next((i for i, cp in enumerate(checkpoints) if not cp.get('visited')), None)
+    if next_idx is None:
+        return quest_data, True  # All already visited
+
+    cp = checkpoints[next_idx]
+    if is_within_radius(player_lat, player_lng, cp['lat'], cp['lng'], cp.get('radius', 30), accuracy, 'quest_point'):
+        cp['visited'] = True
+        visits = quest_data.setdefault('checkpoint_visits', [])
+        visits.append({
+            'checkpoint_index': next_idx,
+            'visited_at': datetime.utcnow().isoformat() + 'Z'
+        })
+
     all_visited = all(cp.get('visited') for cp in checkpoints)
-    time_met = quest_data.get('accumulated_time_seconds', 0) >= required_time
-    
-    return quest_data, all_visited and time_met
+    return quest_data, all_visited
 
 
 def check_delivery_conditions(quest_data: Dict, player_lat: float, player_lng: float,
