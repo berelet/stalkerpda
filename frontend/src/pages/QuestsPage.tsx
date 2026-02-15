@@ -283,7 +283,7 @@ export default function QuestsPage() {
                   )}
                   {selectedQuest.questType === 'patrol' && (
                     <div className="text-pda-text">
-                      Visit {selectedQuest.questData.checkpoints?.length} checkpoints, spend {selectedQuest.questData.required_time_minutes} min
+                      Visit {selectedQuest.questData.checkpoints?.length} checkpoints
                       {tab === 'active' && <span className="text-pda-phosphor ml-2">{getProgress(selectedQuest)}</span>}
                     </div>
                   )}
