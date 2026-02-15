@@ -12,6 +12,7 @@
 | NEED-008 | [Admin Panel (GM Dashboard)](NEED-008-admin-panel/README.md) | ✅ done |
 | NEED-009 | [Quest System](NEED-009-quest-system/README.md) | 🟡 done (backend) / pending (frontend) |
 | NEED-010 | [Patrol Quest v2 (Sequential Checkpoints)](NEED-010-patrol-quest-v2/README.md) | ✅ done |
+| NEED-011 | [Quest List — Trader Locations & Accept Flow](NEED-011-quest-list-trader-locations/README.md) | 🟡 spec |
 
 ## Бэклог
 Повний список бажаних фіч: [BACKLOG.md](./BACKLOG.md)

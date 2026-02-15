@@ -21,6 +21,15 @@ MAX_ACTIVE_QUESTS = 5
 
 def _format_quest(q):
     """Format quest for API response"""
+    issuer = {
+        'id': q['issuer_id'],
+        'nickname': q.get('issuer_nickname') or q.get('trader_name')
+    }
+    if q.get('issuer_type'):
+        issuer['type'] = q['issuer_type']
+    if q.get('issuer_lat') is not None:
+        issuer['latitude'] = float(q['issuer_lat'])
+        issuer['longitude'] = float(q['issuer_lng'])
     return {
         'id': q['id'],
         'type': q['type'],
@@ -33,10 +42,7 @@ def _format_quest(q):
         'failedReason': q['failed_reason'],
         'autoComplete': bool(q['auto_complete']),
         'questData': json.loads(q['quest_data']) if q['quest_data'] else None,
-        'issuer': {
-            'id': q['issuer_id'],
-            'nickname': q.get('issuer_nickname') or q.get('trader_name')
-        },
+        'issuer': issuer,
         'factionRestriction': q['faction_restriction'],
         'expiresAt': q['expires_at'].isoformat() + 'Z' if q['expires_at'] else None,
         'acceptedAt': q['accepted_at'].isoformat() + 'Z' if q['accepted_at'] else None,
@@ -46,7 +52,7 @@ def _format_quest(q):
 
 @require_auth
 def list_available_handler(event, context):
-    """GET /api/quests - List available quests"""
+    """GET /api/quests - List available quests (only those linked to traders via trader_quests)"""
     try:
         player_id = event['player']['player_id']
         
@@ -56,12 +62,12 @@ def list_available_handler(event, context):
                 player = cursor.fetchone()
                 
                 cursor.execute("""
-                    SELECT c.*, 
-                           COALESCE(p.nickname, t.name) as issuer_nickname,
-                           t.name as trader_name
+                    SELECT DISTINCT c.*, 
+                           COALESCE(p2.nickname, 'System') as issuer_nickname
                     FROM contracts c
-                    LEFT JOIN players p ON c.issuer_id = p.id
-                    LEFT JOIN traders t ON c.issuer_id = t.id
+                    INNER JOIN trader_quests tq ON tq.quest_id = c.id AND tq.is_active = 1
+                    INNER JOIN traders t ON t.id = tq.trader_id AND t.is_active = 1 AND t.latitude IS NOT NULL
+                    LEFT JOIN players p2 ON c.issuer_id = p2.id
                     WHERE c.status = 'available'
                       AND c.quest_type IS NOT NULL
                       AND (c.faction_restriction IS NULL OR c.faction_restriction = %s)
@@ -70,11 +76,37 @@ def list_available_handler(event, context):
                     ORDER BY c.created_at DESC
                 """, (player['faction'],))
                 quests = cursor.fetchall()
+                
+                # Fetch traders for each quest
+                quest_ids = [q['id'] for q in quests]
+                traders_map = {}
+                if quest_ids:
+                    placeholders = ','.join(['%s'] * len(quest_ids))
+                    cursor.execute(f"""
+                        SELECT tq.quest_id, t.id, t.name, t.type, t.latitude, t.longitude
+                        FROM trader_quests tq
+                        JOIN traders t ON t.id = tq.trader_id AND t.is_active = 1
+                        WHERE tq.quest_id IN ({placeholders}) AND tq.is_active = 1
+                    """, quest_ids)
+                    for row in cursor.fetchall():
+                        traders_map.setdefault(row['quest_id'], []).append({
+                            'id': row['id'],
+                            'name': row['name'],
+                            'type': row['type'],
+                            'latitude': float(row['latitude']) if row['latitude'] else None,
+                            'longitude': float(row['longitude']) if row['longitude'] else None
+                        })
+                
+                result = []
+                for q in quests:
+                    fq = _format_quest(q)
+                    fq['traders'] = traders_map.get(q['id'], [])
+                    result.append(fq)
         
         return {
             'statusCode': 200,
             'headers': CORS_HEADERS,
-            'body': json.dumps({'quests': [_format_quest(q) for q in quests]})
+            'body': json.dumps({'quests': result})
         }
     except Exception as e:
         return {'statusCode': 500, 'headers': CORS_HEADERS,

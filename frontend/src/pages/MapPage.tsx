@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useGeolocation } from '../hooks/useGeolocation'
 import { useLocationTracking } from '../hooks/useLocationTracking'
 import StalkerMap from '../components/map/StalkerMap'
@@ -19,6 +20,10 @@ interface GMPlayer {
 }
 
 export default function MapPage() {
+  const [searchParams] = useSearchParams()
+  const focusLat = searchParams.get('lat') ? parseFloat(searchParams.get('lat')!) : null
+  const focusLng = searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : null
+  const focusZoom = searchParams.get('zoom') ? parseInt(searchParams.get('zoom')!) : undefined
   const { latitude, longitude, accuracy, error, loading } = useGeolocation(true)
   const [gmMode, setGmMode] = useState(false)
   const [players, setPlayers] = useState<GMPlayer[]>([])
@@ -255,9 +260,10 @@ export default function MapPage() {
             {latitude && longitude && (
               <>
                 <StalkerMap 
-                  latitude={latitude} 
-                  longitude={longitude} 
+                  latitude={focusLat || latitude} 
+                  longitude={focusLng || longitude} 
                   accuracy={accuracy || undefined}
+                  zoom={focusZoom}
                   nearbyArtifacts={playerStatus === 'dead' ? [] : nearbyArtifacts}
                   respawnZones={gmMode ? gmRespawnZones : (respawnZones || [])}
                   radiationZones={gmMode ? gmRadiationZones : []}

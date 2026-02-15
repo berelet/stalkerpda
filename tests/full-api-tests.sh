@@ -138,7 +138,8 @@ section "4. QUESTS TESTS"
 echo "4.1 Get available quests..."
 RESP=$(curl -s "$API_URL/api/quests" -H "Authorization: Bearer $TOKEN")
 if echo "$RESP" | jq -e '.quests' > /dev/null 2>&1; then
-  pass "Get available quests"
+  AVAIL_COUNT=$(echo "$RESP" | jq '.quests | length')
+  pass "Get available quests (count: $AVAIL_COUNT, only trader-linked)"
 else
   fail "Get available quests" "$RESP"
 fi
@@ -278,6 +279,16 @@ if [ -n "$TRADER_ID" ]; then
   fi
 else
   fail "Verify quest assigned" "No trader ID"
+fi
+
+echo "6.5b Available quests show trader info..."
+RESP=$(curl -s "$API_URL/api/quests" -H "Authorization: Bearer $TOKEN")
+HAS_TRADERS=$(echo "$RESP" | jq '[.quests[] | select(.traders | length > 0)] | length')
+if [ "$HAS_TRADERS" -gt 0 ]; then
+  TRADER_NAME=$(echo "$RESP" | jq -r '.quests[0].traders[0].name // empty')
+  pass "Available quests have traders (first: $TRADER_NAME)"
+else
+  fail "Available quests have traders" "No quests with traders found"
 fi
 
 echo "6.6 Admin: Get trader inventory..."

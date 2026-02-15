@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../services/api'
 
 interface Quest {
@@ -28,7 +29,8 @@ interface Quest {
   failed: boolean
   failedReason: string | null
   autoComplete: boolean
-  issuer: { id: string; nickname: string }
+  issuer: { id: string; nickname: string; type?: string; latitude?: number; longitude?: number }
+  traders?: { id: string; name: string; type: string; latitude: number; longitude: number }[]
   expiresAt: string | null
   acceptedAt: string | null
 }
@@ -37,6 +39,7 @@ type Tab = 'available' | 'active' | 'history'
 type HistoryFilter = 'all' | 'completed' | 'failed'
 
 export default function QuestsPage() {
+  const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('available')
   const [quests, setQuests] = useState<Quest[]>([])
   const [loading, setLoading] = useState(true)
@@ -74,19 +77,6 @@ export default function QuestsPage() {
   useEffect(() => {
     setPage(1) // Reset page when changing tab or filter
   }, [tab, historyFilter])
-
-  const handleAccept = async (questId: string) => {
-    setActionLoading(true)
-    try {
-      await api.post(`/api/quests/${questId}/accept`)
-      setSelectedQuest(null)
-      setTab('active')
-    } catch (error: any) {
-      alert(error.response?.data?.error?.message || 'Failed to accept quest')
-    } finally {
-      setActionLoading(false)
-    }
-  }
 
   const handleCancel = async (questId: string) => {
     if (!confirm('Cancel this quest? Progress will be lost.')) return
@@ -214,7 +204,9 @@ export default function QuestsPage() {
                 <span className="text-pda-amber text-sm">💰 {quest.reward.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-pda-text/70">From: {quest.issuer.nickname}</span>
+                <span className="text-pda-text/70">
+                  {quest.traders?.length ? `📍 ${quest.traders.map(t => t.name).join(', ')}` : `From: ${quest.issuer.nickname}`}
+                </span>
                 {tab === 'active' && getProgress(quest) && (
                   <span className="text-pda-phosphor">{getProgress(quest)}</span>
                 )}
@@ -307,6 +299,18 @@ export default function QuestsPage() {
                 <div className="text-pda-amber">💰 {selectedQuest.reward.toLocaleString()} credits</div>
               </div>
 
+              {/* Traders */}
+              {tab === 'available' && selectedQuest.traders?.length && (
+                <div className="bg-pda-case-dark p-2 mb-4 text-sm">
+                  <div className="text-pda-highlight text-xs mb-1">AVAILABLE AT:</div>
+                  {selectedQuest.traders.map(t => (
+                    <div key={t.id} className="text-pda-text flex items-center gap-1">
+                      📍 {t.name} <span className="text-pda-text/50">({t.type === 'npc' ? 'NPC Trader' : 'Bartender'})</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {selectedQuest.expiresAt && (
                 <div className="text-pda-text/50 text-xs mb-4">
                   Expires: {formatExpiry(selectedQuest.expiresAt)}
@@ -321,13 +325,12 @@ export default function QuestsPage() {
 
               {/* Actions */}
               <div className="flex gap-2">
-                {tab === 'available' && (
+                {tab === 'available' && selectedQuest.traders?.length && (
                   <button
-                    onClick={() => handleAccept(selectedQuest.id)}
-                    disabled={actionLoading}
-                    className="flex-1 bg-pda-primary/30 border border-pda-primary text-pda-phosphor py-2 text-sm font-pixel hover:bg-pda-primary/50 disabled:opacity-50"
+                    onClick={() => navigate(`/map?lat=${selectedQuest.traders![0].latitude}&lng=${selectedQuest.traders![0].longitude}&zoom=17`)}
+                    className="flex-1 bg-pda-primary/30 border border-pda-primary text-pda-phosphor py-2 text-sm font-pixel hover:bg-pda-primary/50"
                   >
-                    {actionLoading ? '...' : 'ACCEPT'}
+                    📍 SHOW ON MAP
                   </button>
                 )}
                 {tab === 'active' && !selectedQuest.autoComplete && (
