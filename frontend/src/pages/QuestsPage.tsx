@@ -304,8 +304,14 @@ export default function QuestsPage() {
                 <div className="bg-pda-case-dark p-2 mb-4 text-sm">
                   <div className="text-pda-highlight text-xs mb-1">AVAILABLE AT:</div>
                   {selectedQuest.traders.map(t => (
-                    <div key={t.id} className="text-pda-text flex items-center gap-1">
-                      📍 {t.name} <span className="text-pda-text/50">({t.type === 'npc' ? 'NPC Trader' : 'Bartender'})</span>
+                    <div key={t.id} className="text-pda-text flex items-center justify-between py-1">
+                      <span>📍 {t.name} <span className="text-pda-text/50">({t.type === 'npc' ? 'NPC Trader' : 'Bartender'})</span></span>
+                      <button
+                        onClick={() => navigate(`/map?lat=${t.latitude}&lng=${t.longitude}&zoom=17`)}
+                        className="px-2 py-0.5 bg-pda-primary/20 border border-pda-primary/50 text-pda-phosphor text-xs hover:bg-pda-primary/40"
+                      >
+                        MAP
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -325,14 +331,6 @@ export default function QuestsPage() {
 
               {/* Actions */}
               <div className="flex gap-2">
-                {tab === 'available' && selectedQuest.traders?.length && (
-                  <button
-                    onClick={() => navigate(`/map?lat=${selectedQuest.traders![0].latitude}&lng=${selectedQuest.traders![0].longitude}&zoom=17`)}
-                    className="flex-1 bg-pda-primary/30 border border-pda-primary text-pda-phosphor py-2 text-sm font-pixel hover:bg-pda-primary/50"
-                  >
-                    📍 SHOW ON MAP
-                  </button>
-                )}
                 {tab === 'active' && !selectedQuest.autoComplete && (
                   <button
                     onClick={() => handleClaim(selectedQuest.id)}
